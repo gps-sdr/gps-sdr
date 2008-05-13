@@ -1,0 +1,22 @@
+clear; clc; close all;
+
+chan = 0;
+A = get_chan(chan);
+
+
+packet.header = CHAN_HEADER;	
+packet.I[0] = I[0];
+packet.I[1] = I[1];
+packet.I[2] = I[2];
+packet.Q[0] = Q[0];
+packet.Q[1] = Q[1];
+packet.Q[2] = Q[2];
+packet.CN0 = CN0;
+packet.I_avg = P_avg;
+packet.Q_var = Q_var;
+packet.len = len;
+packet.code_nco = code_nco;
+packet.carrier_nco = carrier_nco;
+packet.w = aPLL.w;
+packet.x = aPLL.x;
+packet.z = aPLL.z;	
