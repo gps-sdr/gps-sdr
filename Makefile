@@ -42,7 +42,7 @@ OBJS =		init.o			\
 			acquisition.o 	\
 			keyboard.o 		\
 			correlator.o 	\
-			tracking.o		\
+			sv_select.o		\
 			channel.o		\
 			telemetry.o 	\
 			ephemeris.o 	\
@@ -85,12 +85,15 @@ acq_test: acq_test.o $(OBJS)
 %.o:%.s
 	$(ASM) $(CFLAGS) -c $< -o $@
 
-clean: minclean cleandoxy
+clean: minclean exclean cleandoxy
 	
 minclean:
 	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -o -name "*.out" -o -name "*.m~"  -o -name "*.tlm" \) -print`
 	@rm -rvf $(EXE)
 	
+exclean:	
+	@rm -rvf `find . \( -name "*.txt" -o -name "*.png" \) -print`
+		
 doxy:
 	doxygen ./documentation/Doxyfile	
 

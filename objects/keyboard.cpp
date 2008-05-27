@@ -35,7 +35,24 @@ void *Keyboard_Thread(void *_arg)
 		printf("%c",(char)key);
 		
 		if((char)key == 'Q')
+		{
 			grun = 0x0;
+		}
+			
+		if((char)key == 'n')
+		{
+			pTelemetry->Lock();
+			pTelemetry->SetDisplay(0);
+			pTelemetry->Unlock();
+		}
+						
+		if((char)key == 'a')
+		{
+			pTelemetry->Lock();
+			pTelemetry->SetDisplay(1);
+			pTelemetry->Unlock();
+		}
+			
 	}
 	
 	pthread_exit(0);

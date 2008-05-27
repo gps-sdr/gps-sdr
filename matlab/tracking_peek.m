@@ -60,18 +60,10 @@ ylabel('C/N_{0} Estimate (dB-Hz)')
 title('C/N_{0} Plot')
 print -dpng -r0 cn0.png
 
-% figure
-% plot(dt,P_avg)
-% grid on;
-% xlabel('Time (minutes)')
-% ylabel('I^2+Q^2 Estimate (dB-Hz)')
-% title('Power Plot')
-
-% figure
-% subplot(211)
-% plot(dt,fll)
-% grid on;
-% subplot(212)
-% plot(dt,pll)
-% grid on;
-
+figure
+plot(dt,pll)
+% grid on; axis([min(dt) max(dt) 20 55])
+xlabel('Time (minutes)')
+ylabel('C/N_{0} Estimate (dB-Hz)')
+title('C/N_{0} Plot')
+print -dpng -r0 cn0.png

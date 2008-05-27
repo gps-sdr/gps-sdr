@@ -40,7 +40,7 @@ EXTERN class Ephemeris		*pEphemeris;					//!< Extract the ephemeris
 EXTERN class Acquisition	*pAcquisition;					//!< Perform acquisitions
 EXTERN class Correlator		*pCorrelators[MAX_CHANNELS];	//!< Bank of correlators
 EXTERN class Channel		*pChannels[MAX_CHANNELS];		//!< Channels (uses correlations to close the loops)
-EXTERN class Tracking		*pTracking;						//!< Contains the channels and drives the channel objects
+EXTERN class SV_Select		*pSV_Select;					//!< Contains the channels and drives the channel objects
 EXTERN class Telemetry		*pTelemetry;					//!< Gather all relevant receiver data and pipe it to the seperate GUI app
 EXTERN class Post_Process	*pPost_Process;					//!< Drive the receiver from a recorded file
 /*----------------------------------------------------------------------------------------------*/
@@ -81,7 +81,9 @@ EXTERN int32 FIFO_2_Telem_P[2];								//!< Send FIFO status (% full, agc value)
 EXTERN int32 FIFO_2_PVT_P[2];								//!< Send number of incoming measurements to nav
 EXTERN int32 Acq_2_Telem_P[2];								//!< Send latest acquisition attempts to GUI
 EXTERN int32 PVT_2_Telem_P[2];								//!< Send latest nav solution to GUI
-EXTERN int32 Ephem_2_Telem_P[2];							//!< Send latest nav solution to GUI
+EXTERN int32 Ephem_2_Telem_P[2];							//!< Send latest ephemeris to GUI
+EXTERN int32 SV_Select_2_Telem_P[2];						//!< Send predicted SV states to GUI
+EXTERN int32 PVT_2_SV_Select_P[2];							//!< Output nav state to sat select
 /*----------------------------------------------------------------------------------------------*/
 
 

@@ -8,6 +8,8 @@
 
 close all; clear; clc;
 
+c = 2.99792458e8;
+
 fname = '../navigation.tlm';
 a = dlmread(fname);
 a = a(1:end-20,:);
@@ -27,7 +29,7 @@ a(:,4) = a(:,4) - tx;
 a(:,5) = a(:,5) - ty;
 a(:,6) = a(:,6) - tz;
 
-a = a(ind,:);
+a = a(ind(1):end,:);
 
 len = length(a);
 dt = [1:len]/60;
@@ -53,7 +55,7 @@ dt = [1:len]/60;
 figure
 subplot(211)
 plot(dt,a(:,1),'LineWidth',2)
-grid on; ylabel('Converged'); axis tight;
+grid on; ylabel('Converged'); axis([0 max(dt) 0 2])
 title('Nav Status')
 subplot(212)
 plot(dt,a(:,2),'LineWidth',2)
@@ -101,7 +103,7 @@ plot(dt,a(:,10))
 grid on; ylabel('p_{c} (s)')
 title('Clock Bias')
 subplot(212)
-plot(dt,a(:,11))
+plot(dt(2:end),c*diff(a(:,10)),'r',dt,a(:,11),'b')
 title('Clock Rate')
 grid on; ylabel('v_{c} (m/s)')
 xlabel('Minutes')
@@ -115,3 +117,4 @@ xlabel('Minutes')
 legend('gdop','hdop','tdop','vdop','pdop')
 title('DOPS')
 print -dpng -r0 dops
+

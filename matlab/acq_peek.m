@@ -7,6 +7,8 @@
 %   of the delay and Doppler estimate (type == 1).
 function acq_look(varargin)
 
+close all;
+
 if(nargin == 0)
     ALLSV = 1;
 elseif (nargin == 1)
@@ -125,7 +127,7 @@ else
                 figure(1)
                 subplot(411)
                 plot(1:vsize,delay,'b',paxis(ind),delay(ind),'ro')
-                title(sprintf('Pd = %f\n, Td = %f\n',sum(ind)/vsize,tdelay));
+                title(sprintf('Pd = %f\n, Td = %f\n',sum(ind)/vsize,tdelay),'FontSize',24);
                 grid on;
                 ylabel('Delay')            
                 axis([1 vsize 0 1023])
@@ -142,7 +144,12 @@ else
                 grid on;
                 ylabel('Power')
                 drawnow;
+                
+                pause(0.01);
+                
                 end
+                
+                pause(0.01);
 
             end
             

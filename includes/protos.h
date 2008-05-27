@@ -43,6 +43,7 @@ void wipeoff_gen(MIX *_dest, double _f, double _fs, int32 _samps);
 void resample(CPX *_dest, CPX *_source, double _fdest, double _fsource, int32 _samps);
 void downsample(CPX *_dest, CPX *_source, double _fdest, double _fsource, int32 _samps);
 int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale);
+int32 init_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale);
 int32 AtanApprox(int32 y, int32 x);
 int32 Atan2Approx(int32 y, int32 x);
 int32 Invert4x4(double A[4][4], double B[4][4]);

@@ -40,22 +40,22 @@ class Ephemeris
 
 		Ephemeris();
 		~Ephemeris();
-		void Parse(int32 _sv);						//!< Parse data message into decimal values
-		void ParsePage(int32 _sv_id);				//!< Parse almanac page		
-		void Import();								//!< Read data from channels
-		void Export();
-		void Start();								//!< Start the thread
-		void Stop();								//!< Stop the thread
-		Ephemeris_S getEphemeris(int32 _sv);		//!< Get this SV's ephemeris values
-		int32  		getIODE(int32 _sv);				//!< Get the current IODE for this SV
-		void Lock();
-		void Unlock();
-		void ClearSV(int32 _sv);					//!< Dump an ephemeris (usually from a detected cross-correlation)
-		void WriteEpehemeris();						//!< Write ephemerides to a txt file
-		void ReadEphemeris();						//!< Read ephemerides from the same txt file
-		void WriteAlmanac();						//!< Write alamanacs to a YUMA file
+		void Parse(int32 _sv);					//!< Parse data message into decimal values
+		void ParsePage(int32 _sv_id);			//!< Parse almanac page		
+		void Import();							//!< Read data from channels
+		void Export();							//!< Send stuff to the telemetry thread
+		void Start();							//!< Start the thread
+		void Stop();							//!< Stop the thread
+		void Lock();							//!< Lock critical data
+		void Unlock();							//!< Unlock critical data
+		void ClearSV(int32 _sv);				//!< Dump an ephemeris (usually from a detected cross-correlation)
+		void WriteEpehemeris();					//!< Write ephemerides to a txt file
+		void ReadEphemeris();					//!< Read ephemerides from the same txt file
+		void WriteAlmanac();					//!< Write alamanacs to a YUMA file
 		void ReadAlmanac();						//!< Write alamanacs from a YUMA file
-
+		Ephemeris_S getEphemeris(int32 _sv){return(ephemerides[_sv]);}	//!< Get this SV's ephemeris values
+		Almanac_S getAlmanac(int32 _sv){return(almanacs[_sv]);}			//!< Get this SV's almanac values
+		int32 getIODE(int32 _sv){return(iode_master[_sv]);}				//!< Get the current IODE for this SV	
 };
 
 #endif // EPHEMERIS_H

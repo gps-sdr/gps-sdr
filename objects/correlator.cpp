@@ -177,7 +177,7 @@ void Correlator::Inport()
 	pFIFO->Dequeue(chan, &packet);	
 	while(packet.count == last)
 	{
-		usleep(500);
+		usleep(gopt.corr_sleep);
 		pFIFO->Dequeue(chan, &packet);
 	}
 	
@@ -275,46 +275,81 @@ void Correlator::Correlate()
 void Correlator::TakeMeasurement()
 {
 
-	int32 lcv;
+	int32 lcv, tic;
+	Measurement_S *pmeas;
+	
+	tic = packet.measurement;
 
-	/* This crap is done to properly calculate velocity from ICP */
-	if(packet.measurement & 0x1)
-	{
-		meas.carrier_phase_prev			= meas.carrier_phase;
-		meas.carrier_phase 				= state.carrier_phase;
-		
-		/* This ensures the last MEASUREMENT_DELAY measurements are good */
-		for(lcv = 0; lcv < MEASUREMENT_DELAY-1; lcv++)
-			state.nav_history[lcv] = state.nav_history[lcv+1];
-				
-		state.nav_history[MEASUREMENT_DELAY-1] = state.navigate;				 
+	/* Step 1, copy in measurement from ICP_TICS ago */
+	memcpy(&meas, &meas_buff[(tic - ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND], sizeof(Measurement_S));	
 
-		meas.navigate = state.navigate;
-		for(lcv = 0; lcv < MEASUREMENT_DELAY-1; lcv++)	
-			if(state.nav_history[lcv] == false)
-				meas.navigate = false;
-		
-		write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_S));		
-	}
-	else
-	{
-		meas.chan				= chan;	
-		meas.code_phase 		= state.code_phase;
-		meas.code_phase_mod 	= state.code_phase_mod;
-		meas.carrier_phase_mod 	= state.carrier_phase_mod;
-		meas.code_nco 			= state.code_nco;
-		meas.carrier_nco 		= state.carrier_nco;
-		meas._1ms_epoch 		= state._1ms_epoch;
-		meas._20ms_epoch 		= state._20ms_epoch;
-		meas._z_count 			= state._z_count;
-		meas.sv					= state.sv;
-		meas.count				= packet.count;
-		
+	/* Get carrier phase prev from 2*ICP_TICKS ago */
+	meas.carrier_phase_prev = meas_buff[(tic - 2*ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND].carrier_phase;
+	
+	/* Get current carrier phase */
+	meas.carrier_phase = state.carrier_phase;
+	
+	/* Store rest of measurement in buffer to do the delay */
+	pmeas = &meas_buff[tic % (TICS_PER_SECOND)];
+	pmeas->chan				 = chan;		
+	pmeas->code_phase 		 = state.code_phase;
+	pmeas->code_phase_mod 	 = state.code_phase_mod;
+	pmeas->carrier_phase 	 = state.carrier_phase;
+	pmeas->carrier_phase_mod = state.carrier_phase_mod;
+	pmeas->code_nco 		 = state.code_nco;
+	pmeas->carrier_nco 		 = state.carrier_nco;
+	pmeas->_1ms_epoch 		 = state._1ms_epoch;
+	pmeas->_20ms_epoch 		 = state._20ms_epoch;
+	pmeas->_z_count 		 = state._z_count;
+	pmeas->sv				 = state.sv;
+	pmeas->count			 = packet.count;
+	pmeas->navigate			 = state.navigate;
+
+	/* Write over measurement */
+	write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_S));	
+
+
+//	/* This crap is done to properly calculate velocity from ICP */
+//	if(packet.measurement & 0x1)
+//	{
 //		meas.carrier_phase_prev			= meas.carrier_phase;
 //		meas.carrier_phase 				= state.carrier_phase;
+//		meas.navigate					= state.navigate;
+//						
+//		/* This ensures the last MEASUREMENT_DELAY measurements are good */
+////		for(lcv = 0; lcv < MEASUREMENT_DELAY-1; lcv++)
+////			state.nav_history[lcv] = state.nav_history[lcv+1];
+////				
+////		state.nav_history[MEASUREMENT_DELAY-1] = state.navigate;				 
+////
+////
+////		for(lcv = 0; lcv < MEASUREMENT_DELAY-1; lcv++)	
+////			if(state.nav_history[lcv] == false)
+////				meas.navigate = false;
+//		
 //		write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_S));		
-		
-	}
+//	}
+//	else
+//	{
+//		meas.chan				= chan;	
+//		meas.code_phase 		= state.code_phase;
+//		meas.code_phase_mod 	= state.code_phase_mod;
+//		meas.carrier_phase_mod 	= state.carrier_phase_mod;
+//		meas.code_nco 			= state.code_nco;
+//		meas.carrier_nco 		= state.carrier_nco;
+//		meas._1ms_epoch 		= state._1ms_epoch;
+//		meas._20ms_epoch 		= state._20ms_epoch;
+//		meas._z_count 			= state._z_count;
+//		meas.sv					= state.sv;
+//		meas.count				= packet.count;
+//		
+////		meas.carrier_phase_prev			= meas.carrier_phase;
+////		meas.carrier_phase 				= state.carrier_phase;
+////		write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_S));		
+//		
+//	}
+//	
+//	carrier_phase[???] = state.carrier_phase;
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -595,13 +630,14 @@ void Correlator::InitCorrelator()
 	double code_phase;
 	double dt;
 	int32 bin;
+	int32 inc;
 	
 	/* Update delay based on current packet count */
-	dt = packet.count - result.count;
-	dt *= .001;
+	dt = (double)packet.count - (double)result.count;
+	dt *= (double).001;
 	dt *= (double)result.doppler*(double)CODE_RATE/(double)L1;
-	result.delay += CODE_CHIPS + dt;
-	result.delay = fmod(result.delay, CODE_CHIPS);
+	result.delay += (double)CODE_CHIPS + dt;
+	result.delay = fmod(result.delay,(double) CODE_CHIPS);
 
 	state.sv					= result.sv;
 	state.navigate				= false;
@@ -609,8 +645,8 @@ void Correlator::InitCorrelator()
 	state.count					= 0;
 	state.scount				= 0;
 	state.code_phase 			= result.delay;
-	state.carrier_phase 		= 0;
 	state.code_phase_mod 		= result.delay;
+	state.carrier_phase 		= 0;
 	state.carrier_phase_mod 	= 0;
 	state.code_nco				= CODE_RATE + result.doppler*CODE_RATE/L1;
 	state.carrier_nco			= IF_FREQUENCY + result.doppler;
@@ -623,20 +659,25 @@ void Correlator::InitCorrelator()
 	nco_phase_inc = (uint32)floor((double)state.carrier_nco*(double)2.097152000000000e+03);
 	nco_phase = 0;	
 	
+	inc = (int32)floor(result.delay*2048.0/1023.0);
+	
 	/* Initialize the code bin pointers */
 	bin = (int32) floor((state.code_phase_mod + 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;
 	state.pcode[0] = code_rows[bin];
+	state.pcode[0] += inc;
 	state.cbin[0] = bin;
 	
 	bin = (int32) floor((state.code_phase_mod + 0.0)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;	
 	state.pcode[1] = code_rows[bin];
+	state.pcode[1] += inc;
 	state.cbin[1] = bin;
 	
 	bin = (int32) floor((state.code_phase_mod - 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;	
 	state.pcode[2] = code_rows[bin];
+	state.pcode[2] += inc;
 	state.cbin[2] = bin;
 	
 	/* Update pointer to pre-sampled sine vector */

@@ -53,7 +53,8 @@ Ephemeris::Ephemeris()
 	
 	/* Read in stored ephem/almanac on bootup */
 	//ReadEphemeris();
-	//ReadAlmanac();
+	ReadAlmanac();
+	Export();
 	
 	if(gopt.verbose)
 		printf("Creating Ephemeris\n");	
@@ -64,6 +65,8 @@ Ephemeris::Ephemeris()
 /*----------------------------------------------------------------------------------------------*/
 Ephemeris::~Ephemeris()
 {
+	
+	pthread_mutex_destroy(&mutex);
 	
 	if(gopt.verbose)
 		printf("Destructing Ephemeris\n");
@@ -255,30 +258,9 @@ void Ephemeris::Import()
 
 
 /*----------------------------------------------------------------------------------------------*/
-Ephemeris_S Ephemeris::getEphemeris(int32 sv)
-{
-
-	return(ephemerides[sv]);
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
 void Ephemeris::Export()
 {
 	write(Ephem_2_Telem_P[WRITE], &output_s, sizeof(Ephem_2_Telem_S));
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-
-int32 Ephemeris::getIODE(int32 sv)
-{
-
-	return(iode_master[sv]);
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -360,16 +342,16 @@ void Ephemeris::ParsePage(int32 _sv_id)
 		if(almanacs[_sv_id].decoded == false)
 		{
 	
-			almanacs[_sv_id].ecc		=	TWO_N21 * (double)( (almanac_data[_sv_id].page[2] >> 6)  & 0x0000FFFF );
-			almanacs[_sv_id].toa		=	TWO_P12 * (double)(	(almanac_data[_sv_id].page[3] >> 22) & 0x000000FF );
-			almanacs[_sv_id].sqrta		=	TWO_N11 * (double)( (almanac_data[_sv_id].page[5] >> 6)  & 0x00FFFFFF );
-			almanacs[_sv_id].in0		=	PI_TWO_N19 * (double)(	sbit(almanac_data[_sv_id].page[3] >> 6,  16) ) + 0.3 * PI;
-			almanacs[_sv_id].omd		=	PI_TWO_N38 * (double)(	sbit(almanac_data[_sv_id].page[4] >> 14, 16) );
-			almanacs[_sv_id].om0		=	PI_TWO_N23 * (double)(	sbit(almanac_data[_sv_id].page[6] >> 6,  24) );
-			almanacs[_sv_id].argp		=	PI_TWO_N23 * (double)(	sbit(almanac_data[_sv_id].page[7] >> 6,  24) );
-			almanacs[_sv_id].m0			=	PI_TWO_N23 * (double)(	sbit(almanac_data[_sv_id].page[8] >> 6,  24) );
-			almanacs[_sv_id].af0		=	TWO_N20 * (double)(	sbit(almanac_data[_sv_id].page[9] >> 11, 11) );
-			almanacs[_sv_id].af1		=	TWO_N38 * (double)(	sbit((almanac_data[_sv_id].page[9] >> 19 & 0x000007F8) + (almanac_data[_sv_id].page[9] >> 8 & 0x00000007),  11) );
+			almanacs[_sv_id].ecc		=	(double) TWO_N21 * (double)( (almanac_data[_sv_id].page[2] >> 6)  & 0x0000FFFF );
+			almanacs[_sv_id].toa		=	(double) TWO_P12 * (double)(	(almanac_data[_sv_id].page[3] >> 22) & 0x000000FF );
+			almanacs[_sv_id].sqrta		=	(double) TWO_N11 * (double)( (almanac_data[_sv_id].page[5] >> 6)  & 0x00FFFFFF );
+			almanacs[_sv_id].in0		=	(double) PI_TWO_N19 * (double)(	sbit(almanac_data[_sv_id].page[3] >> 6,  16) ) + (double)(54.0 * PI / 180.0);
+			almanacs[_sv_id].omd		=	(double) PI_TWO_N38 * (double)(	sbit(almanac_data[_sv_id].page[4] >> 14, 16) );
+			almanacs[_sv_id].om0		=	(double) PI_TWO_N23 * (double)(	sbit(almanac_data[_sv_id].page[6] >> 6,  24) );
+			almanacs[_sv_id].argp		=	(double) PI_TWO_N23 * (double)(	sbit(almanac_data[_sv_id].page[7] >> 6,  24) );
+			almanacs[_sv_id].m0			=	(double) PI_TWO_N23 * (double)(	sbit(almanac_data[_sv_id].page[8] >> 6,  24) );
+			almanacs[_sv_id].af1		=	(double) TWO_N38 * (double)(	sbit(almanac_data[_sv_id].page[9] >> 11, 11) );
+			almanacs[_sv_id].af0		=	(double) TWO_N20 * (double)(	sbit((almanac_data[_sv_id].page[9] >> 19 & 0x000007F8) + (almanac_data[_sv_id].page[9] >> 8 & 0x00000007),  11) );
 			almanacs[_sv_id].decoded = true;
 			output_s.avalid[_sv_id] = true;
 			
@@ -388,7 +370,7 @@ void Ephemeris::WriteAlmanac()
 	Almanac_S *p;
 	FILE *fp;
 	
-	fp = fopen("almanac.txt","wt");
+	fp = fopen("current.alm","wt");
 
 	if(fp != NULL)
 	{
@@ -398,19 +380,19 @@ void Ephemeris::WriteAlmanac()
 			if(p->decoded)
 			{
 				fprintf(fp,"******** Week %d almanac for PRN-%02d ********\n",p->week,lcv+1);
-				fprintf(fp,"ID:                         %02d\n",lcv+1);
-				fprintf(fp,"Health:                     %03d\n",p->health);
-				fprintf(fp,"Eccentricity:               %.10E\n",p->ecc);
-				fprintf(fp,"Time of Applicability(s):   %.4f\n",p->toa);
-				fprintf(fp,"Orbital Inclination(rad):   %.10E\n",p->in0);
-				fprintf(fp,"Rate of Right Ascen(r/s):   %.10E\n",p->omd);
-				fprintf(fp,"SQRT(A)  (m 1/2):           %.6f\n",p->sqrta);
-				fprintf(fp,"Right Ascen at Week(rad):   %0.10E\n",p->om0);
-				fprintf(fp,"Argument of Perigee(rad):   %.9f\n",p->argp);
-				fprintf(fp,"Mean Anom(rad):             %0.10e\n",p->m0);
-				fprintf(fp,"Af0(s):                     %0.10G\n",p->af0);
-				fprintf(fp,"Af1(s/s):                   %0.10g\n",p->af1);
-				fprintf(fp,"week:                       %4d\n",p->week);
+				fprintf(fp,"ID:                        % 02d\n",lcv+1);
+				fprintf(fp,"Health:                    % 03d\n",p->health);
+				fprintf(fp,"Eccentricity:              % .10E\n",p->ecc);
+				fprintf(fp,"Time of Applicability(s):  % .4f\n",p->toa);
+				fprintf(fp,"Orbital Inclination(rad):  % .10E\n",p->in0);
+				fprintf(fp,"Rate of Right Ascen(r/s):  % .10E\n",p->omd);
+				fprintf(fp,"SQRT(A)  (m 1/2):          % .6f\n",p->sqrta);
+				fprintf(fp,"Right Ascen at Week(rad):  % 0.10E\n",p->om0);
+				fprintf(fp,"Argument of Perigee(rad):  % .9f\n",p->argp);
+				fprintf(fp,"Mean Anom(rad):            % 0.10e\n",p->m0);
+				fprintf(fp,"Af0(s):                    % 0.10G\n",p->af0);
+				fprintf(fp,"Af1(s/s):                  % 0.10g\n",p->af1);
+				fprintf(fp,"week:                      % 4d\n",p->week);
 				fprintf(fp,"\n");
 			}
 		}
@@ -431,7 +413,7 @@ void Ephemeris::ReadAlmanac()
 	Almanac_S *p;
 	FILE *fp;
 	
-	fp = fopen("almanac.txt","rt");
+	fp = fopen("current.alm","rt");
 
 	if(fp != NULL)
 	{
@@ -441,6 +423,7 @@ void Ephemeris::ReadAlmanac()
 			fscanf(fp,"******** Week %d almanac for PRN-%02d ********\n",&week,&prn);
 			p = &almanacs[prn-1];
 			p->decoded = true;
+			output_s.avalid[prn-1] = true;
 			fscanf(fp,"ID:                         %02d\n",&prn);
 			fscanf(fp,"Health:                     %03d\n",&p->health);
 			fscanf(fp,"Eccentricity:               %lE\n",&p->ecc);

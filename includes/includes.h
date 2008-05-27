@@ -71,10 +71,10 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "acquisition.h"		//!< Acquisition
 #include "pvt.h"				//!< PVT solution
 #include "ephemeris.h"			//!< Ephemeris decode
-//#include "Almanac.h"			//!< Almanac decode
+//#include "almanac.h"			//!< Almanac decode
 #include "telemetry.h"			//!< Ncurses telemetry
-#include "tracking.h"			//!< Keeps track of the channels
-//#include "Ocean.h"			//!< Ocean reflection waveforms
+#include "sv_select.h"			//!< Drives acquisition/reacquisition process 
+//#include "ocean.h"			//!< Ocean reflection waveforms
 #include "post_process.h"		//!< Run the receiver from a file
 /*----------------------------------------------------------------------------------------------*/
 

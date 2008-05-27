@@ -21,7 +21,7 @@ a = a(1:12*len,:);
 dt = [1:len]/60;
 
 resid = reshape(a(:,6),[12 len]).';
-time = reshape(a(:,7),[12 len]).';
+rate = reshape(a(:,5),[12 len]).';
 
 figure
 plot(dt, resid)
@@ -31,3 +31,9 @@ ylabel('Residual (m)')
 xlabel('Minutes')
 title('Pseudorange Residuals')
 print -dpng -r0 residuals.png
+
+
+figure
+plot(dt, rate)
+% axis([1 max(dt) -200 200])
+grid on;

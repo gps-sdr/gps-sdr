@@ -31,19 +31,16 @@ typedef class PVT
 	private:
 	
 		pthread_t	thread;										//!< For the thread
+		pthread_mutex_t	mutex;									//!< Protect the following variable
 		PVT_2_Telem_S output;									//!< Structure to dump to telemetry
-		FIFO_2_Telem_S telem;
+		PVT_2_SV_Select_S sv_select;							//!< Structure to dump to telemetry
+		FIFO_2_Telem_S telem;									//!< Structure to dump to telemetry
 		
 		/* Satellite related stuff */
 		Ephemeris_S		ephemerides[MAX_CHANNELS];				//!< Decoded ephemerides
 		SV_Position_S	sv_positions[MAX_CHANNELS];				//!< Calculated SV positions
 		Pseudorange_S	pseudoranges[MAX_CHANNELS];				//!< Pseudoranges
 		Measurement_S	measurements[MAX_CHANNELS];				//!< Raw measurements
-
-		/* Navigation flags (should this be warpped up in a structure? */
-		int32 nav_ticks;		
-		int32 converged_ticks;
-		int32 nav_channels;
 
 		int32 good_channels[MAX_CHANNELS];						//!< Is this a good channel (used to navigate)
 		int32 master_iode[MAX_CHANNELS];						//!< Keep track of current IODE
@@ -52,8 +49,9 @@ typedef class PVT
 		int32 doppler_suspect[MAX_CHANNELS][MAX_CHANNELS];		//!< For the cross-corr check
 
 		/* Position and clock solutions */
-		Nav_Solution_S 		master_nav;
-		Clock_S				master_clock;
+		Nav_Solution_S	master_nav;								//!< Master nav sltn
+		Nav_Solution_S	temp_nav;								//!< Temp nav sltn	
+		Clock_S			master_clock;							//!< Master clock
 
 		/* Matrices used in nav solution */
 		double *alpha[MAX_CHANNELS];
@@ -69,7 +67,7 @@ typedef class PVT
 
 	public:
 
-		PVT();
+		PVT(int32 _mode);
 		~PVT();
 		void Inport();							//!< Read from the corr_2_nav pipe
 		void Start();							//!< Start the thread
@@ -84,21 +82,30 @@ typedef class PVT
 			void SV_Correct();					//!< correct SV positions for transit time 
 			void PseudoRange();					//!< calculate the pseudo ranges 
 			void FormModel();					//!< form direction cosine matrix and prediction residuals 
-			void ErrorCheck();					//!< check all SV's for bad measurements, etc 
-			void ErrorCheckCrossCorr();			//!< check for cross-correlation problem via ephemeris match 
+			bool PreErrorCheck();				//!< check all SV's for bad measurements, etc
+			void ErrorCheckCrossCorr();			//!< check for cross-correlation problem via ephemeris match			
+			bool PostErrorCheck();				//!< check all SV's for bad measurements, etc
+			bool Converged();					//!< declare convergence 
+			void Residuals();					//!< compute resdiuals
 			void PVT_Estimation();				//!< estimate PVT 
 			void ClockUpdate();					//!< update the clock			 		
 			void LatLong();						//!< convert ECEF coordinates to Lat,Long,Height 
 			void DOP();							//!< calculate DOP terms 
 			void ClockInit();					//!< initialize clock 
-			void Converged();					//!< declare convergence 
-			void Residuals();
 			void Raim();						//!< do a RAIM algorithm to look out for a bad SV
+			
+		void WritePVT();						//!< Write the PVT to disk for a later warm start
+		void ReadPVT();							//!< Read  the PVT from disk for a later warm start
 
+		Nav_Solution_S getNav(){return(master_nav);}
+		Clock_S getClock(){return(master_clock);}
+		
+		void Lock();
+		void Unlock();
 		void Export();							//!< Export Navigator data to appropriate pipes 
 		void Reset();							//!< Reset the Navigation solution to naught values 
 		void Reset(int32 _chan);				//!< Reset individual channel
-		double GPSTime();							//!< Calculate GPS time from PC's clock 
+		double GPSTime();						//!< Calculate GPS time from PC's clock 
 };
 
 

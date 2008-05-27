@@ -72,12 +72,10 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 /* Acquisition defines */
 /*----------------------------------------------------------------------------------------------*/
-#define	THRESH_STRONG			(1e7)		//!< Threshold for strong signal detection
-#define	THRESH_MEDIUM			(1e7)		//!< Threshold for medium signal detection
-#define	THRESH_WEAK				(1e7)		//!< Threshold for weak signal detection
-#define DOPPLER_STRONG			10000
-#define DOPPLER_MEDIUM			10000
-#define DOPPLER_WEAK			10000
+#define	THRESH_STRONG			(1.25e7)	//!< Threshold for strong signal detection
+#define	THRESH_MEDIUM			(1.0e7)		//!< Threshold for medium signal detection
+#define	THRESH_WEAK				(1.0e7)		//!< Threshold for weak signal detection
+#define MAX_DOPPLER				50000
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -88,8 +86,13 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define FRAME_SIZE_PLUS_2		(12)		//!< 10 words per frame, 12 = 10 + 2 
 #define MEASUREMENT_INT			(100)		//!< Packets of ~1ms data
 #define CODE_BINS				(20)		//!< Partial code offset bins code resolution -> 1 chip/X bins
-#define CARRIER_BINS			(1500)		//!< Number of pre-sampled carrier wipeoff bins
+#define CARRIER_BINS			(5000)		//!< Number of pre-sampled carrier wipeoff bins
 #define CARRIER_SPACING			(10)		//!< Spacing of bins (Hz)
+#define ICP_TICS				(5)			//!< Number of measurement ints (plus-minus) to calculate ICP, 
+											//!< this cannot exceed TICS_PER_SECOND/2 !!!!
+
+#define TICS_2_SECONDS			(MEASUREMENT_INT/1000)
+#define TICS_PER_SECOND			(1000/MEASUREMENT_INT)
 /*----------------------------------------------------------------------------------------------*/
 
 

@@ -218,19 +218,13 @@ void run_acq(Acquisition_test_options *_opt)
 					
 			/* Downsample to 2048 samps/ms */
 			downsample(buff, buff_in, SAMPLE_FREQUENCY, IF_SAMPLE_FREQUENCY, IF_SAMPS_MS*310); 
+
+			/* Init AGC scale value */		
+			init_agc(&buff[0], 10*SAMPS_MS, AGC_BITS, &agc_scale);
 		
-			/* AGC to 5 bits? */
-//			for(lcv = 0; lcv < 1000; lcv++)
-//			{
-//				run_agc(&buff[(lcv % 100)*SAMPS_MS], SAMPS_MS, AGC_BITS, &agc_scale);
-//				printf("AGC: %d\n",agc_scale);
-//			}
-						
-//			for(lcv = 0; lcv < 310; lcv++)
-//			{
-//				agc_scale = 1;		
-//				run_agc(&buff[lcv*SAMPS_MS], SAMPS_MS, AGC_BITS, &agc_scale);
-//			}
+			/* Now run it */						
+			for(lcv = 0; lcv < 310; lcv++)
+				run_agc(&buff[lcv*SAMPS_MS], SAMPS_MS, AGC_BITS, &agc_scale);
 		}
 	
 		/* Now do the hard work? */
@@ -313,10 +307,6 @@ void run_acq(Acquisition_test_options *_opt)
 		/* Now do the hard work? */
 		pAcquisition = new Acquisition(IF_SAMPLE_FREQUENCY, IF_FREQUENCY);
 
-//		printf("Opening pipe\n");
-//		npipe = open("/tmp/GPSPIPE",O_RDONLY);
-//		printf("Pipe open\n");
-
 		while(grun)
 		{
 			
@@ -334,9 +324,6 @@ void run_acq(Acquisition_test_options *_opt)
 			
 			close(npipe);
 
-			/* Downsample to 2048 samps/ms */
-			//downsample(buff, buff_in, SAMPLE_FREQUENCY, IF_SAMPLE_FREQUENCY, IF_SAMPS_MS*310); 
-			
 			for(lcv = 0; lcv < ms_per_read; lcv++)		
 				run_agc(&buff[lcv*SAMPS_MS], SAMPS_MS, AGC_BITS, &agc_scale);
 				
@@ -369,7 +356,6 @@ void run_acq(Acquisition_test_options *_opt)
 				/* Loop over all SVs */
 				for(lcv = 0; lcv < NUM_CODES; lcv++)
 				{
-					//printf("SV: %d\n",lcv);
 					switch(_opt->type)
 					{
 						case 0:
@@ -408,18 +394,20 @@ void run_acq(Acquisition_test_options *_opt)
 void print_results(Acq_Result_S *_results)
 {
 	int32 lcv;
-	FILE *fp;
+	FILE *fp = NULL;
 	Acq_Result_S *p;
 	
-	fp = fopen("./Output/Acq.txt","wa");
-	fseek(fp, 0x0, SEEK_SET);
-	for(lcv = 0; lcv < 	NUM_CODES; lcv++)
+	fp = fopen("Acq.txt","wa");
+	if(fp != NULL)
 	{
-		p = &_results[lcv];
-		fprintf(fp, "%02d,%02d,%10.2f,%10.0f,%15.0f,%1d\n",p->type,lcv+1,p->delay,p->doppler,p->magnitude,p->success);
+		fseek(fp, 0x0, SEEK_SET);
+		for(lcv = 0; lcv < 	NUM_CODES; lcv++)
+		{
+			p = &_results[lcv];
+			fprintf(fp, "%02d,%02d,%10.2f,%10.0f,%15.0f,%1d\n",p->type,lcv+1,p->delay,p->doppler,p->magnitude,p->success);
+		}
+		fclose(fp);
 	}
-	fclose(fp);
-	
 }
 
 

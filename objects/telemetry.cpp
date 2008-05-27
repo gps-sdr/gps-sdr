@@ -86,6 +86,7 @@ void Telemetry::Stop()
 Telemetry::Telemetry(int32 _ncurses_on)
 {
 	
+	display = 0;
 	count = 0;
 	ncurses_on = _ncurses_on;
 	
@@ -98,6 +99,9 @@ Telemetry::Telemetry(int32 _ncurses_on)
 		fp_sv = fopen("satellites.tlm","wt");
 	}
 	
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_unlock(&mutex);
+		
 	if(gopt.verbose)	
 		printf("Creating Telemetry\n");
 		
@@ -122,10 +126,28 @@ Telemetry::~Telemetry()
 	{
 		EndScreen();
 	}
+	
+	pthread_mutex_destroy(&mutex);
 
 	if(gopt.verbose)	
 		printf("Destroying Telemetry\n");
 
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Telemetry::Lock()
+{
+	pthread_mutex_lock(&mutex);
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Telemetry::Unlock()
+{
+	pthread_mutex_unlock(&mutex);
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -165,6 +187,10 @@ void Telemetry::Inport()
 	while(bread == sizeof(Ephem_2_Telem_S))
 		bread = read(Ephem_2_Telem_P[READ], &tEphem, sizeof(Ephem_2_Telem_S));
 	
+	bread = sizeof(SV_Select_2_Telem_S);
+	while(bread == sizeof(SV_Select_2_Telem_S))
+		bread = read(SV_Select_2_Telem_P[READ], &tSelect, sizeof(SV_Select_2_Telem_S));
+		
 	if(ncurses_on)
 		UpdateScreen();
 
@@ -219,10 +245,28 @@ void Telemetry::UpdateScreen()
 	mvwprintw(screen,line,1,"                                                                               ");
 	mvwprintw(screen,line++,1,"FIFO:\t%d\t%d\t%d\t%d",(FIFO_DEPTH-(tFIFO.head-tFIFO.tail)) % FIFO_DEPTH,tFIFO.count,tFIFO.agc_scale,tFIFO.overflw);
 	
-	PrintChan();
-	PrintSV();
-	PrintNav();
-	PrintEphem();
+	Lock();
+	
+	switch(display)
+	{
+		case 0:
+			PrintChan();
+			PrintSV();
+			PrintNav();
+			PrintEphem();
+			break;
+		case 1:
+			PrintAlmanac();
+			break;
+		default:
+			PrintChan();
+			PrintSV();
+			PrintNav();
+			PrintEphem();
+			break;
+	}	
+	
+	Unlock();
 	
 	wrefresh(screen);
 	   
@@ -249,6 +293,7 @@ void Telemetry::PrintChan()
 	
 	int32 lcv;
 	char buff[1024];
+	float cn0;
 	
 	line++;
 	mvwprintw(screen,line++,1,"Ch#  SV   CL       Faccel          Doppler     CN0   BE       Locks        Power   Active\n");  	
@@ -273,13 +318,15 @@ void Telemetry::PrintChan()
 		
 			buff[9] = '\0';
 			
+			cn0 = p->CN0 > p->CN0_old ? p->CN0 : p->CN0_old;
+			
 			mvwprintw(screen,line++,1,"%2d   %2d   %2d   %10.3f   %14.3f   %5.2f   %2d   %9s   %10.0f   %6d",	
 				lcv,  
 				(int32)p->sv+1,
 				(int32)p->len,
 				p->w,
 				p->carrier_nco - IF_FREQUENCY,
-				p->CN0,
+				cn0,
 				(int32)p->best_epoch,
 				buff,
 				p->P_avg,
@@ -323,7 +370,7 @@ void Telemetry::PrintSV()
 		
 		if((pNav->nsvs >> lcv) & 0x1)
 		{
-			mvwprintw(screen,line++,1,"%2d   %2d  %14.8f  %8.2f  %8.2f  %8.2f  %14.8f  %14.8f\n", 
+			mvwprintw(screen,line++,1,"%2d   %2d  %14.7f  %8.2f  %8.2f  %8.2f  %14.8f  %14.8f\n", 
 					lcv,  
 					(int32)pChan->sv+1,
 					pPos->time,
@@ -363,7 +410,7 @@ void Telemetry::PrintNav()
 		case 2:	strcpy(buff,"  WEAK"); break;
 	}
 	
-	mvwprintw(screen,line++,1,"Last Acq: %s, %02d, %7.2f, %7.0f, %10.0f\n",buff,tAcq.sv, tAcq.delay, tAcq.doppler, tAcq.magnitude);
+	mvwprintw(screen,line++,1,"Last Acq: %s, %02d, %7.2f, %7.0f, %10.0f\n",buff,tAcq.sv+1, tAcq.delay, tAcq.doppler, tAcq.magnitude);
 	
 	line++;
 	
@@ -394,6 +441,7 @@ void Telemetry::PrintNav()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::PrintEphem()
 {
+	
 	int32 k, lcv;
 	
 	k = 1;
@@ -426,6 +474,72 @@ void Telemetry::PrintEphem()
 		}
 	}	
 
+	
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Telemetry::PrintAlmanac()
+{
+	
+	int32 lcv, nvis, ntrack;
+	float v_elev, elev, azim;
+	Acq_Predicted_S *psv;
+	line++;
+	
+	nvis = 0;
+	ntrack = 0;
+	
+	switch(tSelect.mode)
+	{
+		case 0:	mvwprintw(screen,line++,1,"Acq Mode:\t  COLD\n");	break;
+		case 1: mvwprintw(screen,line++,1,"Acq Mode:\t  WARM\n");	break;
+		case 2:	mvwprintw(screen,line++,1,"Acq Mode:\t   HOT\n");	break;
+		default:mvwprintw(screen,line++,1,"Acq Mode:\t  COLD\n");	break;
+	}
+
+
+	for(lcv = 0; lcv < NUM_CODES; lcv++)
+	{
+		
+		psv =  &tSelect.sv_predicted[lcv];
+		if(psv->visible) nvis++;
+		if(psv->tracked) ntrack++;
+						
+	}
+
+	mvwprintw(screen,line++,1,"Mask Angle:\t%6.2f\n",tSelect.mask_angle*(180/PI));
+	mvwprintw(screen,line++,1,"Visible:\t%6d\n",nvis);
+	mvwprintw(screen,line++,1,"Tracked:\t%6d\n",ntrack);
+	line++;
+	mvwprintw(screen,line++,1,"SV        Elev        Azim     Doppler           Delay   Visible    Tracked\n");
+	mvwprintw(screen,line++,1,"---------------------------------------------------------------------------\n");
+	
+	for(lcv = 0; lcv < NUM_CODES; lcv++)
+	{
+		psv =  &tSelect.sv_predicted[lcv];
+		elev = psv->elev*180/PI;
+		azim = psv->azim*180/PI;
+		v_elev = psv->v_elev*180/PI;
+		
+		if(elev != 0.0)
+		{
+			if(psv->visible && psv->tracked)
+				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %10.2f  %14.8f       YES        YES\n",lcv+1,elev,v_elev,azim,psv->doppler,psv->delay);
+				
+			if(psv->visible && !psv->tracked)
+				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %10.2f  %14.8f       YES         NO\n",lcv+1,elev,v_elev,azim,psv->doppler,psv->delay);
+				
+			if(!psv->visible && psv->tracked)
+				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %10.2f  %14.8f        NO        YES\n",lcv+1,elev,v_elev,azim,psv->doppler,psv->delay);
+				
+			if(!psv->visible && !psv->tracked)
+				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %10.2f  %14.8f        NO         NO\n",lcv+1,elev,v_elev,azim,psv->doppler,psv->delay);
+		}
+		else
+				mvwprintw(screen,line++,1,"--  ----------  ----------  ----------  --------------       ---        ---\n");
+	}
 	
 }
 /*----------------------------------------------------------------------------------------------*/

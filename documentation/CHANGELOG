@@ -42,3 +42,20 @@ which from my car experiment is a needed feature!
 After reading more about the DBS-RX I changed the default values in usrp_sdr.cpp. By widening the Max2118's filter from 2 MHz to 10 MHz the phase noise 
 in the down-conversion greatly decreases. Previously the max CN0 you would see would be 46 dB-Hz, now CN0's on the order of 53 dB-Hz are estimated. Also a partial
 implementation of almanac decoding is complete, changes found in ephemeris.cpp.
+
+
+05/14/2008 3.0.15a
+
+Added in Doppler mask to acquisition to help prevent acquisition of cross correlations from high CN0 SVs. Most interesting I was acquiring and tracking cross
+correlations from SVs from MEDIUM signal acquisitions! Whoa! Changes found in channel.cpp and acquisition.cpp. Added a routine called init_agc to quickly initialize
+the AGC instead of slowly converging, found in misc.cpp. Also tracking.cpp was renamed sat_select.cpp in preperation for the warm-start/almanac directed
+acquisition.
+
+
+05/27/2008 3.0.16a
+
+SV_Select.cpp completed! Simple model calculates elevation mask based on earth blockage (function of altitude). Also added in ability to perform a warm start. This requires
+that the file current.alm and lastpvt.txt reside in the directory of execution. current.alm is a YUMA format almanac available from the site 
+http://www.navcen.uscg.gov/GPS/almanacs.htm. The warm start requires that the PC clock is close to UTC and the time zone is set correctly. The warm start
+can be enabled with the "-w" flag to the executable. Note that if the almanac or pvt load fails then the receiver will fall back to a cold start mode, 
+which is the default behaviour.

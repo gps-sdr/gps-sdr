@@ -60,6 +60,8 @@ typedef struct _Options_S
 	int32	ncurses;					//!< Use ncurses display
 	int32	doppler_min;				//!< Set minimum Doppler
 	int32	doppler_max;				//!< Set maximum Doppler
+	int32	corr_sleep;					//!< How long to correlators should sleep
+	int32	startup;					//!< Startup warm/cold
 	char	filename_direct[1024];		//!< Skyview filename
 	char	filename_reflected[1024];	//!< Reflected filename
 	
@@ -106,6 +108,7 @@ typedef struct _Acq_Result_S
 	int32 sv;			//!< SV number
 	int32 type;			//!< Strong, medium, or weak
 	int32 success;		//!< Did we declare detection?
+	int32 antenna;		//!< antenna number
 	float delay;		//!< Delay in chips
 	float doppler;		//!< Doppler in Hz
 	float magnitude;	//!< Magnitude
@@ -120,11 +123,12 @@ typedef struct _Acq_Request_S
 	
 	int32 corr;			//!< which correlator
 	int32 count;		//!< packet tag
-	int32 state;		//!< request started, IF data collected, request compelete
+	int32 state;		//!< request started, IF data collected, request complete
 	int32 sv;			//!< look for this SV
 	int32 mindopp;		//!< minimum Doppler
 	int32 maxdopp;		//!< maximum Doppler
 	int32 type;			//!< type (STRONG/MEDIUM/WEAK)
+	int32 antenna;		//!< antenna number
 	
 } Acq_Request_S;
 /*----------------------------------------------------------------------------------------------*/
@@ -187,22 +191,22 @@ typedef struct _Correlator_State_S
 typedef struct _Measurement_S
 {
 	
-	double	code_time;			//!< The code time
-	double 	code_phase; 		//!< Code phase (chips) 
-	double 	carrier_phase;		//!< Carrier phase (cycles)
-	double 	carrier_phase_prev;	//!< Carrier phase prev (cycles)
+	double	code_time;					//!< The code time
+	double 	code_phase; 				//!< Code phase (chips) 
+	double 	carrier_phase;				//!< Carrier phase (cycles)
+	double 	carrier_phase_prev;			//!< Carrier phase prev (cycles)
 	double 	carrier_phase_prev_prev;	//!< Carrier phase prev prev (cycles)
-	double 	code_phase_mod;		//!< Code phase (chips), mod 1023
-	double 	carrier_phase_mod;	//!< Carrier phase (cycles), mod 1
-	double 	code_nco;			//!< Code NCO
-	double 	carrier_nco;		//!< Carrier NCO
-	int32  	_1ms_epoch;			//!< _1ms_epoch
-	int32  	_20ms_epoch;		//!< _20ms_epoch
-	int32	_z_count;			//!< The z count
-	int32 	navigate;			//!< This has been tagged as a good measurement
-	int32	sv;					//!< For this sv
-	int32	chan;				//!< For this channel
-	int32 	count;				//!< Corresponds to this tic
+	double 	code_phase_mod;				//!< Code phase (chips), mod 1023
+	double 	carrier_phase_mod;			//!< Carrier phase (cycles), mod 1
+	double 	code_nco;					//!< Code NCO
+	double 	carrier_nco;				//!< Carrier NCO
+	int32  	_1ms_epoch;					//!< _1ms_epoch
+	int32  	_20ms_epoch;				//!< _20ms_epoch
+	int32	_z_count;					//!< The z count
+	int32 	navigate;					//!< This has been tagged as a good measurement
+	int32	sv;							//!< For this sv
+	int32	chan;						//!< For this channel
+	int32 	count;						//!< Corresponds to this tic
 	
 } Measurement_S;
 
@@ -245,38 +249,39 @@ typedef struct _Delay_lock_loop
 typedef struct _Chan_Packet_S
 {
 	
-	float header;
-	float chan;
-	float sv;
-	float bit_lock;
-	float frame_lock;
-	float subframe;
-	float best_epoch;
-	float count;
-	float len;	
-	float I[3];
-	float Q[3];
-	float I_avg;
-	float Q_var;
-	float P_avg;
-	float CN0;
-	float code_nco;
-	float carrier_nco;
-	float fll_lock;
-	float pll_lock;
-	float fll_lock_ticks;
-	float w;
-	float x;
-	float z;	
+	float header;				//!< Header flag
+	float chan;					//!< Channel number
+	float sv;					//!< SV number
+	float bit_lock;				//!< Bit lock flag
+	float frame_lock;			//!< Frame lock flag
+	float subframe;				//!< Current subframe
+	float best_epoch;			//!< Data bit position
+	float count;				//!< Number of ms this channel has been active
+	float len;					//!< Correlation length (ms)
+	float I[3];					//!< Inphase correlations
+	float Q[3];					//!< Quadrature correlations
+	float I_avg;				//!< I average
+	float Q_var;				//!< Q variance
+	float P_avg;				//!< Power average
+	float CN0;					//!< New CN0 estimate
+	float CN0_old;				//!< Old school CN0 estimate
+	float code_nco;				//!< Code NCO state
+	float carrier_nco;			//!< Carrier NCO state
+	float fll_lock;				//!< fll_lock value
+	float pll_lock;				//!< pll_lock value
+	float fll_lock_ticks;		//!< Number of continuous fll locks
+	float w;					//!< acceleration accumulator state
+	float x;					//!< velocity accumulator state
+	float z;					//!< proportional feedback to NCO
 
 } Chan_Packet_S;
 
 
 typedef struct _Chan_2_Ephem_S {
 
-	int32 sv;
-	int32 subframe;
-	uint32 word_buff[FRAME_SIZE_PLUS_2];
+	int32 sv;					//!< SV number
+	int32 subframe;				//!< Subframe number
+	uint32 word_buff[FRAME_SIZE_PLUS_2]; //!< Raw binary values
 
 } Chan_2_Ephem_S;
 /*----------------------------------------------------------------------------------------------*/
@@ -382,7 +387,7 @@ typedef struct _Almanac_Data_S
 } 	Almanac_Data_S;
 /*----------------------------------------------------------------------------------------------*/
 
-/* Navigator Structs */
+/* PVT Structs */
 /*----------------------------------------------------------------------------------------------*/
 /*! \ingroup STRUCTS
 	Raw PVT Navigation Solution
@@ -399,10 +404,10 @@ typedef struct _Nav_Solution_S
 	double vz;			//!< vz in meters/sec 
 	
 	double time;		//!< time in seconds 
-	double clock_bias;	//!< clock bias 
-	double clock_rate;  //!< clock rate 
-	double latitude;	//!< latitude in decimal degrees 
-	double longitude;	//!< longitude in decimal degrees 
+	double clock_bias;	//!< clock bias in seconds
+	double clock_rate;  //!< clock rate in meters/second
+	double latitude;	//!< latitude in decimal radians 
+	double longitude;	//!< longitude in decimal radians 
 	double altitude;	//!< height in meters 
 	
 	double gdop;		//!< geometric dilution of precision 
@@ -411,9 +416,15 @@ typedef struct _Nav_Solution_S
 	double hdop;		//!< hdop diultion of precision 
 	double vdop;		//!< vertical dilution of precision 
 	
+	int32 nsvs;			//!< This is a mask, not a number
 	int32 converged;	//!< declare convergence 
 	int32 tic;			//!< global_tic associated with this solution
-	int32 nsvs;	
+	
+	int32 stale_ticks;			//!< count the number of tics since the last good sltn
+	int32 converged_ticks;		//!< count number of converged tics
+	int32 nav_channels;			//!< count number of SVs used in last PVT estimation
+	int32 initial_convergence;	//!< Flag set ONCE if the first convergence has occured
+	
 	int32 chanmap[MAX_CHANNELS];
 
 } Nav_Solution_S;
@@ -426,12 +437,11 @@ typedef struct _Pseudorange_S
 	
 	double time;			//!< pseudorange in seconds 
 	double time_rate;		//!< pseudorange rate in sec/sec 
-
 	double meters;			//!< pseudorange in meters 
 	double meters_rate;		//!< pseudorange rate in meters/sec 
-
 	double residual;		//!< residual in meters 
 	double time_uncorrected;//!< raw pseudorange measurements 
+	double previous;		//!< from previous step, used for err check
 
 } Pseudorange_S;
 
@@ -453,6 +463,9 @@ typedef struct _SV_Position_S
 	double frequency_bias;	//!< SV clock rate bias
 	double transit_time;	//!< Time of flight from SV to receiver
 	double time;			//!< Time used in SV position calculation
+	double latitude;		//!< Latitude using WGS-84 ellipsoid in decimal radians 
+	double longitude;		//!< Longitude using WGS-84 ellipsoid in decimal radians 
+	double altitude;		//!< height in meters
 
 } SV_Position_S;
 
@@ -476,6 +489,25 @@ typedef struct _Clock_S
 /*----------------------------------------------------------------------------------------------*/
 
 
+/* Structs associated with sv_select object */
+/*----------------------------------------------------------------------------------------------*/
+typedef struct _Acq_Predicted_S
+{
+	
+	int32 sv;					//!< SV number
+	int32 visible;				//!< Should the SV be visible?
+	int32 tracked;				//!< Is it being tracked?
+	float elev;					//!< Predicted elev (degrees)
+	float azim;					//!< Predicted azim (degrees)
+	float v_elev;				//!< Elevation of vehicle relative to SV
+	float v_azim;				//!< Azimuth of vehice relative to SV
+	float delay;				//!< Predicted delay (seconds)
+	float doppler;				//!< Predicated doppler (Hz)
+	
+} Acq_Predicted_S;
+/*----------------------------------------------------------------------------------------------*/
+
+
 /* Structs associated with the telemetry object */
 /*----------------------------------------------------------------------------------------------*/
 typedef struct _FIFO_2_Telem_S
@@ -491,10 +523,10 @@ typedef struct _FIFO_2_Telem_S
 	 	
 } FIFO_2_Telem_S;
 
-
 /* Make an alias */
 typedef _Acq_Result_S Acq_2_Telem_S;
 
+/* Make an alias */
 typedef _Chan_Packet_S Trak_2_Telem_S;
 
 typedef struct _Ephem_2_Telem_S 
@@ -517,6 +549,26 @@ typedef struct _PVT_2_Telem_S
 	Measurement_S	measurements[MAX_CHANNELS];
 	
 } PVT_2_Telem_S;
+
+
+typedef struct _PVT_2_SV_Select_S
+{
+	
+	Nav_Solution_S 	master_nav;
+	Clock_S 		master_clock;
+	
+} PVT_2_SV_Select_S;
+
+typedef struct _SV_Select_2_Telem_S
+{
+	
+	int32 type;
+	int32 mode;
+	float mask_angle;
+	Acq_Predicted_S	sv_predicted[NUM_CODES];
+	
+} SV_Select_2_Telem_S;
 /*----------------------------------------------------------------------------------------------*/
+
 
 #endif /* STRUCTS_H_ */

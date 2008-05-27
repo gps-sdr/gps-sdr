@@ -25,12 +25,12 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "includes.h"
 
-#define FREQ_LOCK_POINTS (256)
+#define FREQ_LOCK_POINTS (512)
 
 typedef class Channel
 {
 
-	friend class Tracking;
+	friend class SV_Select;
 
 	private:
 
@@ -64,8 +64,6 @@ typedef class Channel
 		int32 I[3];				//!< Inphase correlations
 		int32 Q[3];				//!< Quadrature correlations
 		int32 P[3];				//!< Power
-		int32 Id;
-		int32 Qd;
 		int32 I_prev;			//!< Previous I prompt correlation
 		int32 Q_prev;			//!< Previous Q prompt correlation
 		float Ip_prev;	
@@ -73,6 +71,7 @@ typedef class Channel
 		float Q_var;			//!< Variance of Q
 		float P_avg;			//!< Moving average of P
 		float CN0;				//!< Current CN0 estimate
+		float CN0_old;			//!< Old CN0 estimate (used to detect meta stable loop convergence)
 		float NP;				//!< New CN0 estimate thing		
 		/*----------------------------------------------------------------------------------------------*/
 
@@ -81,6 +80,7 @@ typedef class Channel
 		bool  bit_lock;			//!< Bitlock
 		bool  bit_lock_pend;	//!< Pending to send _1ms_epoch reset command to correlator
 		int32 bit_lock_ticks;	//!< Number of ticks in attempted bit lock
+		int32 bit_lock_reset;	//!< Number of ticks since last change in best epoch
 		int32 I_sum20;			//!< I prompt sum for past 20 ms
 		int32 Q_sum20;			//!< Q prompt sum for past 20 ms
 		int32 I_buff[20];		//!< I for last 20 ms
@@ -142,7 +142,10 @@ typedef class Channel
 		void Export();									//!< Return NCO command to correlator
 		Chan_Packet_S getPacket();
 		void Accum(Correlation_S *corr, NCO_Command_S *_feedback);	//!< Process an accumulation
-		float getCN0(){return(CN0);}	
+		float getCN0(){return(CN0);}
+		float getNCO(){return(carrier_nco);}
+		float getActive(){return(active);}	
+		int32 getSV(){return(sv);}
 };
 
 #endif /* Channel_H */

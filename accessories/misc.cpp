@@ -95,10 +95,10 @@ void sine_gen(CPX *_dest, double _f, double _fs, int32 _samps)
 	
 	int32 lcv;
 	int16 c, s;
-	double phase, phase_step;
+	float phase, phase_step;
 	
 	phase = 0;
-	phase_step = (double)TWO_PI*_f/_fs;
+	phase_step = (float)TWO_PI*_f/_fs;
 	
 	for(lcv = 0; lcv < _samps; lcv++)
 	{
@@ -120,10 +120,10 @@ void sine_gen(CPX *_dest, double _f, double _fs, int32 _samps, double _p)
 	
 	int32 lcv;
 	int16 c, s;
-	double phase, phase_step;
+	float phase, phase_step;
 	
 	phase = _p;
-	phase_step = (double)TWO_PI*_f/_fs;
+	phase_step = (float)TWO_PI*_f/_fs;
 	
 	for(lcv = 0; lcv < _samps; lcv++)
 	{
@@ -148,10 +148,10 @@ void wipeoff_gen(MIX *_dest, double _f, double _fs, int32 _samps)
 
 	int32 lcv;
 	int16 c, s;
-	double phase, phase_step;
+	float phase, phase_step;
 
 	phase = 0;
-	phase_step = (double)TWO_PI*_f/_fs;
+	phase_step = (float)TWO_PI*_f/_fs;
 	
 	for(lcv = 0; lcv < _samps; lcv++)
 	{
@@ -279,7 +279,6 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 		p[lcv] = val;
 	}
 
-	
 	/* Count the number of "overflows" in buffer */
 	max = 1 << bits; num = 0;
 	for(lcv = 0; lcv < 2*_samps; lcv++)
@@ -304,8 +303,41 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 		
 	if(scale[0] < 1)
 		scale[0] = 1;
-		
+
 	return(num);
+	
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+/*! 
+ * Get a rough first guess of scale value to quickly initialize agc 
+ * */
+int32 init_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
+{
+	int32 lcv;
+	int16 *p;
+	int32 max;
+	
+	p = (int16 *)&_buff[0];
+
+	max = 0;
+	for(lcv = 0; lcv < 2*_samps; lcv++)
+	{
+		if(abs(p[lcv]) > max)
+			max = abs(p[lcv]);
+	}	
+
+	if(max < (1 << AGC_BITS))
+		max = 1 << AGC_BITS;
+	
+	if(max > (1 << (15+AGC_BITS)))
+		max = (1 << (15+AGC_BITS));
+
+	scale[0] = max;
+		
+	return(0);
 	
 }
 /*----------------------------------------------------------------------------------------------*/

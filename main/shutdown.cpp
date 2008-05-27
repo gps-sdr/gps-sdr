@@ -30,11 +30,13 @@ void Thread_Shutdown(void)
 	int32 lcv;
 	
 	/* Start the keyboard thread to handle user input from stdio */
-	//pKeyboard->Stop();
+	pKeyboard->Stop();
 
 	/* Stop the telemetry */
 	write(FIFO_2_Telem_P[WRITE], &buff, sizeof(FIFO_2_Telem_S));
 	write(PVT_2_Telem_P[WRITE], &buff, sizeof(PVT_2_Telem_S));
+	write(SV_Select_2_Telem_P[WRITE], &buff, sizeof(SV_Select_2_Telem_S));
+	write(PVT_2_SV_Select_P[WRITE], &buff, sizeof(PVT_2_SV_Select_S));
 	pTelemetry->Stop();	
 
 	/* Stop the FIFO */
@@ -60,7 +62,7 @@ void Thread_Shutdown(void)
 	
 	/* Stop the tracking */
 	write(Trak_2_Acq_P[WRITE], &buff, sizeof(Acq_Request_S));	
-	pTracking->Stop();
+	pSV_Select->Stop();
 		
 	/* Stop spoofing my named pipe yo */
 	if(gopt.post_process)
@@ -129,7 +131,7 @@ void Object_Shutdown(void)
 	delete pAcquisition;
 	delete pEphemeris;
 	delete pFIFO;
-	delete pTracking;
+	delete pSV_Select;
 	delete pTelemetry;
 	delete pPVT;
 	

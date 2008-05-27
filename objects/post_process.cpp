@@ -62,23 +62,14 @@ Post_Process::Post_Process(char *_fname)
 	fread(buff_in, sizeof(CPX), 310*IF_SAMPS_MS, fp);
 	
 	/* Rewind the data */
-	fseek(fp,0x0,SEEK_SET);
+	fseek(fp, 0x0, SEEK_SET);
 			
 	/* Downsample to 2048 samps/ms */
 	downsample(buff, buff_in, SAMPLE_FREQUENCY, IF_SAMPLE_FREQUENCY, IF_SAMPS_MS*310); 
 
-	agc_scale = 1 << AGC_BITS;
-
-	/* AGC to 5 bits? */
-	for(lcv = 0; lcv < 1000; lcv++)
-	{
-		fread(&buff_in[0], sizeof(CPX), SAMPS_MS, fp);
-		run_agc(&buff_in[0], SAMPS_MS, AGC_BITS, &agc_scale);
-	}
+	/* Init the AGC scale value */
+	init_agc(&buff[0], SAMPS_MS, AGC_BITS, &agc_scale);
 	
-	/* Rewind the data */
-	fseek(fp,0x0,SEEK_SET);
-
 	/* Now actually run the AGC */		
 	for(lcv = 0; lcv < 310; lcv++)		
 		run_agc(&buff[lcv*SAMPS_MS], SAMPS_MS, AGC_BITS, &agc_scale);	
@@ -185,7 +176,7 @@ void Post_Process::Export()
 //	}	
 //	
 	write(npipe, &buff[0], sizeof(CPX)*IF_SAMPS_MS);
-	usleep(1000);
+	usleep(250);
 }
 /*----------------------------------------------------------------------------------------------*/
 

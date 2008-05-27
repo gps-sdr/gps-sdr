@@ -43,12 +43,17 @@ class Correlator
 		Correlation_S  		corr;					//!< Resulting correlation
 		Correlator_State_S	state;					//!< Correlator states
 		Measurement_S		meas;					//!< Measurements to dump
+		Measurement_S		meas_buff[TICS_PER_SECOND];	//!< Measurements to dump
 		Channel 			*aChannel;				//!< Get this correlators channel
 		
 		/* This  is important, the following array is large and is constant, so it is 
 		 * shared among all instances of this class */
 		 static CPX *sine_table;
 		 static CPX **sine_rows;
+		 
+		 /* This is used to wipeoff the carrier rate (ie range acceleration) */
+		 static CPX *accel_table;
+		 static CPX **accel_rows;
 //		static CPX			sine_table[(2*CARRIER_BINS+1)*2*SAMPS_MS];	//!< Hold the sine lookup table [2*CARRIER_BINS+1][2*SAMPS_MS];
 //		static CPX			*sine_rows[2*CARRIER_BINS+1];				//!< Row pointers to above
 		
@@ -58,7 +63,6 @@ class Correlator
 		CPX					lookup[SAMPS_MS];
 		uint32				nco_phase_inc;
 		uint32				nco_phase;
-		
 		
 	public:
 

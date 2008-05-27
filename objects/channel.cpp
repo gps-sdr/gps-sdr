@@ -81,20 +81,21 @@ void Channel::Clear()
 	memset(&aDLL, 0x0, sizeof(Delay_lock_loop));
 	
 	/* Correlations */
-	I[0] = I[1] = I[2] = 0;
-	Q[0] = Q[1] = Q[2] = 0;
-	P[0] = P[1] = P[2] = 0;
-	I_prev = Q_prev = 0;
-	I_avg = 0;
-	Q_var = 0;
+	I[0] = I[1] = I[2] = 1;
+	Q[0] = Q[1] = Q[2] = 1;
+	P[0] = P[1] = P[2] = 1;
+	I_prev = Q_prev = 1;		//Important to prevent divide by zero
+	I_avg = 1;
+	Q_var = 1;
 	P_avg = 1e4;
-	CN0 = 0;
+	CN0 = 15;
 	NP = 10;
 	
 	/* Bit lock stuff */
 	bit_lock = false;
 	bit_lock_pend = false;
 	bit_lock_ticks = 0;
+	bit_lock_reset = 0;
 	I_sum20 = 0;
 	Q_sum20 = 0;
 	memset(&I_buff, 0x0, 20*sizeof(int32));
@@ -154,7 +155,7 @@ void Channel::Start(int32 _sv, Acq_Result_S result, int32 _corr_len)
 			PLL_W(30.0);
 			break;
 		case 20:
-			PLL_W(30.0);
+			PLL_W(18.0);
 			break;
 		default:
 			PLL_W(30.0);
@@ -200,8 +201,8 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	Q_buff[_1ms_epoch] = corr->Q[1];
 	
 	/* Lowpass filter */
-	P_buff[_1ms_epoch] = (63*P_buff[_1ms_epoch]	+ (I_sum20>>6)*(I_sum20>>6)	+ (Q_sum20>>6)*(Q_sum20>>6)+32)>>6; 
-
+	P_buff[_1ms_epoch] = (63*P_buff[_1ms_epoch]	+ (I_sum20>>6)*(I_sum20>>6)	+ (Q_sum20>>6)*(Q_sum20>>6)+32)>>6;
+	
 	/* Dump accumulation and do tracking according to integration length */
 	if(((_1ms_epoch + 1) % len) == 0)
 	{
@@ -256,7 +257,7 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 //	else
 //		_feedback->navigate = false;
 	
-	if(P[1] > 2.5e4)
+	if((P[1] > 5e4) && converged)
 		_feedback->navigate = navigate;
 	else
 		_feedback->navigate = false;
@@ -278,15 +279,6 @@ void Channel::DumpAccum()
 	P[0] = I[0]*I[0]+Q[0]*Q[0];		
 	P[1] = I[1]*I[1]+Q[1]*Q[1];
 	P[2] = I[2]*I[2]+Q[2]*Q[2];
-	
-	Id = I[1]*I[1] - Q[1]*Q[1];
-	Qd = I[1]*Q[1] + Q[1]*I[1];	
-	Id >>= 1;
-	Qd >>= 1;
-	
-	Id = I[1];
-	Qd = Q[1];
-
 
 	/* First do estimate of frequency offset via FFT */
 	if(freq_lock == false)
@@ -305,7 +297,7 @@ void Channel::DumpAccum()
 	P_avg += ((float)P[1]/float(len) - P_avg) * .01;
 
 	/* Try out new CN0 estimate, PG 393 of Global Positioning System, Theory and Applications */
-	if((_1ms_epoch == 19))
+	if((_1ms_epoch == 19) && freq_lock)
 	{
 		NBP = I_sum20*I_sum20 + Q_sum20*Q_sum20;
 		WBP = 0;
@@ -318,14 +310,22 @@ void Channel::DumpAccum()
 			 
 		if((NP - 1.0)/(20.0 - NP) > 0.0)
 			CN0 = 10*log10((NP - 1.0)/(20.0 - NP)) + 30.0 + .25;
-	}	
+			
+		if(CN0 < 15.0)
+		{
+			CN0 = 15.0;
+		}
+	}
+	
+	/* Old school CN0 */
+	CN0_old = 10*log10(I_avg*I_avg/(2*Q_var)) - 10*log10(aPLL.t);	
 
 	/* Dump pertinent data */
 	Error();
 	
 	/* Save Previous Correlations for Loops */
-	I_prev = Id;
-	Q_prev = Qd;
+	I_prev = I[1];
+	Q_prev = Q[1];
 	
 	/* Zero out the correlations */
 	I[0] = I[1] = I[2] = 0;
@@ -342,16 +342,21 @@ void Channel::FrequencyLock()
 	int32 it, qt;
 	int32 max, mind, lcv;
 	float df;
-	
-	fft_buff[freq_lock_ticks].i = I[1];
-	fft_buff[freq_lock_ticks].q = Q[1];
+	int32 *p;
+		
+	it = I[1] >> 6;
+	qt = Q[1] >> 6;
+
+	/* First frequency double to remove data bits */	
+	fft_buff[freq_lock_ticks].i = (int16)(it*it - qt*qt);
+	fft_buff[freq_lock_ticks].q = (int16)(2*it*qt);    
 	
 	freq_lock_ticks++;
 	
 	if(freq_lock_ticks >= FREQ_LOCK_POINTS)
 	{
-		/* First frequency double to remove data bits */
-		sse_cmuls(&fft_buff[0], &fft_buff[0], FREQ_LOCK_POINTS, 10);
+
+		p = (int32 *)&fft_buff[0];
 		
 		/* Now do the FFT */
 		pFFT->doFFT(&fft_buff[0], true);
@@ -361,14 +366,21 @@ void Channel::FrequencyLock()
 		
 		/* Get peak */
 		max = mind = 0;
-		x86_max((int32 *)&fft_buff[0], &mind, &max, FREQ_LOCK_POINTS);
+		for(lcv = 0; lcv < FREQ_LOCK_POINTS; lcv++)
+		{
+			if(p[lcv] > max)
+			{
+				max = p[lcv];
+				mind = lcv;
+			}
+		}
 			
 		/* Positive and negative frequency adjustment */
 		if(mind >= (FREQ_LOCK_POINTS/2))
 			mind -= FREQ_LOCK_POINTS;
 		
 		/* Convert to frequency correction */
-		df = 1000.0/(2.0*(float)len); 	// Bandwidth of FFT
+		df = 1000.0/((float)2.0*len);	// Bandwidth of FFT
 		df /= (float)FREQ_LOCK_POINTS;	// Spacing of FFT bins
 		df *= (float)mind;				// Convert to frequency offset
 		
@@ -380,6 +392,7 @@ void Channel::FrequencyLock()
 		code_nco = CODE_RATE + ((carrier_nco - IF_FREQUENCY)*CODE_RATE/L1);
 		
 		freq_lock = true;
+		freq_lock_ticks = 0;
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -415,36 +428,41 @@ void Channel::PLL()
 	df = dp = 0;
 
 	/* FLL discriminator */	
-	//if((_1ms_epoch+1) != len) // For FLL I & Qs must not cross data bit transition
+	dot = 	  I[1]*I_prev + Q[1]*Q_prev;
+	cross =  -I[1]*Q_prev + Q[1]*I_prev;
+		
+	if((dot != 0.0) && (cross != 0.0))
 	{
-		dot = 	  Id*I_prev + Qd*Q_prev;
-		cross =  -Id*Q_prev + Qd*I_prev;
 		df = atan(dot/cross);
 		df /= (aPLL.t * 360);
 	}
 		
 	/* PLL discriminator */
-	if(I[1] == 0)
-		dp = 0;
-	else
+	if(I[1] != 0)
+	{
 		dp = atan((float)Q[1]/(float)I[1])/TWO_PI;
+	}
 
 	/* Lock indicators */
 	aPLL.pll_lock += (dp - aPLL.pll_lock) * .1;
+	aPLL.pll_lock = dp;
 	aPLL.fll_lock += (cross/P_avg - aPLL.fll_lock) * .1;
 
 	/* Swap modes */	
-//	if(fabs(aPLL.fll_lock) < 0.2*len)
+//	if(fabs(aPLL.fll_lock) < 0.25*len)
 //		aPLL.fll_lock_ticks++;
 //	else
 //		aPLL.fll_lock_ticks = 0;
 //
-//	if(aPLL.fll_lock_ticks > 200)
+//	if(aPLL.fll_lock_ticks > 20)
 //		df = 0;
 //	else
 //		dp = 0;	
 
-	df = 0;
+	if(count < 5000)
+		dp = 0;
+	else
+		df = 0;
 
 	/* 3rd order PLL wioth 2nd order FLL assist */
 	aPLL.w += aPLL.t * (aPLL.w0p3 * dp + aPLL.w0f2 * df);
@@ -489,7 +507,7 @@ void Channel::BitLock()
 	uint32 best_sum;
 
 	/* Set bitlock threshold */
-	thresh = 4000;
+	thresh = 5000;
 	
 	if((_1ms_epoch == 19) && freq_lock)
 	{
@@ -509,6 +527,7 @@ void Channel::BitLock()
 			/* If the epoch has changed */
 			if(new_epoch != best_epoch)
 			{
+				bit_lock_reset = 0;
 				bit_lock_ticks = 0;
 				best_epoch = new_epoch;					
 			}
@@ -566,7 +585,7 @@ void Channel::BitLock()
 
 	/* Always do this */
 	bit_lock_ticks++;
-		
+	bit_lock_reset++;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -871,7 +890,7 @@ void Channel::PLL_W(float _bw)
 {
 	
 	aPLL.PLLBW = _bw;
-	aPLL.FLLBW = 250;
+	aPLL.FLLBW = 50.0;
 	
 	aPLL.b3 = 2.40;
 	aPLL.a3 = 1.10;
@@ -891,13 +910,17 @@ void Channel::PLL_W(float _bw)
 /*----------------------------------------------------------------------------------------------*/
 void Channel::Error()
 {
+	
+	float mcn0;
+
+	mcn0 = CN0 > CN0_old ? CN0 : CN0_old;
 
 	/* Monitor DLL */
-	if((P_avg < 1.5e4) && (count > 2000))
+	if((P_avg < 3e4) && (count > 2000))
 			active = false;
 
-	/* Monitor CN0 */
-	if(count > 10000 && CN0 < 17.0)
+	/* Monitor CN0 for false PLL lock */
+	if(count > 10000 && mcn0 < 17.0)
 		active = false;
 		
 	/* If 60 seconds have passed and channel has not converged dump it */
@@ -917,13 +940,13 @@ void Channel::Error()
 //			PLL_W(18.0);
 //		}
 		
-		if((CN0 > 33.0) && (len != 4))
+		if((mcn0 > 37.0) && (len != 4))
 		{
 			len = 4;
 			PLL_W(30.0);
 		}
 		
-		if((CN0 < 30.0) && (len != 20))
+		if((mcn0 < 35.0) && (len != 20))
 		{
 			len = 20;
 			PLL_W(18.0);
@@ -964,6 +987,7 @@ void Channel::Export()
 	packet.Q[1] 		= (float)Q[1];
 	packet.Q[2]			= (float)Q[2];
 	packet.CN0 			= (float)CN0;
+	packet.CN0_old		= (float)CN0_old;
 	packet.I_avg		= (float)I_avg;
 	packet.Q_var 		= (float)Q_var;
 	packet.P_avg 		= (float)P_avg;

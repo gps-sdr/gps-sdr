@@ -38,6 +38,7 @@ void usage(int32 argc, char* argv[])
 	fprintf(stderr, "[-l] log navigation data\n");
 	fprintf(stderr, "[-v] be verbose \n");
 	fprintf(stderr, "[-n] ncurses OFF \n");
+	fprintf(stderr, "[-w] start receiver in warm start, using almanac and last good position\n");
 	fprintf(stderr, "\n");
 	
 	exit(1);
@@ -60,6 +61,7 @@ void echo_options()
 			printf("\nCould not open %s for reading\n\n",gopt.filename_direct);
 			exit(1);
 		}
+	
 	}
 	
 	if(gopt.ocean)
@@ -112,6 +114,8 @@ void Parse_Arguments(int32 argc, char* argv[])
 	gopt.ncurses 		= 1;
 	gopt.doppler_min 	= -10000;
 	gopt.doppler_max 	= 10000;
+	gopt.corr_sleep 	= 500;
+	gopt.startup		= COLD_START;
 	strcpy(gopt.filename_direct, "data.bda");
 	strcpy(gopt.filename_reflected, "rdata.bda");
 	
@@ -122,7 +126,8 @@ void Parse_Arguments(int32 argc, char* argv[])
 			gopt.post_process = 1;
 			gopt.realtime = 0;
 			gopt.ocean = 0;
-			
+			gopt.corr_sleep = 100;
+						
 			if(argc < lcv+2)
 				usage(argc, argv);
 				
@@ -158,6 +163,11 @@ void Parse_Arguments(int32 argc, char* argv[])
 		{
 			gopt.ncurses = 0;
 		}
+		else if(strcmp(argv[lcv],"-w") == 0)
+		{
+			gopt.startup = WARM_START;
+		}
+
 		else
 			usage(argc, argv);
 	}
@@ -218,7 +228,7 @@ void Object_Init(void)
 	/* Get data from either the USRP or disk */
 	pFIFO = new FIFO;
 	
-	pTracking = new Tracking;
+	pSV_Select = new SV_Select;
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		pChannels[lcv] = new Channel(lcv);
@@ -228,7 +238,7 @@ void Object_Init(void)
 		
 	pTelemetry = new Telemetry(gopt.ncurses);		
 	
-	pPVT = new PVT;
+	pPVT = new PVT(gopt.startup);
 		
 	if(gopt.post_process)
 		pPost_Process = new Post_Process(gopt.filename_direct);
@@ -265,6 +275,10 @@ void Pipes_Init(void)
 	fcntl(Ephem_2_Telem_P[READ], F_SETFL, O_NONBLOCK);
 	pipe((int *)Acq_2_Telem_P);
 	fcntl(Acq_2_Telem_P[READ], F_SETFL, O_NONBLOCK);
+	pipe((int *)SV_Select_2_Telem_P);
+	fcntl(SV_Select_2_Telem_P[READ], F_SETFL, O_NONBLOCK);	
+	pipe((int *)PVT_2_SV_Select_P);
+	fcntl(PVT_2_SV_Select_P[WRITE], F_SETFL, O_NONBLOCK);	
 		
 	/* Channel and correlator */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
@@ -314,8 +328,8 @@ void Thread_Init(void)
 	/* Start up the ephemeris */
 	pEphemeris->Start();
 	
-	/* Start the tracking thread */
-	pTracking->Start();
+	/* Start the SV select thread */
+	pSV_Select->Start();
 	
 	/* Last thing to do */
 	pTelemetry->Start();

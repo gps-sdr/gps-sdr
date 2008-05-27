@@ -32,7 +32,8 @@ typedef class Telemetry
 
 		int32	  gpipe;	//!< Named pipe to export data to the prop
 		pthread_t thread;	//!< For the thread
-
+		pthread_mutex_t		mutex;	//!< Protect the following variable
+			
 		/* Stuff for ncurses display */
 		WINDOW *mainwnd;
 		WINDOW *screen;
@@ -43,21 +44,27 @@ typedef class Telemetry
 		Chan_Packet_S 	tChan[MAX_CHANNELS];
 		Acq_Result_S	tAcq;
 		Ephem_2_Telem_S tEphem;
-		int32			active[MAX_CHANNELS];
-		int32 			line;
-		int32			ncurses_on;
-		int32			count;
+		SV_Select_2_Telem_S tSelect;
 		
-		FILE 			*fp_nav;
-		FILE			*fp_chan;
-		FILE			*fp_pseudo;
-		FILE			*fp_meas;
-		FILE			*fp_sv;
+		int32 active[MAX_CHANNELS];
+		int32 line;
+		int32 ncurses_on;
+		int32 count;
+		int32 display;
+		
+		FILE *fp_nav;
+		FILE *fp_chan;
+		FILE *fp_pseudo;
+		FILE *fp_meas;
+		FILE *fp_sv;
 
 	public:
 
 		Telemetry(int32 _ncurses);
 		~Telemetry();
+		void Lock();
+		void Unlock();
+		void SetDisplay(int32 _type){display = _type;}
 		void Inport();
 		void Export();
 		void Start();
@@ -71,6 +78,7 @@ typedef class Telemetry
 		void PrintNav();
 		void PrintSV();
 		void PrintEphem();
+		void PrintAlmanac();		
 		void LogNav();
 		void LogPseudo();
 		void LogTracking();

@@ -1,9 +1,10 @@
 #ToDo
-1) Add in Doppler mask on acquisition for high CN0 SVs. This will prevent the acquisition from picking up cross correlations.
-2) Move inline assembly to plain assembly source for better compilation compatability
-3) Fix PVT solution ending up as a NaN in some cases
-4) Add in almanac decoding
-5) Create "sat-select" routine that will use the almanac and PVT to find visible SVs and their expected Doppler (enhances acquisition)
+1) Add in Doppler mask on acquisition for high CN0 SVs. This will prevent the acquisition from picking up cross correlations.					COMPLETE 
+2) Move inline assembly to plain assembly source for better compilation compatability					
+3) Fix PVT solution ending up as a NaN in some cases																							COMPLETE 
+4) Add in almanac decoding																														COMPLETE 
+5) Create "sat-select" routine that will use the almanac and PVT to find visible SVs and their expected Doppler (enhances acquisition)			COMPLETE 
 6) Create a simple Kalman filter to put on top of the PVT solution
-7) Found another measurement error, a jump in the 1ms epoch occurs (possibly a double-rollover condition?)
+7) Found another measurement error, a jump in the 1ms epoch occurs (possibly a double-rollover condition?)										COMPLETE 
 8) Do a simple RAIM
+9) Dump ephemerides to disk to speed up the warm start mode

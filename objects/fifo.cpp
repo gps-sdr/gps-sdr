@@ -70,7 +70,6 @@ FIFO::FIFO()
 	/* Buffer for the raw IF data */
 	if_buff = new CPX[IF_SAMPS_MS];
 	
-		
 	/* Make pipe write non-blocking, this is to prevent the USRP from overflowing,
 	 * which hoses the data steam. It is up to the CLIENT to make sure it is
 	 * receiving continguous data packets */
@@ -127,7 +126,10 @@ void FIFO::Inport()
 			nbytes += bread;
 	}
 	
-		/* Run the agc */
+	if(count == 0)
+		overflw = init_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
+	
+	/* Run the agc */
 	overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
 	
 	/* Add to the buff */
@@ -135,6 +137,7 @@ void FIFO::Inport()
 		Enqueue();
 	else
 		Enqueue();		
+
 
 	/* Resample? */
 	count++;	
@@ -164,7 +167,7 @@ void FIFO::Enqueue()
 		head->count = count;
 
 		/* Actual measurement rate needs to be double to properly calculate ICP */
-		if((count % (MEASUREMENT_INT/2)) == 0)
+		if((count % (MEASUREMENT_INT)) == 0)
 		{
 			tic++;
 			head->measurement = tic;
@@ -216,21 +219,16 @@ void FIFO::Dequeue(int32 _resource, ms_packet *p)
 		
 		if(tail->measurement)
 		{	
-			//tic++; Already incremented in Enqueue
+			telem.tic = tail->measurement;
+			telem.count = count;
+			telem.head = ((uint32)head - (uint32)&buff[0])/sizeof(ms_packet);
+			telem.tail = ((uint32)tail - (uint32)&buff[0])/sizeof(ms_packet);
+			telem.agc_scale = agc_scale;
+			telem.overflw = overflw;
 			
-			/* Actual measurement rate needs to be double to properly calculate ICP */
-			if(tail->measurement & 0x1)
-			{
-				telem.tic = tail->measurement >> 1;
-				telem.count = count;
-				telem.head = ((uint32)head - (uint32)&buff[0])/sizeof(ms_packet);
-				telem.tail = ((uint32)tail - (uint32)&buff[0])/sizeof(ms_packet);
-				telem.agc_scale = agc_scale;
-				telem.overflw = overflw;
-				
-				write(FIFO_2_Telem_P[WRITE], &telem, sizeof(FIFO_2_Telem_S));
-				write(FIFO_2_PVT_P[WRITE], &telem, sizeof(FIFO_2_Telem_S));
-			}
+			write(FIFO_2_Telem_P[WRITE], &telem, sizeof(FIFO_2_Telem_S));
+			write(FIFO_2_PVT_P[WRITE], &telem, sizeof(FIFO_2_Telem_S));
+
 			tail->measurement = 0;					
 		}
 	

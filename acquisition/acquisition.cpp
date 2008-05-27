@@ -93,7 +93,7 @@ Acquisition::Acquisition(float _fsample, float _fif)
 	int32 lcv, lcv2;
 	CPX *p;
 	int32 R1[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	int32 R2[16] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	int32 R2[16] = {0,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1};
 
 	/* Acq state */
 	sv = 0;
@@ -290,17 +290,17 @@ Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 	index = indext = mag = magt = 0;
 
 	/* Covers the 250 Hz spacing */
-	for(lcv = (_doppmin/1000); lcv <=  (_doppmax/1000); lcv++)
+	for(lcv = (_doppmin/1000)+1; lcv <=  (_doppmax/1000); lcv++)
 	{
 		/* Sweep through the doppler range */
-		for(lcv2 = 0; lcv2 < 4; lcv2++)
+		for(lcv2 = 0; lcv2 < 4; lcv2+=2)
 		{
 			
-			if(gopt.realtime)
-				usleep(1000);
+//			if(gopt.realtime)
+//				usleep(1000);
 			
 			/* Multiply in frequency domain, shifting appropiately */
-			sse_cmulsc(&baseband_rows[lcv2][100-lcv], fft_codes[_sv], msbuff, resamps_ms, 4);
+			sse_cmulsc(&baseband_rows[lcv2][100-lcv], fft_codes[_sv], msbuff, resamps_ms, 9);
 			
 			/* Compute iFFT */
 			piFFT->doiFFT(msbuff, true);
@@ -348,126 +348,6 @@ Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 /*----------------------------------------------------------------------------------------------*/
 
 
-
-void sse_dft(CPX *A, MIX *B, CPX *C)
-{
-	__asm 
-	(
-		".intel_syntax noprefix			\n\t" //Set up for loop
-		"mov edi, [ebp+8]				\n\t" //Address of A
-		"mov esi, [ebp+12]				\n\t" //Address of B
-		"mov ebx, [ebp+16]				\n\t" //Address of C
-		"movd mm0, [edi]				\n\t"
-		"movd mm1, [edi+4]				\n\t"
-		"movd mm2, [edi+8]				\n\t"					
-		"movq mm3, [esi]				\n\t"
-		"movq mm4, [esi+8]				\n\t"
-		"movq mm5, [esi+16]				\n\t"
-		"punpckldq mm0, mm0				\n\t" 
-		"punpckldq mm1, mm1				\n\t"
-		"punpckldq mm2, mm2				\n\t"
-		"mov	ecx, 0x0				\n\t"
-		"S%=:							\n\t"																			
-			"pmaddwd mm0, mm3			\n\t"
-			"pmaddwd mm1, mm4			\n\t"
-			"pmaddwd mm2, mm5			\n\t"
-			"paddd	mm0, mm7			\n\t"
-			"paddd	mm1, mm7			\n\t"
-			"paddd	mm2, mm7			\n\t"			
-			"psrad	mm0, mm6			\n\t" //Back to original magnitude
-			"psrad	mm1, mm6			\n\t" //Back to original magnitude
-			"psrad	mm2, mm6			\n\t" //Back to original magnitude
-			"movd	eax, mm0			\n\t" 
-			"add	[ebx], eax			\n\t" //Add into accum
-			"movd	eax, mm0			\n\t"
-			"add	[ebx+4],eax			\n\t" //Add into accum
-			"movd	eax, mm0			\n\t"
-			"add	[ebx+8], eax		\n\t" //Add into accum
-			"add	ecx, 0x1			\n\t"
-			"cmp	ecx, 10				\n\t"
-		"jne		S%=					\n\t"
-		"movd mm0, [edi+12]				\n\t"
-		"movd mm1, [edi+16]				\n\t"
-		"movd mm2, [edi+20]				\n\t"					
-		"movq mm3, [esi+24]				\n\t"
-		"movq mm4, [esi+32]				\n\t"
-		"movq mm5, [esi+40]				\n\t"
-		"punpckldq mm0, mm0				\n\t" 
-		"punpckldq mm1, mm1				\n\t"
-		"punpckldq mm2, mm2				\n\t"
-		"mov	ecx, 0x0				\n\t"
-		"SS%=:							\n\t"																			
-			"pmaddwd mm0, mm3			\n\t"
-			"pmaddwd mm1, mm4			\n\t"
-			"pmaddwd mm2, mm5			\n\t"
-			"paddd	mm0, mm7			\n\t"
-			"paddd	mm1, mm7			\n\t"
-			"paddd	mm2, mm7			\n\t"			
-			"psrad	mm0, mm6			\n\t" //Back to original magnitude
-			"psrad	mm1, mm6			\n\t" //Back to original magnitude
-			"psrad	mm2, mm6			\n\t" //Back to original magnitude
-			"movd	eax, mm0			\n\t" 
-			"add	[ebx+12], eax			\n\t" //Add into accum
-			"movd	eax, mm0			\n\t"
-			"add	[ebx+16],eax			\n\t" //Add into accum
-			"movd	eax, mm0			\n\t"
-			"add	[ebx+20], eax		\n\t" //Add into accum
-			"add	ecx, 0x1			\n\t"
-			"cmp	ecx, 10				\n\t"
-		"jne		SS%=					\n\t"			
-		"movd mm0, [edi+24]				\n\t"
-		"movd mm1, [edi+28]				\n\t"
-		"movd mm2, [edi+32]				\n\t"					
-		"movq mm3, [esi+48]				\n\t"
-		"movq mm4, [esi+56]				\n\t"
-		"movq mm5, [esi+64]				\n\t"
-		"punpckldq mm0, mm0				\n\t" 
-		"punpckldq mm1, mm1				\n\t"
-		"punpckldq mm2, mm2				\n\t"
-		"mov	ecx, 0x0				\n\t"
-		"SSS%=:							\n\t"																			
-			"pmaddwd mm0, mm3			\n\t"
-			"pmaddwd mm1, mm4			\n\t"
-			"pmaddwd mm2, mm5			\n\t"
-			"paddd	mm0, mm7			\n\t"
-			"paddd	mm1, mm7			\n\t"
-			"paddd	mm2, mm7			\n\t"			
-			"psrad	mm0, mm6			\n\t" //Back to original magnitude
-			"psrad	mm1, mm6			\n\t" //Back to original magnitude
-			"psrad	mm2, mm6			\n\t" //Back to original magnitude
-			"movd	eax, mm0			\n\t" 
-			"add	[ebx+24], eax			\n\t" //Add into accum
-			"movd	eax, mm0			\n\t"
-			"add	[ebx+28],eax			\n\t" //Add into accum
-			"movd	eax, mm0			\n\t"
-			"add	[ebx+32], eax		\n\t" //Add into accum
-			"add	ecx, 0x1			\n\t"
-			"cmp	ecx, 10				\n\t"
-		"jne		SSS%=					\n\t"			
-		"movd mm0, [edi+36]				\n\t"
-		"movq mm3, [esi+72]				\n\t"
-		"punpckldq mm0, mm0				\n\t" 
-		"mov	ecx, 0x0				\n\t"
-		"SSSS%=:							\n\t"																			
-			"pmaddwd mm0, mm3			\n\t"
-			"paddd	mm0, mm7			\n\t"
-			"psrad	mm0, mm6			\n\t" //Back to original magnitude
-			"movd	eax, mm0			\n\t"
-			"add	[ebx+36], eax 		\n\t" //Add into accum
-			"add	ecx, 0x1			\n\t"
-			"cmp	ecx, 10				\n\t"
-		"jne		SSSS%=					\n\t"
-		"EMMS						\n" //Done with MMX
-		".att_syntax				\n" //Back to ATT syntax
-		:
-		: "m" (A), "m" (B), "m" (C)
-		: "%eax", "%ebx", "%ecx", "%edi", "%esi"
-	);//end __asm
-}
-
-
-
-
 /*----------------------------------------------------------------------------------------------*/
 /*! 
  * doAcqMedium: Acquire using a 10 ms coherent integrationACQ_WEAK
@@ -495,7 +375,7 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 	#endif	
 	
 	/* Sweeps through the doppler range */
-	for(lcv = (_doppmin/1000); lcv <=  (_doppmax/1000); lcv++)
+	for(lcv = (_doppmin/1000)+1; lcv <=  (_doppmax/1000); lcv++)
 	{
 		/* Covers the 250 Hz spacing */
 		for(lcv2 = 0; lcv2 < 4; lcv2++)
@@ -512,7 +392,7 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 				for(lcv3 = 0; lcv3 < 10; lcv3++)
 				{
 					/* Multiply in frequency domain, shifting appropiately */
-					sse_cmulsc(&baseband_rows[20*lcv2+lcv3+k*10][100-lcv], fft_codes[_sv], &coherent[lcv3*resamps_ms], resamps_ms, 4);
+					sse_cmulsc(&baseband_rows[20*lcv2+lcv3+k*10][100-lcv], fft_codes[_sv], &coherent[lcv3*resamps_ms], resamps_ms, 9);
 				
 					/* Compute iFFT */
 					piFFT->doiFFT(&coherent[lcv3*resamps_ms], true);
@@ -664,7 +544,7 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 					for(lcv3 = 0; lcv3 < 10; lcv3++)
 					{
 						/* Multiply in frequency domain, shifting appropiately */
-						sse_cmulsc(&baseband_rows[lcv2*310 + lcv3 + i*20 + k*10][100-lcv], fft_codes[_sv], &coherent[lcv3*resamps_ms], resamps_ms, 4);
+						sse_cmulsc(&baseband_rows[lcv2*310 + lcv3 + i*20 + k*10][100-lcv], fft_codes[_sv], &coherent[lcv3*resamps_ms], resamps_ms, 9);
 					
 						/* Compute iFFT */
 						piFFT->doiFFT(&coherent[lcv3*resamps_ms], true);
@@ -774,24 +654,24 @@ void Acquisition::Acquire()
 {
 	int32 lcv;
 			
-	switch(state)
+	switch(request.type)
 	{
 		case ACQ_STRONG:
 			doPrepIF(ACQ_STRONG, buff);
-			doAcqStrong(sv, -DOPPLER_STRONG, DOPPLER_STRONG);
+			doAcqStrong(request.sv, request.mindopp, request.maxdopp);
 			break;
 		case ACQ_MEDIUM:
 			doPrepIF(ACQ_MEDIUM, buff);
-			doAcqMedium(sv, -DOPPLER_MEDIUM, DOPPLER_MEDIUM);
+			doAcqMedium(request.sv, request.mindopp, request.maxdopp);
 			break;
 		case ACQ_WEAK:
 			doPrepIF(ACQ_WEAK, buff);
-			doAcqWeak(sv, -DOPPLER_WEAK, DOPPLER_WEAK);
+			doAcqWeak(request.sv, request.mindopp, request.maxdopp);
 			break;
 		default:
-			doAcqStrong(sv, -DOPPLER_STRONG, DOPPLER_STRONG);
+			doAcqStrong(request.sv, request.mindopp, request.maxdopp);
 	}
-
+	
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -803,25 +683,25 @@ void Acquisition::Acquire()
 void Acquisition::UpdateState()
 {
 	
-	sv++;
-	if(sv >= NUM_CODES)
-	{
-		sv = 0;
-		switch(state)
-		{
-			case ACQ_STRONG:
-				state = ACQ_MEDIUM;
-				break;
-			case ACQ_MEDIUM:
-				state = ACQ_STRONG;
-				break;
-			case ACQ_WEAK:
-				state = ACQ_STRONG;
-				break;
-			default:
-				state = ACQ_STRONG;
-		}
-	}
+//	sv++;
+//	if(sv >= NUM_CODES)
+//	{
+//		sv = 0;
+//		switch(state)
+//		{
+//			case ACQ_STRONG:
+//				state = ACQ_MEDIUM;
+//				break;
+//			case ACQ_MEDIUM:
+//				state = ACQ_STRONG;
+//				break;
+//			case ACQ_WEAK:
+//				state = ACQ_STRONG;
+//				break;
+//			default:
+//				state = ACQ_STRONG;
+//		}
+//	}
 	
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -844,23 +724,24 @@ void Acquisition::Inport()
 	ret.tv_sec = 0;
 	ret.tv_nsec = 100000;
 	
-	switch(state)	
+	/* First wait for a request */
+	bread = read(Trak_2_Acq_P[READ], &request, sizeof(Acq_Request_S));
+	
+	switch(request.type)	
 	{
 		case ACQ_STRONG:
-			ms_per_read = 100;
+			ms_per_read = 1;
 			break;			
 		case ACQ_MEDIUM:
-			ms_per_read = 100;
+			ms_per_read = 20;
 			break;			
 		case ACQ_WEAK:
 			ms_per_read = 310;
 			break;			
 		default:
 			ms_per_read = 310;
-	}
-
-	/* First wait for a request */
-	bread = read(Trak_2_Acq_P[READ], &request, sizeof(Acq_Request_S));
+	}	
+	
 	//printf("Got request %d\n",request.corr);
 
 	/* Set the flag to high to let FIFO know the acq will be collecting data */
@@ -944,9 +825,9 @@ void Acquisition::Export(char * _fname)
 	fclose(fp);
 	
 	/* Write result to the tracking task */
-	results[sv].count = request.count;
-	write(Acq_2_Trak_P[WRITE], &results[sv], sizeof(Acq_Result_S));
-	write(Acq_2_Telem_P[WRITE], &results[sv], sizeof(Acq_Result_S));
+	results[request.sv].count = request.count;
+	write(Acq_2_Trak_P[WRITE], &results[request.sv], sizeof(Acq_Result_S));
+	write(Acq_2_Telem_P[WRITE], &results[request.sv], sizeof(Acq_Result_S));
 
 }
 /*----------------------------------------------------------------------------------------------*/

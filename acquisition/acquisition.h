@@ -38,10 +38,8 @@ class Acquisition
 	private:
 	
 		pthread_t thread;
-		int32 acq_pipe;							//!< Use this to dump delay-doppler grids to matlab	
 		CPX *fft_codes[NUM_CODES];				//!< Store the FFTd Codes;
 	
-		//CPX *buffer;							//!< Buffer to hold input IF data
 		ms_packet packet;						//!< Get IF data
 		CPX *buff;								//!< Result after mixing the buffer to baseband
 		CPX *baseband;							//!< Result after mixing the buffer to baseband
