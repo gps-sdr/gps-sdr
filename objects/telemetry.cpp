@@ -484,7 +484,7 @@ void Telemetry::PrintAlmanac()
 {
 	
 	int32 lcv, nvis, ntrack;
-	float v_elev, elev, azim;
+	float elev, azim;
 	Acq_Predicted_S *psv;
 	line++;
 	
@@ -521,21 +521,20 @@ void Telemetry::PrintAlmanac()
 		psv =  &tSelect.sv_predicted[lcv];
 		elev = psv->elev*180/PI;
 		azim = psv->azim*180/PI;
-		v_elev = psv->v_elev*180/PI;
 		
 		if(elev != 0.0)
 		{
 			if(psv->visible && psv->tracked)
-				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %10.2f  %14.8f       YES        YES\n",lcv+1,elev,v_elev,azim,psv->doppler,psv->delay);
+				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %14.8f       YES        YES\n",lcv+1,elev,azim,psv->doppler,psv->delay);
 				
 			if(psv->visible && !psv->tracked)
-				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %10.2f  %14.8f       YES         NO\n",lcv+1,elev,v_elev,azim,psv->doppler,psv->delay);
+				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %14.8f       YES         NO\n",lcv+1,elev,azim,psv->doppler,psv->delay);
 				
 			if(!psv->visible && psv->tracked)
-				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %10.2f  %14.8f        NO        YES\n",lcv+1,elev,v_elev,azim,psv->doppler,psv->delay);
+				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %14.8f        NO        YES\n",lcv+1,elev,azim,psv->doppler,psv->delay);
 				
 			if(!psv->visible && !psv->tracked)
-				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %10.2f  %14.8f        NO         NO\n",lcv+1,elev,v_elev,azim,psv->doppler,psv->delay);
+				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %14.8f        NO         NO\n",lcv+1,elev,azim,psv->doppler,psv->delay);
 		}
 		else
 				mvwprintw(screen,line++,1,"--  ----------  ----------  ----------  --------------       ---        ---\n");

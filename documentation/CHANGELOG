@@ -59,3 +59,10 @@ that the file current.alm and lastpvt.txt reside in the directory of execution. 
 http://www.navcen.uscg.gov/GPS/almanacs.htm. The warm start requires that the PC clock is close to UTC and the time zone is set correctly. The warm start
 can be enabled with the "-w" flag to the executable. Note that if the almanac or pvt load fails then the receiver will fall back to a cold start mode, 
 which is the default behaviour.
+
+
+05/28/2008 3.0.17a
+
+Added self calibration for acquisition thresholds via search of a dummy PRN. Thresholds will be set to mean(power) + std(power), which should limit false acquisitions to 15%
+while maximizing the probability of detection. Fixed warm/hot start modes, warm acquisition indicates the almanac is used for visibility only, whereas hot uses the almanac
+for visibility AND to predict the doppler range. Added in dump of ephemeris to a file for faster warm start.

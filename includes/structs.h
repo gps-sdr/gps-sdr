@@ -27,6 +27,9 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 //!< IF data format 
 /*----------------------------------------------------------------------------------------------*/
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct CPX {
 	
 	int16 i;	//!< Inphase (real)
@@ -35,6 +38,9 @@ typedef struct CPX {
 } CPX;
 
 
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct MIX {
 	
 	int16 i;	//!< Inphase (real)
@@ -48,6 +54,9 @@ typedef struct MIX {
 
 
 /*----------------------------------------------------------------------------------------------*/
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Options_S
 {
 	
@@ -70,8 +79,9 @@ typedef struct _Options_S
 
 //!< FIFO structure for linked list?
 /*----------------------------------------------------------------------------------------------*/
-/*! linked list structure for circular buffer */
-
+/*! \ingroup STRUCTS
+ *  linked list structure for circular buffer
+ */
 typedef struct ms_packet {
 	
 	ms_packet *next;
@@ -86,6 +96,9 @@ typedef struct ms_packet {
 
 //!< Options
 /*----------------------------------------------------------------------------------------------*/
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Options {
 	
 	bool realtime;			//!< Run realtime off of USRP
@@ -100,6 +113,9 @@ typedef struct _Options {
 
 //!< Acquisition results
 /*----------------------------------------------------------------------------------------------*/
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Acq_Result_S
 {
 	
@@ -118,6 +134,9 @@ typedef struct _Acq_Result_S
 } Acq_Result_S;
 
 
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Acq_Request_S
 {
 	
@@ -135,6 +154,9 @@ typedef struct _Acq_Request_S
 
 //!< Correlator and channel structs
 /*----------------------------------------------------------------------------------------------*/
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _NCO_Command
 {
 	
@@ -151,6 +173,9 @@ typedef struct _NCO_Command
 } NCO_Command_S;
 
 
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Correlation_S
 {
 	
@@ -160,6 +185,9 @@ typedef struct _Correlation_S
 } Correlation_S;
 
 
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Correlator_State_S
 {
 	
@@ -188,6 +216,9 @@ typedef struct _Correlator_State_S
 } Correlator_State_S;
 
 
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Measurement_S
 {
 	
@@ -211,6 +242,9 @@ typedef struct _Measurement_S
 } Measurement_S;
 
 
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Phase_lock_loop {
 
 	float PLLBW;				//!< PLL Bandwidth (Hz)
@@ -235,6 +269,9 @@ typedef struct _Phase_lock_loop {
 } Phase_lock_loop;
 
 
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Delay_lock_loop
 {
 
@@ -246,6 +283,9 @@ typedef struct _Delay_lock_loop
 } Delay_lock_loop;
 
 
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Chan_Packet_S
 {
 	
@@ -277,6 +317,9 @@ typedef struct _Chan_Packet_S
 } Chan_Packet_S;
 
 
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Chan_2_Ephem_S {
 
 	int32 sv;					//!< SV number
@@ -491,6 +534,9 @@ typedef struct _Clock_S
 
 /* Structs associated with sv_select object */
 /*----------------------------------------------------------------------------------------------*/
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Acq_Predicted_S
 {
 	
@@ -510,6 +556,9 @@ typedef struct _Acq_Predicted_S
 
 /* Structs associated with the telemetry object */
 /*----------------------------------------------------------------------------------------------*/
+/*! \ingroup STRUCTS
+ * Data from the FIFO to the Telemetry
+ */
 typedef struct _FIFO_2_Telem_S
 {
 	
@@ -523,12 +572,22 @@ typedef struct _FIFO_2_Telem_S
 	 	
 } FIFO_2_Telem_S;
 
-/* Make an alias */
+
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef _Acq_Result_S Acq_2_Telem_S;
 
-/* Make an alias */
+
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef _Chan_Packet_S Trak_2_Telem_S;
 
+
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _Ephem_2_Telem_S 
 {
 	
@@ -539,6 +598,9 @@ typedef struct _Ephem_2_Telem_S
 } Ephem_2_Telem_S;
 
 
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _PVT_2_Telem_S
 {
 	
@@ -551,6 +613,9 @@ typedef struct _PVT_2_Telem_S
 } PVT_2_Telem_S;
 
 
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _PVT_2_SV_Select_S
 {
 	
@@ -559,6 +624,10 @@ typedef struct _PVT_2_SV_Select_S
 	
 } PVT_2_SV_Select_S;
 
+
+/*! \ingroup STRUCTS
+ * 
+ */
 typedef struct _SV_Select_2_Telem_S
 {
 	

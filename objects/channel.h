@@ -27,6 +27,9 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #define FREQ_LOCK_POINTS (512)
 
+/*! \ingroup CLASSES
+ * 
+ */
 typedef class Channel
 {
 

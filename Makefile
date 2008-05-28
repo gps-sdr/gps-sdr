@@ -1,5 +1,3 @@
-PROJPATH =  ~/workspace/gps-sdr
-
 CC	= g++
 ASM = g++
 LINK= g++

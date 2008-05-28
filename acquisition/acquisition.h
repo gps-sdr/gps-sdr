@@ -32,6 +32,9 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define ACQ_PREFIX  (0xDEADBEEF)
 #define ACQ_POSTFIX (0xBEEFDEAD)
 
+/*! \ingroup CLASSES
+ * 
+ */
 class Acquisition
 {
 	

@@ -27,6 +27,9 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #define FIFO_DEPTH (1000)	//!< In ms
 
+/*! \ingroup CLASSES
+ * 
+ */
 class FIFO
 {
 

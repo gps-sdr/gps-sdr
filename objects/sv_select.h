@@ -29,6 +29,9 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define WARM_START		(1)
 #define HOT_START		(2)
 
+/*! \ingroup CLASSES
+ * 
+ */
 typedef class SV_Select
 {
 

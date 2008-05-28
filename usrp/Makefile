@@ -1,8 +1,7 @@
-#HOME           = $HOME
-PROJPATH		= ~/workspace/gps-sdr/usrp
-USRP_LIB_PATH	= $(HOME)/gnuradio/usrp/host/lib
-USRP_LIB_PATH2	= $(HOME)/gnuradio/usrp/host/lib/.libs/
-USRP_INCLUDES	= $(HOME)/gnuradio/usrp/firmware/include
+GNURADIO		= $(HOME)/gnuradio
+USRP_LIB_PATH	= $(GNURADIO)/usrp/host/lib
+USRP_LIB_PATH2	= $(GNURADIO)/usrp/host/lib/.libs/
+USRP_INCLUDES	= $(GNURADIO)/usrp/firmware/include
 
 CC	= g++
 ASM = g++

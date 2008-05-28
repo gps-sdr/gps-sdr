@@ -31,6 +31,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 	#define EXTERN extern
 #endif
 
+
 /* Part 1, Threaded and Semi-threaded objects */
 /*----------------------------------------------------------------------------------------------*/
 EXTERN class Keyboard		*pKeyboard;						//!< Handle user input
@@ -65,25 +66,25 @@ EXTERN Options_S gopt;										//!< Global receiver options
 /* Part 3, Pipes */
 /*----------------------------------------------------------------------------------------------*/
 /* Interplay between acquisition and tracking */
-EXTERN int32 Acq_2_Trak_P[2];								//!< Get an acquisition result
-EXTERN int32 Trak_2_Acq_P[2];								//!< Request an acquisition because some of the channels are empty
+EXTERN int32 Acq_2_Trak_P[2];								//!< \ingroup PIPES Get an acquisition result
+EXTERN int32 Trak_2_Acq_P[2];								//!< \ingroup PIPES Request an acquisition because some of the channels are empty
 
 /* Interplay between correlator and channels */
-EXTERN int32 Corr_2_PVT_P[MAX_CHANNELS][2];					//!< Output measurements to PVT
-EXTERN int32 PVT_2_Corr_P[MAX_CHANNELS][2];					//!< Output measurements to PVT
-EXTERN int32 Trak_2_Corr_P[MAX_CHANNELS][2];				//!< Have the tracking tell the correlator to start or stop a channel
+EXTERN int32 Corr_2_PVT_P[MAX_CHANNELS][2];					//!< \ingroup PIPES Output measurements to PVT
+EXTERN int32 PVT_2_Corr_P[MAX_CHANNELS][2];					//!< \ingroup PIPES Output measurements to PVT
+EXTERN int32 Trak_2_Corr_P[MAX_CHANNELS][2];				//!< \ingroup PIPES Have the tracking tell the correlator to start or stop a channel
 
 /* How do we decode the ephemerides? */
-EXTERN int32 Chan_2_Ephem_P[2];								//!< Dump raw subframes to Ephemeris
+EXTERN int32 Chan_2_Ephem_P[2];								//!< \ingroup PIPES Dump raw subframes to Ephemeris
 
 /* User feedback */
-EXTERN int32 FIFO_2_Telem_P[2];								//!< Send FIFO status (% full, agc value)
-EXTERN int32 FIFO_2_PVT_P[2];								//!< Send number of incoming measurements to nav
-EXTERN int32 Acq_2_Telem_P[2];								//!< Send latest acquisition attempts to GUI
-EXTERN int32 PVT_2_Telem_P[2];								//!< Send latest nav solution to GUI
-EXTERN int32 Ephem_2_Telem_P[2];							//!< Send latest ephemeris to GUI
-EXTERN int32 SV_Select_2_Telem_P[2];						//!< Send predicted SV states to GUI
-EXTERN int32 PVT_2_SV_Select_P[2];							//!< Output nav state to sat select
+EXTERN int32 FIFO_2_Telem_P[2];								//!< \ingroup PIPES Send FIFO status (nodes empty, agc value)
+EXTERN int32 FIFO_2_PVT_P[2];								//!< \ingroup PIPES Send number of incoming measurements to nav
+EXTERN int32 Acq_2_Telem_P[2];								//!< \ingroup PIPES Send latest acquisition attempts to GUI
+EXTERN int32 PVT_2_Telem_P[2];								//!< \ingroup PIPES Send latest nav solution to GUI
+EXTERN int32 Ephem_2_Telem_P[2];							//!< \ingroup PIPES Send latest ephemeris to GUI
+EXTERN int32 SV_Select_2_Telem_P[2];						//!< \ingroup PIPES Send predicted SV states to GUI
+EXTERN int32 PVT_2_SV_Select_P[2];							//!< \ingroup PIPES Output nav state to sat select
 /*----------------------------------------------------------------------------------------------*/
 
 
