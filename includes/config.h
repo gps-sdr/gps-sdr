@@ -30,10 +30,11 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define MAX_CHANNELS			(12)						//!< Number of channel objects
 #define CPU_CORES				(2)							//!< 1 for a single core, 2 for a dual core system, etc
 #define CORR_PER_CPU			(MAX_CHANNELS/CPU_CORES)	//!< Distribute them up evenly (this should be an INTEGER!)
+#define MAX_ANTENNA				(1)							//!< The number of antennas
 /*----------------------------------------------------------------------------------------------*/
 
 
-/* In what mode will the receiver operate */  
+/* Process WAAS? */  
 /*----------------------------------------------------------------------------------------------*/
 #define INCLUDE_WAAS			(0)			//!< Include WAAS PRN's  
 /*----------------------------------------------------------------------------------------------*/
@@ -66,16 +67,12 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 
 
-/* WaveGen stuff */ 
-/*----------------------------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------------------------*/
-
 /* Acquisition defines */
 /*----------------------------------------------------------------------------------------------*/
 #define	THRESH_STRONG			(1.25e7)	//!< Threshold for strong signal detection
 #define	THRESH_MEDIUM			(1.0e7)		//!< Threshold for medium signal detection
 #define	THRESH_WEAK				(1.0e7)		//!< Threshold for weak signal detection
-#define MAX_DOPPLER				50000
+#define MAX_DOPPLER				50000		//!< Set the maximum Doppler frequency
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -118,5 +115,6 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define TELEM_PRIORITY			(92)
 #define KEY_PRIORITY			(93)
 /*----------------------------------------------------------------------------------------------*/
+
 
 #endif

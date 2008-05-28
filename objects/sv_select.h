@@ -46,9 +46,10 @@ typedef class SV_Select
 		Almanac_S			almanacs[NUM_CODES];			//!< The decoded almanacs
 		SV_Position_S		sv_positions[NUM_CODES];		//!< The GPS positions calculated from the almanac
 		Acq_Predicted_S 	sv_prediction[NUM_CODES];		//!< Predicated delay/doppler visibility, etc
+		Acq_History_S		sv_history[NUM_CODES];			//!< Keep track of acquisition attempts for each SV
 		SV_Select_2_Telem_S	output_s;						//!< Send predicted states to telemetry		
 		int32				mode;							//!< SV select mode (COLD, WARM, HOT)
-		int32				type;							//!< Type (STRONG, MEDIUM, WEAK)
+		int32				type[NUM_CODES];				//!< Type (STRONG, MEDIUM, WEAK)
 		int32				sv;								//!< Current SV
 		int32				acq_thresh[3];					//!< Thresholds for acquisition
 		float				mask_angle;						//!< Elevation mask angle

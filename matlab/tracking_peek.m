@@ -59,11 +59,3 @@ xlabel('Time (minutes)')
 ylabel('C/N_{0} Estimate (dB-Hz)')
 title('C/N_{0} Plot')
 print -dpng -r0 cn0.png
-
-figure
-plot(dt,pll)
-% grid on; axis([min(dt) max(dt) 20 55])
-xlabel('Time (minutes)')
-ylabel('C/N_{0} Estimate (dB-Hz)')
-title('C/N_{0} Plot')
-print -dpng -r0 cn0.png

@@ -46,7 +46,7 @@ SV_Select::SV_Select()
 {
 	sv = 0;	
 	mode = COLD_START;
-	type = ACQ_STRONG;
+	memset(&type[0], ACQ_STRONG, NUM_CODES*sizeof(int32));
 	mask_angle = 0.0;
 	
 	pnav = &input_s.master_nav;	
@@ -174,7 +174,7 @@ void SV_Select::Export()
 
 	output_s.mask_angle = mask_angle;
 	output_s.mode = mode;
-	output_s.type = type;
+	output_s.type = type[sv];
 	
 	memcpy(&output_s.sv_predicted[0], &sv_prediction[0], NUM_CODES*sizeof(Acq_Predicted_S));
 	write(SV_Select_2_Telem_P[WRITE], &output_s, sizeof(SV_Select_2_Telem_S));
@@ -192,7 +192,7 @@ bool SV_Select::SetupRequest()
 	
 	/* Initialize parameters */
 	request.state = 1;
-	request.type = type;
+	request.type = type[sv];
 	request.sv = sv;
 	request.mindopp = -MAX_DOPPLER;
 	request.maxdopp = MAX_DOPPLER;	
@@ -228,8 +228,8 @@ bool SV_Select::SetupRequest()
 				doppler = doppler - (doppler % 1000);
 				
 				/* Give it a 3 kHz error range */
-				request.mindopp = (doppler - 5000);
-				request.maxdopp = (doppler + 5000);
+				request.mindopp = (doppler - 4000);
+				request.maxdopp = (doppler + 4000);
 							
 				return(true);
 				
@@ -254,18 +254,16 @@ void SV_Select::UpdateState()
 {
 	
 	sv++;
-	if(sv >= NUM_CODES)
-	{
-		sv = 0;
-		type++;
-		
-		if(type > ACQ_MEDIUM)
-			type = ACQ_STRONG;
+	sv %= NUM_CODES;
+
+	type[sv]++;
+
+	if(type[sv] > ACQ_MEDIUM)
+		type[sv] = ACQ_STRONG;
 			
-		if(mode == COLD_START)
-			type = ACQ_STRONG;
-			
-	}
+	if(mode == COLD_START)
+		type[sv] = ACQ_STRONG;
+
 	
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -444,7 +442,7 @@ void SV_Select::SV_Predict(int32 _sv)
 			      	dy * (pnav->vy - psv->vy) +
 			      	dz * (pnav->vz - psv->vz);  		
 		
-		/* Elevation of SV relative to Vehicle */
+		/* Elevation of SV relative to Vehicle (cone of exclusion) */
 		e = -st*dx    +  ct*dy;
 		n = -sp*ct*dx + -sp*st*dy + cp*dz;
 		u =  cp*ct*dx +  cp*st*dy + sp*dz;
@@ -455,7 +453,6 @@ void SV_Select::SV_Predict(int32 _sv)
 		ppred->elev = atan2(u, rho);
 		ppred->azim = atan2(e, n);
 
-
 		/* Use the SV position and PVT sltn to make a prediction of: Elev, Azim, Delay, Doppler */
 		theta = psv->longitude; phi = psv->latitude;
 		ct = cos(theta); st = sin(theta);
@@ -463,7 +460,7 @@ void SV_Select::SV_Predict(int32 _sv)
 
 		dx = -dx; dy = -dy; dz = -dz;
 
-		/* Elevation of Vehicle relative to SV */
+		/* Elevation of Vehicle relative to SV (cone of inclusion) */
 		e = -st*dx    +  ct*dy;
 		n = -sp*ct*dx + -sp*st*dy + cp*dz;
 		u =  cp*ct*dx +  cp*st*dy + sp*dz;

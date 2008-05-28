@@ -28,7 +28,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 //!< IF data format 
 /*----------------------------------------------------------------------------------------------*/
 /*! \ingroup STRUCTS
- * 
+ * Format of IF data
  */
 typedef struct CPX {
 	
@@ -55,7 +55,7 @@ typedef struct MIX {
 
 /*----------------------------------------------------------------------------------------------*/
 /*! \ingroup STRUCTS
- * 
+ * Options parsed from command line to start the receiver
  */
 typedef struct _Options_S
 {
@@ -80,7 +80,7 @@ typedef struct _Options_S
 //!< FIFO structure for linked list?
 /*----------------------------------------------------------------------------------------------*/
 /*! \ingroup STRUCTS
- *  linked list structure for circular buffer
+ *  linked list structure for circular FIFO buffer
  */
 typedef struct ms_packet {
 	
@@ -94,27 +94,10 @@ typedef struct ms_packet {
 /*----------------------------------------------------------------------------------------------*/
 
 
-//!< Options
-/*----------------------------------------------------------------------------------------------*/
-/*! \ingroup STRUCTS
- * 
- */
-typedef struct _Options {
-	
-	bool realtime;			//!< Run realtime off of USRP
-	bool post_process;		//!< Run off of a recorded file
-	bool ocean;				//!< Produce reflected waveforms
-	bool occultation;		//!< Produce occulatating measurements from open loop tracking
-	char fname[1024];		//!< Recorded filename
-	
-} Options;
-/*----------------------------------------------------------------------------------------------*/
-
-
 //!< Acquisition results
 /*----------------------------------------------------------------------------------------------*/
 /*! \ingroup STRUCTS
- * 
+ * Get the result of an acquisition
  */
 typedef struct _Acq_Result_S
 {
@@ -135,7 +118,7 @@ typedef struct _Acq_Result_S
 
 
 /*! \ingroup STRUCTS
- * 
+ * Informs the acquisition in what mode to perform the next acquisition
  */
 typedef struct _Acq_Request_S
 {
@@ -150,12 +133,27 @@ typedef struct _Acq_Request_S
 	int32 antenna;		//!< antenna number
 	
 } Acq_Request_S;
+
+/*! \ingroup STRUCTS
+ * Keep track of latest acquisition attempts
+ */
+typedef struct _Acq_History_S
+{
+	
+	int32 sv;			//!< SV number
+	int32 lasttype;		//!< Last acquisiton was what type (STRONG, MEDIUM, WEAK)
+	int32 antenna;		//!< Which antenna last acq was on
+	int32 failures;		//!< Number of failed acquisitions
+	int32 attempts;		//!< Number of attempts
+	int32 successes;	//!< Number of successes
+	
+} Acq_History_S;
 /*----------------------------------------------------------------------------------------------*/
 
 //!< Correlator and channel structs
 /*----------------------------------------------------------------------------------------------*/
 /*! \ingroup STRUCTS
- * 
+ * Feedback applied from channel object to correlator object
  */
 typedef struct _NCO_Command
 {
@@ -174,7 +172,7 @@ typedef struct _NCO_Command
 
 
 /*! \ingroup STRUCTS
- * 
+ * Raw correlation values, early, prompt, and late
  */
 typedef struct _Correlation_S
 {
@@ -186,7 +184,7 @@ typedef struct _Correlation_S
 
 
 /*! \ingroup STRUCTS
- * 
+ * Hold state information of the correlator
  */
 typedef struct _Correlator_State_S
 {
@@ -217,7 +215,7 @@ typedef struct _Correlator_State_S
 
 
 /*! \ingroup STRUCTS
- * 
+ * The measurement dumped to the PVT object
  */
 typedef struct _Measurement_S
 {
@@ -243,7 +241,7 @@ typedef struct _Measurement_S
 
 
 /*! \ingroup STRUCTS
- * 
+ * State of phase lock loop
  */
 typedef struct _Phase_lock_loop {
 
@@ -270,7 +268,7 @@ typedef struct _Phase_lock_loop {
 
 
 /*! \ingroup STRUCTS
- * 
+ * State of delay lock loop (NOT USED!)
  */
 typedef struct _Delay_lock_loop
 {
@@ -284,7 +282,7 @@ typedef struct _Delay_lock_loop
 
 
 /*! \ingroup STRUCTS
- * 
+ * Packet dumped to telemetry and to disk to keep track of each channel 
  */
 typedef struct _Chan_Packet_S
 {
@@ -318,7 +316,7 @@ typedef struct _Chan_Packet_S
 
 
 /*! \ingroup STRUCTS
- * 
+ * Raw subframes sent from channel to ephemeris object
  */
 typedef struct _Chan_2_Ephem_S {
 
@@ -535,7 +533,7 @@ typedef struct _Clock_S
 /* Structs associated with sv_select object */
 /*----------------------------------------------------------------------------------------------*/
 /*! \ingroup STRUCTS
- * 
+ * The predicted state of an SV via the almanac
  */
 typedef struct _Acq_Predicted_S
 {
@@ -599,7 +597,7 @@ typedef struct _Ephem_2_Telem_S
 
 
 /*! \ingroup STRUCTS
- * 
+ * Information sent from PVT to telemetry
  */
 typedef struct _PVT_2_Telem_S
 {
@@ -614,7 +612,7 @@ typedef struct _PVT_2_Telem_S
 
 
 /*! \ingroup STRUCTS
- * 
+ * Information sent from PVT to SV_Select to drive warm and hot starts
  */
 typedef struct _PVT_2_SV_Select_S
 {
