@@ -180,28 +180,23 @@ void Parse_Arguments(int32 argc, char* argv[])
 
 /*! Initialize any hardware (for realtime mode) */
 /*----------------------------------------------------------------------------------------------*/
-void Hardware_Init(void)
+int32 Hardware_Init(void)
 {
-
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-/*! Initialize all threaded objects and global variables */
-void Object_Init(void)
-{
-	int32 lcv;
 	
 	if(CPU_MMX())
 		printf("Detected MMX\n");
-
+	else
+		return(false);
+		
 	if(CPU_SSE())
 		printf("Detected SSE\n");
+	else
+		return(false);
 
 	if(CPU_SSE2())
 		printf("Detected SSE2\n");
+	else
+		return(false);
 
 	if(CPU_SSE3())
 		printf("Detected SSE3\n");
@@ -214,9 +209,20 @@ void Object_Init(void)
 
 	if(CPU_SSE42())
 		printf("Detected SSE4.2\n");
-		
-	//Init_SIMD();
 
+	return(1);
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+/*! Initialize all threaded objects and global variables */
+int32 Object_Init(void)
+{
+	int32 lcv;
+	int32 failed;
+	
 	/* Create Keyboard objec to handle user input */
 	pKeyboard = new Keyboard;
 	
@@ -253,6 +259,8 @@ void Object_Init(void)
 	
 	if(gopt.verbose)
 		printf("Cleared Object Init\n");
+		
+	return(1);
 	
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -260,7 +268,7 @@ void Object_Init(void)
 
 /*! Initialize all pipes */
 /*----------------------------------------------------------------------------------------------*/
-void Pipes_Init(void)
+int32 Pipes_Init(void)
 {
 	int32 lcv;
 		
@@ -292,6 +300,8 @@ void Pipes_Init(void)
 			
 	if(gopt.verbose)
 		printf("Cleared Pipes Init\n");
+		
+	return(1);
 			
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -299,7 +309,7 @@ void Pipes_Init(void)
 
 /*! Finally start up the threads */
 /*----------------------------------------------------------------------------------------------*/
-void Thread_Init(void)
+int32 Thread_Init(void)
 {
 	int32 lcv;
 	
@@ -337,6 +347,7 @@ void Thread_Init(void)
 	if(gopt.verbose)
 		printf("Cleared Thread Init\n");
 	
+	return(1);
 
 }
 /*----------------------------------------------------------------------------------------------*/

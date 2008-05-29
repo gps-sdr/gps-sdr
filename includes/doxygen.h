@@ -55,6 +55,8 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 \section soft-inst Install Guide
 
+	These instructions have all been tested on Ubuntu Hardy Heron (8.04). Use other distros at your own risk!
+
 \subsection step1 Step 1: Get Source
 
 	GPS-SDR is version controlled using the program Git. Git was written by Linus Tvoralds to version control
@@ -74,9 +76,9 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 	
 \subsection step2 Step 2: Install Dependancies
 
-	Dependancy 1, ncurses
+	Dependancy 1, ncurses, g++
 	
-	sudo apt-get install ncurses-dev
+	sudo apt-get install ncurses-dev g++-4.2
 	
 \subsection step3 Step 3: (OPTIONAL) Install GNURadio
 
@@ -84,12 +86,14 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 	
 	Goto http://gnuradio.org/trac/wiki/BuildGuide , build and install the latest version of GNURadio. Note where you
 	installed GNURadio. Open up the makefile in ./gps-sdr/usrp and edit the Makefile, set the GNURADIO variable
-	to where GNURadio was build and installed. CD to the ./gps-sdr/usrp directory and type "make", if everything
-	is configured correctly the executable "usrp_sdr" should have been built. Invoking this program should 
-	start the USRP and configure the DBS-RX daughtercard, tuning the USRP to receive GPS L1 C/A code. 
+	to where GNURadio was build and installed. Also make sure the CC, ASM, and LINK variables are a valid version
+	of gcc/g++. CD to the ./gps-sdr/usrp directory and type "make", if everything is configured correctly the
+	executable "usrp_sdr" should have been built. Invoking this program should start the USRP and configure the
+	DBS-RX daughtercard, tuning the USRP to receive GPS L1 C/A code.
 	
 \subsection step4 Step 4: Build gps-sdr	
 	
+	Edit the Makefile to make sure the CC, ASM, and LINK variables are a valid version of gcc/g++.
 	CD to the ./gps-sdr directory, type "make". The source should compile into 4 executables, simd_test, fft_test
 	acq_test, and gps-sdr. Just to make sure, run simd_test and verify that all the simd functions return PASSED.
 	acq_test and fft_test are NOT supported, they may or may not work at any time! acq_test can be used to perform

@@ -1,7 +1,5 @@
 function PRN_Source = PRNGen();
 
-% file = fopen('PRN_Codes.dat','wb');
-
 %Setup
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 G1 = zeros(1023,1);
@@ -43,15 +41,8 @@ end
 %Put into -1's and 1's
 D = (2 * mod(A+B+C,2)) - 1; 
 
-%write out the PRNs
-% for(lcv = 1:32)
-%     fwrite(file,D(:,lcv),'int16');
-% end
-
 %Return the PRNs
 PRN_Source = D;
-
-% fclose(file);
 
 return;
 

@@ -344,8 +344,16 @@ void Channel::FrequencyLock()
 	float df;
 	int32 *p;
 		
-	it = I[1] >> 6;
-	qt = Q[1] >> 6;
+	if(P[0] > P[1])
+		max = 0;
+	else 
+		max = 1;
+		
+	if(P[2] > P[max])
+		max = 2;		
+		
+	it = I[max] >> 6;
+	qt = Q[max] >> 6;
 
 	/* First frequency double to remove data bits */	
 	fft_buff[freq_lock_ticks].i = (int16)(it*it - qt*qt);

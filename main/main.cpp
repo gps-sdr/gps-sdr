@@ -32,13 +32,52 @@ int main(int32 argc, char* argv[])
 
 	Parse_Arguments(argc, argv);
 	
-	Hardware_Init();
+	success = Hardware_Init();
+	if(success == false)
+	{
+		Hardware_Shutdown();
+		printf("Hardware_Init() failed, aborting.\n");
+		return(-1);
+	}
 
-	Pipes_Init();
-
-	Object_Init();
-
-	Thread_Init();
+	if(success)
+	{
+		success = Pipes_Init();
+	}
+	else
+	{
+		Pipes_Shutdown();
+		Hardware_Shutdown();
+		printf("Pipes_Init() failed, aborting.\n");
+		return(-1);
+	}
+			
+	if(success)
+	{
+		success = Object_Init();
+	}
+	else
+	{
+		Pipes_Shutdown();
+		Object_Shutdown();
+		Hardware_Shutdown();
+		printf("Object_Init() failed, aborting.\n");
+		return(-1);
+	}
+		
+	if(success)
+	{
+		success = Thread_Init();
+	}
+	else
+	{
+		Thread_Shutdown();
+		Pipes_Shutdown();
+		Object_Shutdown();
+		Hardware_Shutdown();
+		printf("Thread_Init() failed, aborting.\n");
+		return(-1);
+	}
 
 
 	while(grun)

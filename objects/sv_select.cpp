@@ -46,7 +46,7 @@ SV_Select::SV_Select()
 {
 	sv = 0;	
 	mode = COLD_START;
-	memset(&type[0], ACQ_STRONG, NUM_CODES*sizeof(int32));
+	memset(&type[0], 0x0, NUM_CODES*sizeof(int32));
 	mask_angle = 0.0;
 	
 	pnav = &input_s.master_nav;	
@@ -199,10 +199,7 @@ bool SV_Select::SetupRequest()
 	
 	if(mode == COLD_START)
 	{	
-		if(type > ACQ_STRONG)
-			return(false);
-		else		
-			return(true);
+		return(true);
 	}
 	else if(mode == WARM_START)
 	{
@@ -260,10 +257,6 @@ void SV_Select::UpdateState()
 
 	if(type[sv] > ACQ_MEDIUM)
 		type[sv] = ACQ_STRONG;
-			
-	if(mode == COLD_START)
-		type[sv] = ACQ_STRONG;
-
 	
 }
 /*----------------------------------------------------------------------------------------------*/

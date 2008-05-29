@@ -314,7 +314,7 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 /*! 
  * Get a rough first guess of scale value to quickly initialize agc 
  * */
-int32 init_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
+void init_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 {
 	int32 lcv;
 	int16 *p;
@@ -325,20 +325,19 @@ int32 init_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 	max = 0;
 	for(lcv = 0; lcv < 2*_samps; lcv++)
 	{
-		if(abs(p[lcv]) > max)
-			max = abs(p[lcv]);
+		if(p[lcv] > max)
+			max = p[lcv];
 	}	
 
-	if(max < (1 << AGC_BITS))
-		max = 1 << AGC_BITS;
-	
-	if(max > (1 << (15+AGC_BITS)))
-		max = (1 << (15+AGC_BITS));
+//	if(max < (1 << AGC_BITS))
+//		max = 1 << AGC_BITS;
+//	
+//	if(max > (1 << (15+AGC_BITS)))
+//		max = (1 << (15+AGC_BITS));
 
-	scale[0] = max;
+	if(max > scale[0])
+		scale[0] = max;
 		
-	return(0);
-	
 }
 /*----------------------------------------------------------------------------------------------*/
 

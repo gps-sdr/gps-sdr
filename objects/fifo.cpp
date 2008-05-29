@@ -126,22 +126,19 @@ void FIFO::Inport()
 			nbytes += bread;
 	}
 	
-	if(count == 0)
-		overflw = init_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
-	
-	/* Run the agc */
-	overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
-	
 	/* Add to the buff */
-	if(gopt.realtime && count > 2000)
-		Enqueue();
+	if(gopt.realtime && count < 20)
+	{
+		init_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
+	}
 	else
-		Enqueue();		
-
+	{
+		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);	
+		Enqueue();
+	}		
 
 	/* Resample? */
 	count++;	
-
 }
 /*----------------------------------------------------------------------------------------------*/
 

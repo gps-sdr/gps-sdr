@@ -25,7 +25,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "includes.h"
 
-#define FREQ_LOCK_POINTS (512)
+#define FREQ_LOCK_POINTS (256)
 
 /*! \ingroup CLASSES
  * 

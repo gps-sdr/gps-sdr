@@ -143,9 +143,10 @@ typedef struct _Acq_History_S
 	int32 sv;			//!< SV number
 	int32 lasttype;		//!< Last acquisiton was what type (STRONG, MEDIUM, WEAK)
 	int32 antenna;		//!< Which antenna last acq was on
-	int32 failures;		//!< Number of failed acquisitions
-	int32 attempts;		//!< Number of attempts
-	int32 successes;	//!< Number of successes
+	int32 count[3];		//!< Successive counts for each type
+	int32 failures[3];	//!< Number of failed acquisitions
+	int32 attempts[3];	//!< Number of attempts
+	int32 successes[3];	//!< Number of successes
 	
 } Acq_History_S;
 /*----------------------------------------------------------------------------------------------*/

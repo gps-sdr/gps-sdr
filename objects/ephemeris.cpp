@@ -52,7 +52,7 @@ Ephemeris::Ephemeris()
 	pthread_mutex_unlock(&mutex);
 	
 	/* Read in stored ephem/almanac on bootup */
-	//ReadEphemeris();
+	ReadEphemeris();
 	ReadAlmanac();
 	Export();
 	
@@ -155,8 +155,10 @@ void Ephemeris::Parse(int32 _sv)
 				else
 					ephemerides[_sv].valid = false;
 					
-			output_s.valid[_sv] = ephemerides[_sv].valid;
-			output_s.iode[_sv] = iode_master[_sv];			
+				output_s.valid[_sv] = ephemerides[_sv].valid;
+				output_s.iode[_sv] = iode_master[_sv];
+
+				WriteEphemeris();
 					
 			} //IODE has changed
 
@@ -357,6 +359,49 @@ void Ephemeris::ParsePage(int32 _sv_id)
 			
 			WriteAlmanac();
 		}
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Ephemeris::WriteEphemeris()
+{
+	FILE *fp;
+	
+	fp = fopen("current.eph","w");
+
+	if(fp != NULL)
+	{
+		fwrite(&ephemerides[0], sizeof(Ephemeris_S), NUM_CODES, fp);
+		fclose(fp);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+
+void Ephemeris::ReadEphemeris()
+{
+	int32 lcv;
+	FILE *fp;
+	
+	fp = fopen("current.eph","r");
+
+	if(fp != NULL)
+	{
+		fread(&ephemerides[0], sizeof(Ephemeris_S), NUM_CODES, fp);
+		fclose(fp);
+		
+		for(lcv = 0; lcv < NUM_CODES; lcv++)
+		{
+			output_s.valid[lcv] = ephemerides[lcv].valid;
+			iode_master[lcv] = ephemerides[lcv].iode;
+			output_s.iode[lcv] = iode_master[lcv];
+		}			
+		
 	}
 
 }

@@ -35,7 +35,7 @@ elev(find(elev == 0)) = NaN;
 elev(find(elev < 0)) = NaN;
 elev(find(elev > pi/2)) = NaN;
 
-elev = 180*(pi/2-elev)/pi;
+elev = 180*(pi-elev)/pi;
 azim = azim + pi;
 
 figure(4)

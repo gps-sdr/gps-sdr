@@ -3,9 +3,9 @@ USRP_LIB_PATH	= $(GNURADIO)/usrp/host/lib
 USRP_LIB_PATH2	= $(GNURADIO)/usrp/host/lib/.libs/
 USRP_INCLUDES	= $(GNURADIO)/usrp/firmware/include
 
-CC	= g++
-ASM = g++
-LINK= g++
+CC	= g++-4.2
+ASM = g++-4.2
+LINK= g++-4.2
 
 CINCPATHFLAGS = -I$(USRP_INCLUDES) \
 				-I$(USRP_LIB_PATH)

@@ -24,10 +24,10 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /* These are all found in Main() */
 /*----------------------------------------------------------------------------------------------*/
 void Parse_Arguments(int32 _argc, char* _argv[]);	//!< Parse command line arguments to setup functionality
-void Hardware_Init(void);							//!< Initialize any hardware (for realtime mode)
-void Object_Init(void);							//!< Initialize all threaded objects and global variables
-void Pipes_Init(void);								//!< Initialize all pipes
-void Thread_Init(void);							//!< Finally start up the threads
+int32 Hardware_Init(void);							//!< Initialize any hardware (for realtime mode)
+int32 Object_Init(void);							//!< Initialize all threaded objects and global variables
+int32 Pipes_Init(void);								//!< Initialize all pipes
+int32 Thread_Init(void);							//!< Finally start up the threads
 void Thread_Shutdown(void);						//!< First step to shutdown, stopping the threads
 void Pipes_Shutdown(void);							//!< Close all the pipes
 void Object_Shutdown(void);						//!< Delete/free all objects
@@ -42,8 +42,8 @@ void sine_gen(CPX *_dest, double _f, double _fs, int32 _samps, double _p);
 void wipeoff_gen(MIX *_dest, double _f, double _fs, int32 _samps);
 void resample(CPX *_dest, CPX *_source, double _fdest, double _fsource, int32 _samps);
 void downsample(CPX *_dest, CPX *_source, double _fdest, double _fsource, int32 _samps);
+void init_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale);
 int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale);
-int32 init_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale);
 int32 AtanApprox(int32 y, int32 x);
 int32 Atan2Approx(int32 y, int32 x);
 int32 Invert4x4(double A[4][4], double B[4][4]);

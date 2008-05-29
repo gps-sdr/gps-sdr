@@ -52,7 +52,7 @@ class Ephemeris
 		void Lock();							//!< Lock critical data
 		void Unlock();							//!< Unlock critical data
 		void ClearSV(int32 _sv);				//!< Dump an ephemeris (usually from a detected cross-correlation)
-		void WriteEpehemeris();					//!< Write ephemerides to a txt file
+		void WriteEphemeris();					//!< Write ephemerides to a txt file
 		void ReadEphemeris();					//!< Read ephemerides from the same txt file
 		void WriteAlmanac();					//!< Write alamanacs to a YUMA file
 		void ReadAlmanac();						//!< Write alamanacs from a YUMA file

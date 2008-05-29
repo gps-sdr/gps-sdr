@@ -52,6 +52,7 @@ typedef class SV_Select
 		int32				type[NUM_CODES];				//!< Type (STRONG, MEDIUM, WEAK)
 		int32				sv;								//!< Current SV
 		int32				acq_thresh[3];					//!< Thresholds for acquisition
+		int32				prn_mask[NUM_CODES];			//!< Determine good and bad codes to search for
 		float				mask_angle;						//!< Elevation mask angle
 		 						
 	public:
