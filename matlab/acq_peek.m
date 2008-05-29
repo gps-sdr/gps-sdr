@@ -44,7 +44,7 @@ if(ALLSV == 1)
     a = stem(1:32,power_s,'b','FILLED');
     hold on;
     b = stem(last_s,power_s(last_s),'g','FILLED');
-%     axis([0 33 0 1e9]);
+    % axis([0 33 0 1e9]);
     grid on;      
     xlabel('Strong Acquisition')
 

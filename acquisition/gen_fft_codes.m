@@ -1,9 +1,8 @@
 %function [] = gen_fft_codes(bits)
-
 bits = 14;
 
 % Generate the raw codes (+-1)
-prn = PRNGen();
+prn = prn_gen();
 
 % Resample the codes to 2.048e6 Msps
 dt = round(linspace(1,1023,2048));
@@ -27,14 +26,14 @@ prn_r = round(real(prn));    prn_i = round(imag(prn));
 prn_r = int16(prn_r);        prn_i = int16(prn_i);
 
 % First unwrap the vectors
-prn_r = reshape(prn_r,[1 2048*32]);
-prn_i = reshape(prn_i,[1 2048*32]);
+prn_r = reshape(prn_r,[1 2048*51]);
+prn_i = reshape(prn_i,[1 2048*51]);
 
 % Open the .h file
-fp = fopen('PRN_Codes.h','wt');
+fp = fopen('prn_codes.h','wt');
 
 % Write out the values
-fprintf(fp,'int16 PRN_Codes[131072] = {');
+fprintf(fp,'int16 PRN_Codes[208896] = {');
 for(lcv = 1:length(prn_i)-1)
     fprintf(fp,'%0d,%0d,\n',prn_r(lcv),prn_i(lcv));
 end

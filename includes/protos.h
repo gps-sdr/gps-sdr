@@ -36,7 +36,7 @@ void Hardware_Shutdown(void);						//!< Shutdown any hardware
 
 /* Found in Misc.cpp */
 /*----------------------------------------------------------------------------------------------*/
-int code_gen(CPX *_dest, int32 _prn);
+int32 code_gen(CPX *_dest, int32 _prn);
 void sine_gen(CPX *_dest, double _f, double _fs, int32 _samps);
 void sine_gen(CPX *_dest, double _f, double _fs, int32 _samps, double _p);
 void wipeoff_gen(MIX *_dest, double _f, double _fs, int32 _samps);

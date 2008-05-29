@@ -6,9 +6,9 @@
 %   3: PLL and FLL lock indicators
 %   4: Raw Correlations & CN0
 
-function [] = chan_peek(chan)
+% function [] = chan_peek(chan)
 
-
+chan = 0;
 close all; clc;
 A = get_chan(chan);
 
@@ -51,59 +51,76 @@ grid on;
 
 subplot(312)
 plot(power)
-grid on;
+hold on;
 plot(A(:,18).*A(:,9),'k')
+hold off; grid on;
 ylabel('I^{2}+Q^{2}');
-grid on;
+
 subplot(313)
 plot(A(:,21) - 1.023e6) 
-grid on; hold on;
+hold on;
 plot((A(:,22)-604000)*1.023e6/1.57542e9,'r')
+hold off; grid on;
 ylabel('Code NCO');
 
 figure(2)
 subplot(311)
 plot(A(:,26)); ylabel('Acceleration');
-hold on; grid on;
+grid on;
+
 subplot(312)
 plot(A(:,27)); ylabel('Velocity');
-hold on; grid on;
+grid on;
+
 subplot(313)
 plot(A(:,28)); ylabel('Carrier NCO');
-hold on; grid on;
+grid on;
 
 figure(3)
 
 subplot(211)
 plot(A(:,23),'b')
-hold on; grid on;
+grid on;
 ylabel('FLL Lock')
 
 subplot(212)
 plot(A(:,24),'r')
-hold on; grid on;
+grid on;
 ylabel('PLL Lock')
 
 
 figure(4)
 subplot(211)
 plot(A(:,11),'b.')
-hold on; grid on;
+hold on;
 plot(A(:,14),'r.')
+hold off; grid on;
 legend('Inphase','Quadrature')
 ylabel('Correlation')
+
 subplot(212)
 plot(A(:,19))
-hold on; grid on;
+hold on;
 plot(A(:,20),'r')
+hold off; grid on;
 ylabel('CN_{0}')
 
 figure(5)
 plot(A(:,11) + i*A(:,14),'b.')
-
+grid on;
+ 
 figure(6)
 
 subplot(211)
 plot(A(:,7),'b')
-hold on; grid on;
+grid on;
 ylabel('Best Epoch')
+
+
+crap = A(:,15);
+len = floor(length(crap)/20);
+crap = crap(1:len*20);
+crap = reshape(crap,[20 len]).';
+
+figure(7)
+plot(crap.')

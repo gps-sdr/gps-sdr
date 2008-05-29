@@ -51,8 +51,7 @@ typedef class SV_Select
 		int32				mode;							//!< SV select mode (COLD, WARM, HOT)
 		int32				type[NUM_CODES];				//!< Type (STRONG, MEDIUM, WEAK)
 		int32				sv;								//!< Current SV
-		int32				acq_thresh[3];					//!< Thresholds for acquisition
-		int32				prn_mask[NUM_CODES];			//!< Determine good and bad codes to search for
+		int32				acq_ticks;
 		float				mask_angle;						//!< Elevation mask angle
 		 						
 	public:
@@ -70,7 +69,8 @@ typedef class SV_Select
 		void SV_Position(int32 _sv);	//!< Compute SV positions from almanac
 		void SV_LatLong(int32 _sv);		//!< Compute SV's lat and long
 		void SetState(int32 _state); 	//!< Set state
- 		bool SetupRequest();			//!< Setup the acq request		
+ 		bool SetupRequest();			//!< Setup the acq request
+ 		void ProcessResult();			//!< Take the result and do something with it!		
 		void MaskAngle();				//!< Calculate elevation mask angle
 
 };

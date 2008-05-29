@@ -25,60 +25,62 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*! 
  * code_gen, generate the given prn code
  * */
-int code_gen(CPX *_dest, int32 _prn)
+int32 code_gen(CPX *_dest, int32 _prn)
 {
 	
-	int32 G1[CODE_CHIPS] = {0};
-	int32 G2[CODE_CHIPS][10] = {0};
-	int32 G1_register[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};  
-	int32 G2_register[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};  
-	int32 registertemp[9] = {0};
-	int32 feedback1, feedback2;
-	int32 lcv, lcv2, lcv3;
-	
+	uint32 G1[1023];
+	uint32 G2[1023];	
+	uint32 G1_register[10], G2_register[10];
+	uint32 feedback1, feedback2;
+	uint32 lcv, lcv2;
+	uint32 delay;
+
+	/* G2 Delays as defined in GPS-ISD-200D */
 	int32 delays[51] = {5, 6, 7, 8, 17, 18, 139, 140, 141, 251, 252, 254 ,255, 256, 257, 258, 469, 470, 471, 472,
 		473, 474, 509, 512, 513, 514, 515, 516, 859, 860, 861, 862, 145, 175, 52, 21, 237, 235, 886, 657, 634, 762,
 		355, 1012, 176, 603, 130, 359, 595, 68, 386};
 
+	/* A simple error check */
 	if((_prn < 0) || (_prn > 51))
 		return(0);	
-	
-	/* Generate G1 Register */
-	for(lcv = 0; lcv < CODE_CHIPS; lcv++)
+
+	for(lcv = 0; lcv < 10; lcv++)
 	{
-		G1[lcv] = G1_register[9];
-		feedback1 = G1_register[2]^G1_register[9];
+		G1_register[lcv] = 1;
+		G2_register[lcv] = 1;
+	}
+	
+	/* Generate G1 & G2 Register */
+	for(lcv = 0; lcv < 1023; lcv++)
+	{
+		G1[lcv] = G1_register[0];
+		G2[lcv] = G2_register[0];
+
+		feedback1 = G1_register[7]^G1_register[0];
+		feedback2 = (G2_register[8] + G2_register[7] + G2_register[4] + G2_register[2] + G2_register[1] + G2_register[0]) & 0x1;
 
 		for(lcv2 = 0; lcv2 < 9; lcv2++)
-			registertemp[lcv2] = G1_register[lcv2];
+		{
+			G1_register[lcv2] = G1_register[lcv2+1]; 
+			G2_register[lcv2] = G2_register[lcv2+1]; 
+		}
 
-		for(lcv2 = 0; lcv2 < 9; lcv2++)
-			G1_register[lcv2+1] = registertemp[lcv2];
-
-		G1_register[0] = feedback1;
+		G1_register[9] = feedback1;
+		G2_register[9] = feedback2;
 	}
 
-	/* Generate G2 Register */
-	for(lcv2=0; lcv2 < CODE_CHIPS; lcv2++)
-	{ 
-		for(lcv = 0; lcv < 10; lcv++) 
-			G2[lcv2][lcv] = G2_register[lcv];
-
-		feedback2 = (G2_register[1]+G2_register[2]+G2_register[5]+G2_register[7]+G2_register[8]+G2_register[9]) % 2;
-
-		for(lcv3 = 0; lcv3 < 9; lcv3++)
-			registertemp[lcv3] = G2_register[lcv3];
-
-		for(lcv3 = 0; lcv3 < 9; lcv3++)
-			G2_register[lcv3+1] = registertemp[lcv3];
-
-		G2_register[0] = feedback2;
-	}
+	/* Set the delay */
+	delay = 1023 - delays[_prn];
 
 	/* Generate PRN from G1 and G2 Registers */
-	for(lcv = 0; lcv < CODE_CHIPS; lcv++)
-		_dest[lcv].i = G1[lcv]^G2[((1023-delays[_prn])+lcv) % 1023][9];
+	for(lcv = 0; lcv < 1023; lcv++)
+	{
+		_dest[lcv].i = G1[lcv]^G2[delay];
 		_dest[lcv].q = 0;
+
+		delay++;
+		delay %= 1023;
+	}
 		
 	return(1);
 	

@@ -109,7 +109,7 @@ Acquisition::Acquisition(float _fsample, float _fif)
 	resamps_ms = SAMPS_MS; //Always decimate to 2048 samples/ms for C/A code
 	
 	/* Step one, grab pre-fftd codes from header file */
-	for(lcv = 0; lcv < NUM_CODES; lcv++)
+	for(lcv = 0; lcv < NUM_CODES_WAAS; lcv++)
 		fft_codes[lcv] = (CPX *)&PRN_Codes[2*lcv*resamps_ms];
 		
 	/* Allocate some buffers that will be used later on */

@@ -512,6 +512,7 @@ void Telemetry::PrintAlmanac()
 	mvwprintw(screen,line++,1,"Mask Angle:\t%6.2f\n",tSelect.mask_angle*(180/PI));
 	mvwprintw(screen,line++,1,"Visible:\t%6d\n",nvis);
 	mvwprintw(screen,line++,1,"Tracked:\t%6d\n",ntrack);
+	
 	line++;
 	mvwprintw(screen,line++,1,"SV        Elev        Azim     Doppler           Delay   Visible    Tracked\n");
 	mvwprintw(screen,line++,1,"---------------------------------------------------------------------------\n");

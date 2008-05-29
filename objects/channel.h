@@ -69,7 +69,6 @@ typedef class Channel
 		int32 P[3];				//!< Power
 		int32 I_prev;			//!< Previous I prompt correlation
 		int32 Q_prev;			//!< Previous Q prompt correlation
-		float Ip_prev;	
 		float I_avg;			//!< Moving average of I
 		float Q_var;			//!< Variance of Q
 		float P_avg;			//!< Moving average of P

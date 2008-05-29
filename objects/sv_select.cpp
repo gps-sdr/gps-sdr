@@ -51,6 +51,7 @@ SV_Select::SV_Select()
 	
 	pnav = &input_s.master_nav;	
 	pclock = &input_s.master_clock;
+	
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -92,10 +93,10 @@ void SV_Select::Inport()
 void SV_Select::Acquire()
 {
 	int32 lcv, chan, already;
-	
+
 	chan = 666;
 	already = 0;
-
+	
 	/* See if any correlators are available */
 	pthread_mutex_lock(&mInterrupt);
 
@@ -142,14 +143,12 @@ void SV_Select::Acquire()
 		/* Tell the acquisition what to try */
 		if(SetupRequest())
 		{
-
 			/* Send to the acquisition thread */
 			write(Trak_2_Acq_P[WRITE], &request, sizeof(Acq_Request_S));
 		
 			/* Wait for acq to return, do stuff depending on the state */
 			read(Acq_2_Trak_P[READ], &result, sizeof(Acq_Result_S));
 	
-			/* If the acq was succesful! */		
 			if(result.success)
 			{
 				/* Else start a channel */
@@ -157,7 +156,8 @@ void SV_Select::Acquire()
 			
 				/* Map receiver channels to channels on correlator */
 				write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Result_S));
-			}
+			}			
+			
 		}
 		
 		UpdateState();		
@@ -249,9 +249,9 @@ bool SV_Select::SetupRequest()
 /*----------------------------------------------------------------------------------------------*/
 void SV_Select::UpdateState()
 {
-	
-	sv++;
-	sv %= NUM_CODES;
+
+	if(++sv == NUM_CODES)
+		sv = 0;		
 
 	type[sv]++;
 

@@ -48,7 +48,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 \section soft-pre Software Prerequisites
 
-	GCC 			\n
+	G++-4.2			\n
 	ncurses  		\n
 	USRP library  	\n
 	CPU with MMX & SSE2 extensions (Pentium 4 or later) \n

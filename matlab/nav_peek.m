@@ -61,7 +61,7 @@ subplot(212)
 plot(dt,a(:,2),'LineWidth',2)
 grid on; ylabel('Nsvs'); axis([0 max(dt) 0 13])
 xlabel('Minutes')
-print -dpng -r0 nav_status
+% print -dpng -r0 nav_status
 
 figure
 subplot(311)
@@ -75,7 +75,7 @@ subplot(313)
 plot(dt,a(:,6))
 grid on; ylabel('p_{z} (m)'); axis tight;
 xlabel('Minutes')
-print -dpng -r0 postion
+% print -dpng -r0 postion
 
 % 
 % figure
@@ -95,7 +95,7 @@ subplot(313)
 plot(dt,a(:,9))
 grid on; ylabel('v_{z} (m/s)'); axis tight;
 xlabel('Minutes')
-print -dpng -r0 velocity
+% print -dpng -r0 velocity
 
 figure
 subplot(211)
@@ -107,14 +107,14 @@ plot(dt(2:end),c*diff(a(:,10)),'r',dt,a(:,11),'b')
 title('Clock Rate')
 grid on; ylabel('v_{c} (m/s)')
 xlabel('Minutes')
-print -dpng -r0 clock
+% print -dpng -r0 clock
 
-figure
-plot(dt,a(:,12:end))
-grid on;
-axis([0 max(dt) 0 20])
-xlabel('Minutes')
-legend('gdop','hdop','tdop','vdop','pdop')
-title('DOPS')
-print -dpng -r0 dops
+% figure
+% plot(dt,a(:,12:end))
+% grid on;
+% axis([0 max(dt) 0 20])
+% xlabel('Minutes')
+% legend('gdop','hdop','tdop','vdop','pdop')
+% title('DOPS')
+% print -dpng -r0 dops
 

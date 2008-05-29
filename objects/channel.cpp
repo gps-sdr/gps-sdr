@@ -201,20 +201,20 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	Q_buff[_1ms_epoch] = corr->Q[1];
 	
 	/* Lowpass filter */
-	P_buff[_1ms_epoch] = (63*P_buff[_1ms_epoch]	+ (I_sum20>>6)*(I_sum20>>6)	+ (Q_sum20>>6)*(Q_sum20>>6)+32)>>6;
+	P_buff[_1ms_epoch] = (63*P_buff[_1ms_epoch]	+ (I_sum20>>3)*(I_sum20>>3)	+ (Q_sum20>>3)*(Q_sum20>>3)+32)>>6;
 	
 	/* Dump accumulation and do tracking according to integration length */
 	if(((_1ms_epoch + 1) % len) == 0)
 	{
-		Export();		
 		DumpAccum();
 	}
 
 	/* These functions must be called every ms */
-	BitLock();
+	//BitLock();
 	BitStuff();
 	Epoch();
-
+	Export();
+	
 	/* Kill the correlator if the channel has stopped itself */			
 	if(active == false)
 		_feedback->kill = true;		
@@ -288,9 +288,9 @@ void Channel::DumpAccum()
 	else
 	{
 		PLL();
-		DLL();
+		DLL();		
 	}
-
+	
 	/* Lowpass filtered values here */
 	I_avg += (fabs((float)I[1]) - I_avg) * .01;
 	Q_var += ((float)Q[1]*(float)Q[1] - Q_var) * .01;
@@ -990,10 +990,10 @@ void Channel::Export()
 	packet.count 		= (float)count;
 	packet.I[0] 		= (float)I[0];
 	packet.I[1] 		= (float)I[1];
-	packet.I[2] 		= (float)I[2];
+	packet.I[2] 		= (float)I_sum20;
 	packet.Q[0] 		= (float)Q[0];
 	packet.Q[1] 		= (float)Q[1];
-	packet.Q[2]			= (float)Q[2];
+	packet.Q[2]			= (float)P_buff[_1ms_epoch];
 	packet.CN0 			= (float)CN0;
 	packet.CN0_old		= (float)CN0_old;
 	packet.I_avg		= (float)I_avg;

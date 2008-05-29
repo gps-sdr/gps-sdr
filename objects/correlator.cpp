@@ -308,49 +308,6 @@ void Correlator::TakeMeasurement()
 	/* Write over measurement */
 	write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_S));	
 
-
-//	/* This crap is done to properly calculate velocity from ICP */
-//	if(packet.measurement & 0x1)
-//	{
-//		meas.carrier_phase_prev			= meas.carrier_phase;
-//		meas.carrier_phase 				= state.carrier_phase;
-//		meas.navigate					= state.navigate;
-//						
-//		/* This ensures the last MEASUREMENT_DELAY measurements are good */
-////		for(lcv = 0; lcv < MEASUREMENT_DELAY-1; lcv++)
-////			state.nav_history[lcv] = state.nav_history[lcv+1];
-////				
-////		state.nav_history[MEASUREMENT_DELAY-1] = state.navigate;				 
-////
-////
-////		for(lcv = 0; lcv < MEASUREMENT_DELAY-1; lcv++)	
-////			if(state.nav_history[lcv] == false)
-////				meas.navigate = false;
-//		
-//		write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_S));		
-//	}
-//	else
-//	{
-//		meas.chan				= chan;	
-//		meas.code_phase 		= state.code_phase;
-//		meas.code_phase_mod 	= state.code_phase_mod;
-//		meas.carrier_phase_mod 	= state.carrier_phase_mod;
-//		meas.code_nco 			= state.code_nco;
-//		meas.carrier_nco 		= state.carrier_nco;
-//		meas._1ms_epoch 		= state._1ms_epoch;
-//		meas._20ms_epoch 		= state._20ms_epoch;
-//		meas._z_count 			= state._z_count;
-//		meas.sv					= state.sv;
-//		meas.count				= packet.count;
-//		
-////		meas.carrier_phase_prev			= meas.carrier_phase;
-////		meas.carrier_phase 				= state.carrier_phase;
-////		write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_S));		
-//		
-//	}
-//	
-//	carrier_phase[???] = state.carrier_phase;
-
 }
 /*----------------------------------------------------------------------------------------------*/
 

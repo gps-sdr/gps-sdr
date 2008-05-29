@@ -41,7 +41,7 @@ class Acquisition
 	private:
 	
 		pthread_t thread;
-		CPX *fft_codes[NUM_CODES];				//!< Store the FFTd Codes;
+		CPX *fft_codes[NUM_CODES_WAAS];			//!< Store the FFTd Codes;
 	
 		ms_packet packet;						//!< Get IF data
 		CPX *buff;								//!< Result after mixing the buffer to baseband

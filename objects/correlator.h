@@ -35,37 +35,33 @@ class Correlator
 
 		FILE *crap;
 	
-		pthread_t 			thread;	 				//!< For the thread
+		pthread_t 			thread;	 					//!< For the thread
 		
-		int32				packet_count;			//!< Count 1ms packets
-		ms_packet			packet;					//!< 1ms of data
+		int32				packet_count;				//!< Count 1ms packets
+		ms_packet			packet;						//!< 1ms of data
 		
-		int32 				chan;			 		//!< Which channel is this?
-		Acq_Result_S 		result; 				//!< An acquisition result has been returned!
-		NCO_Command_S  		feedback;				//!< NCO feedback commands
-		Correlation_S  		corr;					//!< Resulting correlation
-		Correlator_State_S	state;					//!< Correlator states
-		Measurement_S		meas;					//!< Measurements to dump
+		int32 				chan;			 			//!< Which channel is this?
+		Acq_Result_S 		result; 					//!< An acquisition result has been returned!
+		NCO_Command_S  		feedback;					//!< NCO feedback commands
+		Correlation_S  		corr;						//!< Resulting correlation
+		Correlator_State_S	state;						//!< Correlator states
+		Measurement_S		meas;						//!< Measurements to dump
 		Measurement_S		meas_buff[TICS_PER_SECOND];	//!< Measurements to dump
-		Channel 			*aChannel;				//!< Get this correlators channel
+		Channel 			*aChannel;					//!< Get this correlators channel
 		
 		/* This  is important, the following array is large and is constant, so it is 
 		 * shared among all instances of this class */
-		 static CPX *sine_table;
-		 static CPX **sine_rows;
-		 
-		 /* This is used to wipeoff the carrier rate (ie range acceleration) */
-		 static CPX *accel_table;
-		 static CPX **accel_rows;
+		static CPX *sine_table;
+		static CPX **sine_rows;
 //		static CPX			sine_table[(2*CARRIER_BINS+1)*2*SAMPS_MS];	//!< Hold the sine lookup table [2*CARRIER_BINS+1][2*SAMPS_MS];
 //		static CPX			*sine_rows[2*CARRIER_BINS+1];				//!< Row pointers to above
 		
 		CPX					*code_table;			//!< Hold the PRN lookup table  [2*CODE_BINS+1][2*SAMPS_MS];
 		CPX					**code_rows;			//!< Row pointers to above
 		CPX					scratch[2*SAMPS_MS];	//!< Scratch data
-		CPX					lookup[SAMPS_MS];
-		uint32				nco_phase_inc;
-		uint32				nco_phase;
+		CPX					lookup[SAMPS_MS];		//!< Hold the sine lookup
+		uint32				nco_phase_inc;			//!< For dynamically generating the wipeoff
+		uint32				nco_phase;				//!< For dynamically generating the wipeoff
 		
 	public:
 
