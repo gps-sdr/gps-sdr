@@ -122,10 +122,10 @@ void sine_gen(CPX *_dest, double _f, double _fs, int32 _samps, double _p)
 	
 	int32 lcv;
 	int16 c, s;
-	float phase, phase_step;
+	double phase, phase_step;
 	
 	phase = _p;
-	phase_step = (float)TWO_PI*_f/_fs;
+	phase_step = (double)TWO_PI*_f/_fs;
 	
 	for(lcv = 0; lcv < _samps; lcv++)
 	{
@@ -150,10 +150,10 @@ void wipeoff_gen(MIX *_dest, double _f, double _fs, int32 _samps)
 
 	int32 lcv;
 	int16 c, s;
-	float phase, phase_step;
+	double phase, phase_step;
 
 	phase = 0;
-	phase_step = (float)TWO_PI*_f/_fs;
+	phase_step = (double)TWO_PI*_f/_fs;
 	
 	for(lcv = 0; lcv < _samps; lcv++)
 	{

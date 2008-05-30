@@ -93,7 +93,7 @@ Acquisition::Acquisition(float _fsample, float _fif)
 	int32 lcv, lcv2;
 	CPX *p;
 	int32 R1[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	int32 R2[16] = {0,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1};
+	int32 R2[16] = {0,0,0,0,0,0,0,1,0,1,0,1,1,1,1,1};
 
 	/* Acq state */
 	sv = 0;
@@ -118,8 +118,8 @@ Acquisition::Acquisition(float _fsample, float _fif)
 	msbuff   = new CPX[resamps_ms];
 	power    = new CPX[10 * resamps_ms];	
 	coherent = new CPX[10 * resamps_ms];
-	wipeoff  = new CPX[310 * resamps_ms];
 	baseband = new CPX[4 * 310 * resamps_ms];
+	wipeoff  	  = new CPX[310 * resamps_ms];
 	_250Hzwipeoff = new CPX[310 * resamps_ms];
 	_500Hzwipeoff = new CPX[310 * resamps_ms];
 	_750Hzwipeoff = new CPX[310 * resamps_ms];
@@ -141,30 +141,26 @@ Acquisition::Acquisition(float _fsample, float _fif)
 		wipeoff_gen(dft_rows[lcv], (float)lcv*-25.0, 1000.0, 10);
 	
 	/* Generate mix to baseband */
-	sine_gen(wipeoff, -fif, SAMPLE_FREQUENCY, 310*resamps_ms);
+	sine_gen(wipeoff, -fif, SAMPLE_FREQUENCY, 10*resamps_ms);
 	 
 	/* Generate 250 Hz offset wipeoff */
-	sine_gen(_250Hzwipeoff, -250.0, SAMPLE_FREQUENCY, 310*resamps_ms);
-	sine_gen(_500Hzwipeoff, -500.0, SAMPLE_FREQUENCY, 310*resamps_ms);
-	sine_gen(_750Hzwipeoff, -750.0, SAMPLE_FREQUENCY, 310*resamps_ms);
+	sine_gen(_250Hzwipeoff, -250.0, SAMPLE_FREQUENCY, 10*resamps_ms);
+	sine_gen(_500Hzwipeoff, -500.0, SAMPLE_FREQUENCY, 10*resamps_ms);
+	sine_gen(_750Hzwipeoff, -750.0, SAMPLE_FREQUENCY, 10*resamps_ms);
 	
-	/* Allocate the FFT */
+	/* Copy to all 310 ms */
+	for(lcv = 1; lcv < 31; lcv++)
+	{
+		memcpy(&wipeoff[lcv*10*resamps_ms],wipeoff,10*resamps_ms*sizeof(CPX));
+		memcpy(&_250Hzwipeoff[lcv*10*resamps_ms],_250Hzwipeoff,10*resamps_ms*sizeof(CPX));
+		memcpy(&_500Hzwipeoff[lcv*10*resamps_ms],_500Hzwipeoff,10*resamps_ms*sizeof(CPX));
+		memcpy(&_750Hzwipeoff[lcv*10*resamps_ms],_750Hzwipeoff,10*resamps_ms*sizeof(CPX));
+	}
+	
+	/* Allocate the FFTs */
 	pFFT = new FFT(resamps_ms, R1);
 	piFFT = new FFT(resamps_ms, R2);		
 	pcFFT = new FFT(32);
-
-	#ifdef ACQ_DEBUG
-		lcv = mkfifo("/tmp/ACQPIPE", 0666);
-		if((lcv == -1) && (errno != EEXIST))
-	        printf("Error creating the named pipe");
-	    else
-	    	printf("Named pipe created\n");
-	    	
-		printf("Waiting for client\n");
-		acq_pipe = open("/tmp/GPSPIPE", O_WRONLY);
-		fcntl(acq_pipe, F_SETFL, O_NONBLOCK);		
-		printf("Client connected\n");
-	#endif		
 
 	if(gopt.verbose)	
 		printf("Creating Acquisition\n");
@@ -222,7 +218,6 @@ void Acquisition::doPrepIF(int32 _type, CPX *_buff)
 	
 	int32 lcv, ms;
 	CPX *p;
-	int *pp;
 	
 	switch(_type)
 	{
@@ -254,7 +249,7 @@ void Acquisition::doPrepIF(int32 _type, CPX *_buff)
 	for(lcv = 0; lcv < 4*ms; lcv++)
 		pFFT->doFFT(&baseband[lcv*resamps_ms], true);
 		
-	/* Now copy into the rows *//*----------------------------------------------------------------------------------------------*/
+	/* Now copy into the rows */
 	for(lcv = 0; lcv < 4*ms; lcv++)
 	{
 		p = baseband_rows[lcv];
@@ -262,7 +257,6 @@ void Acquisition::doPrepIF(int32 _type, CPX *_buff)
 		memcpy(p+100,	 		 &baseband[lcv*resamps_ms],			resamps_ms*sizeof(CPX));
 		memcpy(p+100+resamps_ms, &baseband[lcv*resamps_ms],			100*sizeof(CPX));
 	}
-				
 }	
 /*----------------------------------------------------------------------------------------------*/
 
@@ -285,14 +279,14 @@ Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 	for(lcv = (_doppmin/1000)+1; lcv <=  (_doppmax/1000); lcv++)
 	{
 		/* Sweep through the doppler range */
-		for(lcv2 = 0; lcv2 < 4; lcv2+=2)
+		for(lcv2 = 0; lcv2 < 4; lcv2++)
 		{
 			
 			if(gopt.realtime)
 				usleep(1000);
 			
 			/* Multiply in frequency domain, shifting appropiately */
-			sse_cmulsc(&baseband_rows[lcv2][100-lcv], fft_codes[_sv], msbuff, resamps_ms, 9);
+			sse_cmulsc(&baseband_rows[lcv2][100-lcv], fft_codes[_sv], msbuff, resamps_ms, 10);
 			
 			/* Compute iFFT */
 			piFFT->doiFFT(msbuff, true);
@@ -340,9 +334,9 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 	Acq_Result_S *result;
 	int32 lcv, lcv2, lcv3, mag, magt, index, indext, k;
 	int32 iaccum, qaccum;
+	CPX temp[10];	
 	int32 data[32];
 	CPX *dp = (CPX *)&data[0];
-	CPX temp[10];
 	int32 *dt = (int32 *)&temp[0];
 	int32 *p;
 	
@@ -355,31 +349,26 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 		/* Covers the 250 Hz spacing */
 		for(lcv2 = 0; lcv2 < 4; lcv2++)
 		{
-			
 			/* Do both even and odd */
 			for(k = 0; k < 2; k++)
 			{
 				
-				if(gopt.realtime)
-					usleep(1000);
+//				if(gopt.realtime)
+//					usleep(1000);
 				
 				/* Do the 10 ms of coherent integration */
 				for(lcv3 = 0; lcv3 < 10; lcv3++)
 				{
 					/* Multiply in frequency domain, shifting appropiately */
-					sse_cmulsc(&baseband_rows[20*lcv2+lcv3+k*10][100-lcv], fft_codes[_sv], &coherent[lcv3*resamps_ms], resamps_ms, 9);
+					sse_cmulsc(&baseband_rows[lcv2*20 + lcv3 + k*10][100-lcv], fft_codes[_sv], &coherent[lcv3*resamps_ms], resamps_ms, 10);
 				
 					/* Compute iFFT */
 					piFFT->doiFFT(&coherent[lcv3*resamps_ms], true);
-					
 				}
 					
 				/* For each delay do the post-corr FFT, this REALLY needs sped up */
 				for(lcv3 = 0; lcv3 < resamps_ms; lcv3++)
 				{
-					/* Zero it out */
-					//memset(&temp[0], 0x0, sizeof(int32)*10);
-						
 					/* Copy over the relevant data pts */
 					p = (int32 *)&coherent[lcv3];
 					data[0] = *p; p += resamps_ms;
@@ -405,8 +394,6 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 					sse_cacc(dp, dft_rows[8], 10, &iaccum, &qaccum); temp[8].i = iaccum >> 16; temp[8].q = qaccum >> 16;
 					sse_cacc(dp, dft_rows[9], 10, &iaccum, &qaccum); temp[9].i = iaccum >> 16; temp[9].q = qaccum >> 16;
 					
-					//sse_dft(dp, dft_rows[0], &temp[0]);
-					
 					/* Put into the power matrix */
 					p = (int32 *)&power[lcv3];
 					*p = dt[0]; p += resamps_ms;
@@ -420,22 +407,21 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 					*p = dt[8]; p += resamps_ms;
 					*p = dt[9];
 					
-					
 				}
-	
+
 				/* Convert to a power */
 				x86_cmag(&power[0], 10*resamps_ms);
 				
 				/* Find the maximum */
 				x86_max((int32 *)power, &indext, &magt, 10*resamps_ms);
-			
+
 				/* Found a new maximum */
 				if(magt > mag)
 				{
 					mag = magt;
 					index = indext % resamps_ms;
 					result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
-					result->doppler = (float)(-lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0;
+					result->doppler = (float)(-lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0 + 125.0;
 					result->magnitude = (float)mag;
 				}
 			
@@ -490,7 +476,7 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 			/* Do both even and odd */
 			for(k = 0; k < 2; k++)
 			{
-				
+	
 				/* Clear out incoherent int */
 				memset(power, 0x0, 10*resamps_ms*sizeof(CPX));
 				
@@ -570,7 +556,7 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 					mag = magt;
 					index = indext % resamps_ms;
 					result->delay = CODE_CHIPS - (float)index*CODE_RATE/ fbase;
-					result->doppler = (float)(-lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0;
+					result->doppler = (float)(-lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0 + 125.0;
 					result->magnitude = (float)mag;
 				}
 			

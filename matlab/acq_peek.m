@@ -77,7 +77,7 @@ if(ALLSV == 1)
             set(b,'Ydata',power_s(last_s));
             set(d,'Ydata',power_m(last_m));
 
-            drawnow;
+%            drawnow;
 
         end
 
@@ -97,7 +97,8 @@ else
         power = zeros(vsize,1);
         pd = zeros(vsize,1);
         paxis = 1:vsize;
-
+        k  = 0;
+        
         while(1)
         
             A = get_acq();
@@ -123,27 +124,56 @@ else
                 ind = ind1 & ind2;   
                 
                 pd(end) = sum(ind)/vsize;
+                
+                
+                if(k == 0)
+                    figure(1)
+                    h = subplot(411)
+                    a = plot(1:vsize,delay,'b');
+                    hold on;
+                    b = plot(paxis(ind),delay(ind),'ro');
+                    title(sprintf('Pd = %f\n, Td = %f\n',sum(ind)/vsize,tdelay),'FontSize',24);
+                    grid on;
+                    ylabel('Delay')            
+                    axis([1 vsize 0 1023])
 
-                figure(1)
-                subplot(411)
-                plot(1:vsize,delay,'b',paxis(ind),delay(ind),'ro')
-%                 title(sprintf('Pd = %f\n, Td = %f\n',sum(ind)/vsize,tdelay),'FontSize',24);
-                grid on;
-                ylabel('Delay')            
-                axis([1 vsize 0 1023])
-                subplot(412)
-                plot(1:vsize,pd)
-                grid on;
-                ylabel('P_{D}')            
-                subplot(413)
-                plot(doppler)
-                grid on;
-                ylabel('Doppler')            
-                subplot(414)
-                plot(power)
-                grid on;
-                ylabel('Power')
-                drawnow;
+                    subplot(412)
+                    c = plot(1:vsize,pd)
+                    grid on;
+                    ylabel('P_{D}')            
+
+                    subplot(413)
+                    d = plot(doppler)
+                    hold on; grid on;
+                    f = plot(doppler,'ro')                    
+                    ylabel('Doppler')            
+
+                    subplot(414)
+                    e = plot(power)
+                    grid on;
+                    ylabel('Power')
+                    k = k+1;
+                else
+
+                    set(a,'Ydata',delay);
+                    set(b,'Ydata',delay(ind));        
+                    set(c,'Ydata',pd);        
+                    set(d,'Ydata',doppler);        
+                    set(e,'Ydata',power);        
+                    set(f,'Ydata',doppler(ind));                    
+
+                    %set(a,'Xdata',last_s);
+                    set(b,'Xdata',paxis(ind));
+                    set(f,'Xdata',paxis(ind));                    
+                    %set(c,'Xdata',last_s);
+                    %set(d,'Xdata',last_m);
+                    %set(e,'Xdata',last_s);
+             
+                    title(h,sprintf('Pd = %f\n, Td = %f\n',sum(ind)/vsize,tdelay),'FontSize',24);                    
+                    
+                    drawnow;
+                
+                end
                 
                 pause(0.01);
                 

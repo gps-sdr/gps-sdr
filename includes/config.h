@@ -65,8 +65,8 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /* Acquisition defines */
 /*----------------------------------------------------------------------------------------------*/
 #define	THRESH_STRONG			(1.5e7)	//!< Threshold for strong signal detection
-#define	THRESH_MEDIUM			(1.5e7)		//!< Threshold for medium signal detection
-#define	THRESH_WEAK				(1.5e7)		//!< Threshold for weak signal detection
+#define	THRESH_MEDIUM			(1.0e7)		//!< Threshold for medium signal detection
+#define	THRESH_WEAK				(1.0e7)		//!< Threshold for weak signal detection
 #define MAX_DOPPLER				10000		//!< Set the maximum Doppler frequency
 /*----------------------------------------------------------------------------------------------*/
 

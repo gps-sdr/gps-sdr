@@ -1,5 +1,5 @@
 %function [] = gen_fft_codes(bits)
-bits = 14;
+bits = 9;
 
 % Generate the raw codes (+-1)
 prn = prn_gen();

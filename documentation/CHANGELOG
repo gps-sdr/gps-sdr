@@ -63,7 +63,6 @@ which is the default behaviour.
 
 05/28/2008 3.0.17a
 
-Added self calibration for acquisition thresholds via search of a dummy PRN. Thresholds will be set to mean(power) + std(power), which should limit false acquisitions to 15%
-while maximizing the probability of detection. Fixed warm/hot start modes, warm acquisition indicates the almanac is used for visibility only, whereas hot uses the almanac
-for visibility AND to predict the doppler range. Added in dump of ephemeris to a file for faster warm start.
+Added in dump of ephemeris to a file for faster warm start. Fixed MAJOR bug with medium and weak acquisition that resulted in the wrong doppler frequency being
+calculated.
 

@@ -16,7 +16,7 @@ VPATH		=   accessories:	\
 				objects:		\
 				simd:			
 											
-LDFLAGS	 = -lpthread -lncurses -m32
+LDFLAGS	 = -O3 -lpthread -lncurses -m32
 CFLAGS   = -O3 -m32 $(CINCPATHFLAGS)
 ASMFLAGS = -masm=intel
 

@@ -283,8 +283,10 @@ void Channel::DumpAccum()
 	else
 	{
 		PLL();
-		DLL();
+		
 	}
+
+	DLL();
 
 	/* Lowpass filtered values here */
 	I_avg += (fabs((float)I[1]) - I_avg) * .01;
@@ -339,8 +341,8 @@ void Channel::FrequencyLock()
 	float df;
 	int32 *p;
 		
-	it = I[1] >> 6;
-	qt = Q[1] >> 6;
+	it = I[1] >> 3;
+	qt = Q[1] >> 3;
 
 	/* First frequency double to remove data bits */	
 	fft_buff[freq_lock_ticks].i = (int16)(it*it - qt*qt);
@@ -379,13 +381,9 @@ void Channel::FrequencyLock()
 		df /= (float)FREQ_LOCK_POINTS;	// Spacing of FFT bins
 		df *= (float)mind;				// Convert to frequency offset
 		
-		/* After update go to 20 ms accumulation */
+		/* Update the loop filters */
 		aDLL.x += 2.0*df*CODE_RATE/L1;
 		aPLL.x += 2.0*df;
-		aPLL.z += df;
-		
-		carrier_nco = IF_FREQUENCY + aPLL.z;
-		code_nco = CODE_RATE + ((carrier_nco - IF_FREQUENCY)*CODE_RATE/L1);
 		
 		freq_lock = true;
 		freq_lock_ticks = 0;
@@ -457,10 +455,7 @@ void Channel::PLL()
 //	else
 //		dp = 0;	
 
-	if(count < 4000)
-		dp = 0;
-	else
-		df = 0;
+	df = 0;
 
 	/* 3rd order PLL wioth 2nd order FLL assist */
 	aPLL.w += aPLL.t * (aPLL.w0p3 * dp + aPLL.w0f2 * df);
@@ -888,7 +883,7 @@ void Channel::Error()
 	mcn0 = CN0 > CN0_old ? CN0 : CN0_old;
 
 	/* Monitor DLL */
-	if((P_avg < 3e4) && (count > 2000))
+	if((P_avg < 2e4) && (count > 4000))
 			active = false;
 
 	/* Monitor CN0 for false PLL lock */
@@ -904,7 +899,7 @@ void Channel::Error()
 		active = false;
 		
 	/* Adjust integration length based on CN0 */
-	if(bit_lock)
+	if(count > 4000)
 	{
 //		if((CN0 >= 40.0) && (len != 1))
 //		{
