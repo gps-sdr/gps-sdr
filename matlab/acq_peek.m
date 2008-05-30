@@ -127,7 +127,7 @@ else
                 figure(1)
                 subplot(411)
                 plot(1:vsize,delay,'b',paxis(ind),delay(ind),'ro')
-                title(sprintf('Pd = %f\n, Td = %f\n',sum(ind)/vsize,tdelay),'FontSize',24);
+%                 title(sprintf('Pd = %f\n, Td = %f\n',sum(ind)/vsize,tdelay),'FontSize',24);
                 grid on;
                 ylabel('Delay')            
                 axis([1 vsize 0 1023])

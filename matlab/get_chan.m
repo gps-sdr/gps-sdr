@@ -25,7 +25,7 @@ function [A] = get_chan(chan)
 % 	float x;
 % 	float z;	
 
-pts = 28;
+pts = 48;
 
 fp = fopen(sprintf('../chan%02d.dat',chan),'rb');
 A(:,1) = fread(fp,inf,'float'); 

@@ -25,7 +25,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "includes.h"
 
-#define FREQ_LOCK_POINTS (256)
+#define FREQ_LOCK_POINTS (512)
 
 /*! \ingroup CLASSES
  * 
@@ -82,7 +82,6 @@ typedef class Channel
 		bool  bit_lock;			//!< Bitlock
 		bool  bit_lock_pend;	//!< Pending to send _1ms_epoch reset command to correlator
 		int32 bit_lock_ticks;	//!< Number of ticks in attempted bit lock
-		int32 bit_lock_reset;	//!< Number of ticks since last change in best epoch
 		int32 I_sum20;			//!< I prompt sum for past 20 ms
 		int32 Q_sum20;			//!< Q prompt sum for past 20 ms
 		int32 I_buff[20];		//!< I for last 20 ms

@@ -6,9 +6,8 @@
 %   3: PLL and FLL lock indicators
 %   4: Raw Correlations & CN0
 
-% function [] = chan_peek(chan)
+function [] = chan_peek(chan)
 
-chan = 0;
 close all; clc;
 A = get_chan(chan);
 
@@ -57,7 +56,7 @@ hold off; grid on;
 ylabel('I^{2}+Q^{2}');
 
 subplot(313)
-plot(A(:,21) - 1.023e6) 
+plot(A(:,21)) 
 hold on;
 plot((A(:,22)-604000)*1.023e6/1.57542e9,'r')
 hold off; grid on;
@@ -107,20 +106,26 @@ ylabel('CN_{0}')
 
 figure(5)
 plot(A(:,11) + i*A(:,14),'b.')
-grid on;
+grid on; axis square; axis equal;
  
+
+
+
+crap = A(:,end-19:end);
+size(crap)
+[m, ind] = max(crap.');
+
 figure(6)
 
 subplot(211)
 plot(A(:,7),'b')
-grid on;
+grid on; hold on;
+plot(ind,'r')
 ylabel('Best Epoch')
 
 
-crap = A(:,15);
-len = floor(length(crap)/20);
-crap = crap(1:len*20);
-crap = reshape(crap,[20 len]).';
+figure
+plot(A(:,end-23));
 
-figure(7)
-plot(crap.')
+
+

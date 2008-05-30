@@ -158,7 +158,7 @@ void Correlator::Inport()
 					aChannel->Start(result.sv, result, 1);
 					break;
 				case ACQ_MEDIUM:
-					aChannel->Start(result.sv, result, 4);
+					aChannel->Start(result.sv, result, 1);
 					break;
 				case ACQ_WEAK:
 					aChannel->Start(result.sv, result, 4);
@@ -593,7 +593,7 @@ void Correlator::InitCorrelator()
 	dt = (double)packet.count - (double)result.count;
 	dt *= (double).001;
 	dt *= (double)result.doppler*(double)CODE_RATE/(double)L1;
-	result.delay += (double)CODE_CHIPS + dt;
+	result.delay += (double)CODE_CHIPS - dt;
 	result.delay = fmod(result.delay,(double) CODE_CHIPS);
 
 	state.sv					= result.sv;
@@ -622,19 +622,16 @@ void Correlator::InitCorrelator()
 	bin = (int32) floor((state.code_phase_mod + 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;
 	state.pcode[0] = code_rows[bin];
-	state.pcode[0] += inc;
 	state.cbin[0] = bin;
 	
 	bin = (int32) floor((state.code_phase_mod + 0.0)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;	
 	state.pcode[1] = code_rows[bin];
-	state.pcode[1] += inc;
 	state.cbin[1] = bin;
 	
 	bin = (int32) floor((state.code_phase_mod - 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;	
 	state.pcode[2] = code_rows[bin];
-	state.pcode[2] += inc;
 	state.cbin[2] = bin;
 	
 	/* Update pointer to pre-sampled sine vector */

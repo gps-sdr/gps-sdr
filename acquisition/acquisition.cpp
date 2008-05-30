@@ -279,14 +279,6 @@ Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 	Acq_Result_S *result = &results[_sv];
 	CPX *p;
 	
-	#ifdef ACQ_DEBUG
-		mag = ACQ_PREFIX;
-		write(acq_pipe,&mag,sizeof(int32));
-		mag = ACQ_STRONG;
-		write(acq_pipe,&mag,sizeof(int32));
-		write(acq_pipe,&_sv,sizeof(int32));
-	#endif			
-	
 	index = indext = mag = magt = 0;
 
 	/* Covers the 250 Hz spacing */
@@ -296,8 +288,8 @@ Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 		for(lcv2 = 0; lcv2 < 4; lcv2+=2)
 		{
 			
-//			if(gopt.realtime)
-//				usleep(1000);
+			if(gopt.realtime)
+				usleep(1000);
 			
 			/* Multiply in frequency domain, shifting appropiately */
 			sse_cmulsc(&baseband_rows[lcv2][100-lcv], fft_codes[_sv], msbuff, resamps_ms, 9);
@@ -307,10 +299,6 @@ Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 
 			/* Convert to a power */
 			x86_cmag(msbuff, resamps_ms);
-			
-			#ifdef ACQ_DEBUG
-				write(acq_pipe,msbuff,sizeof(int32)*resamps_ms);
-			#endif			
 			
 			/* Find the maximum */
 			x86_max((int32 *)msbuff, &indext, &magt, resamps_ms);
@@ -327,11 +315,6 @@ Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 			
 		}
 	}
-	
-	#ifdef ACQ_DEBUG
-		mag = ACQ_POSTFIX;
-		write(acq_pipe,&mag,sizeof(int32));
-	#endif			
 	
 	result->sv = _sv;
 	
@@ -365,14 +348,6 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 	
 	result = &results[_sv];
 	index = indext = mag = magt = 0;
-	
-	#ifdef ACQ_DEBUG
-		mag = ACQ_PREFIX;
-		write(acq_pipe,&mag,sizeof(int32));
-		mag = ACQ_MEDIUM;
-		write(acq_pipe,&mag,sizeof(int32));
-		write(acq_pipe,&_sv,sizeof(int32));
-	#endif	
 	
 	/* Sweeps through the doppler range */
 	for(lcv = (_doppmin/1000)+1; lcv <=  (_doppmax/1000); lcv++)
@@ -451,10 +426,6 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 				/* Convert to a power */
 				x86_cmag(&power[0], 10*resamps_ms);
 				
-				#ifdef ACQ_DEBUG
-					write(acq_pipe,msbuff,10*sizeof(int32)*resamps_ms);
-				#endif			
-		
 				/* Find the maximum */
 				x86_max((int32 *)power, &indext, &magt, 10*resamps_ms);
 			
@@ -463,7 +434,7 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 				{
 					mag = magt;
 					index = indext % resamps_ms;
-					result->delay = CODE_CHIPS - (float)index*CODE_RATE/ fbase;
+					result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
 					result->doppler = (float)(-lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0;
 					result->magnitude = (float)mag;
 				}
@@ -473,11 +444,6 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 		}//end lcv2
 		
 	}//end lcv
-	
-	#ifdef ACQ_DEBUG
-		mag = ACQ_POSTFIX;
-		write(acq_pipe,&mag,sizeof(int32));
-	#endif			
 	
 	
 	result->sv = _sv;
@@ -513,14 +479,6 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 	
 	result = &results[_sv];
 	index = indext = mag = magt = 0;
-	
-	#ifdef ACQ_DEBUG
-		mag = ACQ_PREFIX;
-		write(acq_pipe,&mag,sizeof(int32));
-		mag = ACQ_WEAK;
-		write(acq_pipe,&mag,sizeof(int32));
-		write(acq_pipe,&_sv,sizeof(int32));
-	#endif	
 	
 	/* Sweeps through the doppler range */
 	for(lcv = (_doppmin/1000); lcv <=  (_doppmax/1000); lcv++)
@@ -603,10 +561,6 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 			
 				}//end i
 			
-				#ifdef ACQ_DEBUG
-					write(acq_pipe,msbuff,10*sizeof(int32)*resamps_ms);
-				#endif			
-			
 				/* Find the maximum */
 				x86_max((int32 *)power, &indext, &magt, 10*resamps_ms);
 				
@@ -625,11 +579,6 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 		}//end lcv2
 		
 	}//end lcv
-	
-	#ifdef ACQ_DEBUG
-		mag = ACQ_POSTFIX;
-		write(acq_pipe,&mag,sizeof(int32));
-	#endif			
 	
 	result->sv = _sv;
 	
