@@ -255,7 +255,7 @@ void SV_Select::UpdateState()
 
 	type[sv]++;
 
-	if(type[sv] > ACQ_MEDIUM)
+	if(type[sv] > ACQ_STRONG)
 		type[sv] = ACQ_STRONG;
 	
 }

@@ -56,7 +56,7 @@ hold off; grid on;
 ylabel('I^{2}+Q^{2}');
 
 subplot(313)
-plot(A(:,21)) 
+plot(A(:,21)-1.023e6) 
 hold on;
 plot((A(:,22)-604000)*1.023e6/1.57542e9,'r')
 hold off; grid on;

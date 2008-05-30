@@ -158,7 +158,7 @@ void Correlator::Inport()
 					aChannel->Start(result.sv, result, 1);
 					break;
 				case ACQ_MEDIUM:
-					aChannel->Start(result.sv, result, 1);
+					aChannel->Start(result.sv, result, 4);
 					break;
 				case ACQ_WEAK:
 					aChannel->Start(result.sv, result, 4);
@@ -307,6 +307,49 @@ void Correlator::TakeMeasurement()
 
 	/* Write over measurement */
 	write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_S));	
+
+
+//	/* This crap is done to properly calculate velocity from ICP */
+//	if(packet.measurement & 0x1)
+//	{
+//		meas.carrier_phase_prev			= meas.carrier_phase;
+//		meas.carrier_phase 				= state.carrier_phase;
+//		meas.navigate					= state.navigate;
+//						
+//		/* This ensures the last MEASUREMENT_DELAY measurements are good */
+////		for(lcv = 0; lcv < MEASUREMENT_DELAY-1; lcv++)
+////			state.nav_history[lcv] = state.nav_history[lcv+1];
+////				
+////		state.nav_history[MEASUREMENT_DELAY-1] = state.navigate;				 
+////
+////
+////		for(lcv = 0; lcv < MEASUREMENT_DELAY-1; lcv++)	
+////			if(state.nav_history[lcv] == false)
+////				meas.navigate = false;
+//		
+//		write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_S));		
+//	}
+//	else
+//	{
+//		meas.chan				= chan;	
+//		meas.code_phase 		= state.code_phase;
+//		meas.code_phase_mod 	= state.code_phase_mod;
+//		meas.carrier_phase_mod 	= state.carrier_phase_mod;
+//		meas.code_nco 			= state.code_nco;
+//		meas.carrier_nco 		= state.carrier_nco;
+//		meas._1ms_epoch 		= state._1ms_epoch;
+//		meas._20ms_epoch 		= state._20ms_epoch;
+//		meas._z_count 			= state._z_count;
+//		meas.sv					= state.sv;
+//		meas.count				= packet.count;
+//		
+////		meas.carrier_phase_prev			= meas.carrier_phase;
+////		meas.carrier_phase 				= state.carrier_phase;
+////		write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_S));		
+//		
+//	}
+//	
+//	carrier_phase[???] = state.carrier_phase;
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -593,7 +636,7 @@ void Correlator::InitCorrelator()
 	dt = (double)packet.count - (double)result.count;
 	dt *= (double).001;
 	dt *= (double)result.doppler*(double)CODE_RATE/(double)L1;
-	result.delay += (double)CODE_CHIPS - dt;
+	result.delay += (double)CODE_CHIPS + dt;
 	result.delay = fmod(result.delay,(double) CODE_CHIPS);
 
 	state.sv					= result.sv;
@@ -622,16 +665,19 @@ void Correlator::InitCorrelator()
 	bin = (int32) floor((state.code_phase_mod + 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;
 	state.pcode[0] = code_rows[bin];
+	state.pcode[0] += inc;
 	state.cbin[0] = bin;
 	
 	bin = (int32) floor((state.code_phase_mod + 0.0)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;	
 	state.pcode[1] = code_rows[bin];
+	state.pcode[1] += inc;
 	state.cbin[1] = bin;
 	
 	bin = (int32) floor((state.code_phase_mod - 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;	
 	state.pcode[2] = code_rows[bin];
+	state.pcode[2] += inc;
 	state.cbin[2] = bin;
 	
 	/* Update pointer to pre-sampled sine vector */

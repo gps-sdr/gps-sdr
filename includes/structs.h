@@ -277,7 +277,7 @@ typedef struct _Delay_lock_loop
 	float DLLBW;
 	float x;
 	float z;
-	float a2;
+	float a;
 	float w0;
 	float w02;
 	float t;	
