@@ -128,6 +128,7 @@ typedef class Channel
 		void DumpAccum();								//!< Dump the accumulation and do rest of processing
 		void FrequencyLock();							//!< Use FFT to pull in the PLL
 		void PLL_W(float _bw);							//!< Change the PLL bandwidth
+		void DLL_W(float _bw);							//!< Change the DLL bandwidth
 		void PLL();										//!< Perform the phase lock loop
 		void DLL();										//!< Do the DLL
 		void Epoch();									//!< Increase _1ms_epoch, _20ms_epoch		

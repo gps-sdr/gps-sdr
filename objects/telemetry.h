@@ -83,6 +83,7 @@ typedef class Telemetry
 		void PrintSV();
 		void PrintEphem();
 		void PrintAlmanac();		
+		void PrintHistory();
 		void LogNav();
 		void LogPseudo();
 		void LogTracking();

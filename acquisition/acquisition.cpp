@@ -137,7 +137,7 @@ Acquisition::Acquisition(float _fsample, float _fif)
 	
 	/* Generate sinusoid */
 	for(lcv = 0; lcv < 10; lcv++)
-		wipeoff_gen(dft_rows[lcv], (float)lcv*-25.0, 1000.0, 10);
+		wipeoff_gen(dft_rows[lcv], (float)-lcv*25.0, 1000.0, 10);
 	
 	/* Generate mix to baseband */
 	sine_gen(_000Hzwipeoff, -fif, SAMPLE_FREQUENCY, 10*resamps_ms);
@@ -276,17 +276,17 @@ Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 	index = indext = mag = magt = 0;
 
 	/* Covers the 250 Hz spacing */
-	for(lcv = (_doppmin/1000)+1; lcv <=  (_doppmax/1000); lcv++)
+	for(lcv = (_doppmin/1000); lcv <  (_doppmax/1000); lcv++)
 	{
 		/* Sweep through the doppler range */
-		for(lcv2 = 0; lcv2 < 4; lcv2++)
+		for(lcv2 = 0; lcv2 < 4; lcv2+=2)
 		{
 			
 			if(gopt.realtime)
 				usleep(1000);
 			
 			/* Multiply in frequency domain, shifting appropiately */
-			sse_cmulsc(&baseband_rows[lcv2][100-lcv], fft_codes[_sv], msbuff, resamps_ms, 10);
+			sse_cmulsc(&baseband_rows[lcv2][100+lcv], fft_codes[_sv], msbuff, resamps_ms, 10);
 			
 			/* Compute iFFT */
 			piFFT->doiFFT(msbuff, true);
@@ -303,7 +303,7 @@ Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 				mag = magt;
 				index = indext;
 				result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
-				result->doppler = (float)(-lcv*1000) + (float)lcv2*250;
+				result->doppler = (float)(lcv*1000) + (float)lcv2*250;
 				result->magnitude = (float)mag;
 			}
 			
@@ -344,7 +344,7 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 	index = indext = mag = magt = 0;
 	
 	/* Sweeps through the doppler range */
-	for(lcv = (_doppmin/1000)+1; lcv <=  (_doppmax/1000); lcv++)
+	for(lcv = (_doppmin/1000); lcv <=  (_doppmax/1000); lcv++)
 	{
 		/* Covers the 250 Hz spacing */
 		for(lcv2 = 0; lcv2 < 4; lcv2++)
@@ -360,7 +360,7 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 				for(lcv3 = 0; lcv3 < 10; lcv3++)
 				{
 					/* Multiply in frequency domain, shifting appropiately */
-					sse_cmulsc(&baseband_rows[lcv2*20 + lcv3 + k*10][100-lcv], fft_codes[_sv], &coherent[lcv3*resamps_ms], resamps_ms, 10);
+					sse_cmulsc(&baseband_rows[lcv2*20 + lcv3 + k*10][100+lcv], fft_codes[_sv], &coherent[lcv3*resamps_ms], resamps_ms, 10);
 				
 					/* Compute iFFT */
 					piFFT->doiFFT(&coherent[lcv3*resamps_ms], true);
@@ -421,7 +421,7 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 					mag = magt;
 					index = indext % resamps_ms;
 					result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
-					result->doppler = (float)(-lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0 + 125.0;
+					result->doppler = (float)(lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0;
 					result->magnitude = (float)mag;
 				}
 			
@@ -470,7 +470,7 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 	index = indext = mag = magt = 0;
 	
 	/* Sweeps through the doppler range */
-	for(lcv = (_doppmin/1000)+1; lcv <=  (_doppmax/1000); lcv++)
+	for(lcv = (_doppmin/1000); lcv <  (_doppmax/1000); lcv++)
 	{
 		
 		/* Covers the 250 Hz spacing */
@@ -494,14 +494,14 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 					for(lcv3 = 0; lcv3 < 10; lcv3++)
 					{
 						/* Multiply in frequency domain, shifting appropiately */
-						sse_cmulsc(&baseband_rows[lcv2*310 + lcv3 + i*20 + k*10][100-lcv], fft_codes[_sv], &coherent[lcv3*resamps_ms], resamps_ms, 9);
+						sse_cmulsc(&baseband_rows[lcv2*310 + lcv3 + i*20 + k*10][100+lcv], fft_codes[_sv], &coherent[lcv3*resamps_ms], resamps_ms, 9);
 					
 						/* Compute iFFT */
 						piFFT->doiFFT(&coherent[lcv3*resamps_ms], true);
 					}
 						
 					/* Calculate the frquency doppler */
-					doppler = (float)(-lcv*1000) + (float)(lcv2*250);
+					doppler = (double)(lcv*1000) + (float)(lcv2*250);
 					
 					/* Calculate shift in samples */
 					code_doppler = (double)i*.02*IF_SAMPLE_FREQUENCY*doppler/L1;
@@ -566,7 +566,7 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 					mag = magt;
 					index = indext % resamps_ms;
 					result->delay = CODE_CHIPS - (float)index*CODE_RATE/ fbase;
-					result->doppler = (float)(-lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0 + 125.0;
+					result->doppler = (float)(lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0;
 					result->magnitude = (float)mag;
 				}
 			

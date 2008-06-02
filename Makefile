@@ -55,9 +55,9 @@ OBJS =		init.o			\
 #			acq_test.dis 
 
 EXE =		gps-sdr			\
-			fft_test		\
-			simd_test		\
-			acq_test		
+			simd_test		
+#			fft_test		\
+#			acq_test		
 			
 
 All: $(EXE)
@@ -87,6 +87,7 @@ clean: minclean exclean cleandoxy
 	
 minclean:
 	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -o -name "*.out" -o -name "*.m~"  -o -name "*.tlm" \) -print`
+	@rm -rvf `find . \( -name "fft_test" -o -name "acq_test" -o -name "usrp_sdr" \) -print`	
 	@rm -rvf $(EXE)
 	
 exclean:	

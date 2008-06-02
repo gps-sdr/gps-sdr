@@ -49,7 +49,7 @@ typedef class SV_Select
 		Acq_History_S		sv_history[NUM_CODES];			//!< Keep track of acquisition attempts for each SV
 		SV_Select_2_Telem_S	output_s;						//!< Send predicted states to telemetry		
 		int32				mode;							//!< SV select mode (COLD, WARM, HOT)
-		int32				type[NUM_CODES];				//!< Type (STRONG, MEDIUM, WEAK)
+//		int32				type[NUM_CODES];				//!< Type (STRONG, MEDIUM, WEAK)
 		int32				sv;								//!< Current SV
 		int32				acq_ticks;
 		float				mask_angle;						//!< Elevation mask angle

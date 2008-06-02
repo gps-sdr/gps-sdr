@@ -86,7 +86,6 @@ SV_Select::SV_Select()
 {
 	sv = 0;	
 	mode = COLD_START;
-	memset(&type[0], 0x0, NUM_CODES*sizeof(int32));
 	mask_angle = 0.0;
 	
 	pnav = &input_s.master_nav;	
@@ -152,11 +151,12 @@ void SV_Select::Acquire()
 
 	/* If the SV is already being tracked skip the acquisition */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-		if(pChannels[lcv]->getSV() == sv)
-		{
-			already = 666;
-			sv_prediction[sv].tracked = true;
-		}
+		if(pChannels[lcv]->getActive())
+			if(pChannels[lcv]->getSV() == sv)
+			{
+				already = 666;
+				sv_prediction[sv].tracked = true;
+			}
 
 	pthread_mutex_unlock(&mInterrupt);
 	
@@ -169,6 +169,8 @@ void SV_Select::Acquire()
 		UpdateState();
 		return;
 	}
+	else
+		sv_prediction[sv].tracked = false;
 	
 	/* Run the SV prediction routine based on Almanac data */
 	GetAlmanac(sv);
@@ -182,20 +184,18 @@ void SV_Select::Acquire()
 		/* Tell the acquisition what to try */
 		if(SetupRequest())
 		{
+			
 			/* Send to the acquisition thread */
 			write(Trak_2_Acq_P[WRITE], &request, sizeof(Acq_Request_S));
 		
 			/* Wait for acq to return, do stuff depending on the state */
 			read(Acq_2_Trak_P[READ], &result, sizeof(Acq_Result_S));
-	
-			if(result.success)
-			{
-				/* Else start a channel */
-				result.chan = chan;
 			
-				/* Map receiver channels to channels on correlator */
-				write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Result_S));
-			}			
+			/* Pass over channel */
+			result.chan = chan;
+				
+			/* Do something! */	
+			ProcessResult();	
 			
 		}
 		
@@ -213,9 +213,10 @@ void SV_Select::Export()
 
 	output_s.mask_angle = mask_angle;
 	output_s.mode = mode;
-	output_s.type = type[sv];
+	output_s.type = sv_history[sv].type;
 	
 	memcpy(&output_s.sv_predicted[0], &sv_prediction[0], NUM_CODES*sizeof(Acq_Predicted_S));
+	memcpy(&output_s.sv_history[0], &sv_history[0], NUM_CODES*sizeof(Acq_History_S));
 	write(SV_Select_2_Telem_P[WRITE], &output_s, sizeof(SV_Select_2_Telem_S));
 	
 }
@@ -231,10 +232,10 @@ bool SV_Select::SetupRequest()
 	
 	/* Initialize parameters */
 	request.state = 1;
-	request.type = type[sv];
+	request.type = sv_history[sv].type;
 	request.sv = sv;
 	request.mindopp = -MAX_DOPPLER;
-	request.maxdopp = MAX_DOPPLER;	
+	request.maxdopp = MAX_DOPPLER;
 	
 	if(mode == COLD_START)
 	{	
@@ -264,8 +265,8 @@ bool SV_Select::SetupRequest()
 				doppler = doppler - (doppler % 1000);
 				
 				/* Give it a 3 kHz error range */
-				request.mindopp = (doppler - 2000);
-				request.maxdopp = (doppler + 2000);
+				request.mindopp = (doppler - 3000);
+				request.maxdopp = (doppler + 3000);
 							
 				return(true);
 				
@@ -286,16 +287,51 @@ bool SV_Select::SetupRequest()
 
 
 /*----------------------------------------------------------------------------------------------*/
+void SV_Select::ProcessResult()
+{
+	
+	int32 type;
+	Acq_History_S *psv;
+	
+	psv = &sv_history[sv];
+	type = psv->type;
+	
+	if(result.success)
+	{
+		psv->count[type]++;
+		psv->attempts[type]++;
+		psv->successes[type]++;
+
+		/* Map receiver channels to channels on correlator */
+		write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Result_S));
+	}
+	else
+	{
+		psv->count[type]++;
+		psv->failures[type]++;
+		psv->attempts[type]++;
+
+		if(psv->failures[type] >= 10)
+		{
+			psv->failures[type] = 0;
+			psv->type++;
+		
+			if(psv->type > ACQ_MEDIUM)
+				psv->type = ACQ_STRONG;
+		}	
+		
+	}
+	
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void SV_Select::UpdateState()
 {
 
 	if(++sv == NUM_CODES)
 		sv = 0;		
-
-	type[sv]++;
-
-	if(type[sv] > ACQ_STRONG)
-		type[sv] = ACQ_STRONG;
 	
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -578,7 +614,7 @@ void SV_Select::MaskAngle()
 	
 	if(pnav->altitude < 1000)
 	{
-		mask_angle = 0.0;
+		mask_angle = 10.0*PI/180.0;
 	}
 	else
 	{

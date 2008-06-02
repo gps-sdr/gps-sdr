@@ -637,6 +637,7 @@ void Correlator::InitCorrelator()
 	dt = (double)packet.count - (double)result.count;
 	dt *= (double).001;
 	dt *= (double)result.doppler*(double)CODE_RATE/(double)L1;
+	dt = 0;
 	result.delay += (double)CODE_CHIPS + dt;
 	result.delay = fmod(result.delay,(double) CODE_CHIPS);
 

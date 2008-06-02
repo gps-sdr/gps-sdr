@@ -158,6 +158,7 @@ void Channel::Start(int32 _sv, Acq_Result_S result, int32 _corr_len)
 			PLL_W(30.0);
 	}
 	
+	DLL_W(10.0);
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -227,6 +228,7 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	{
 		_feedback->reset_1ms = true;
 		bit_lock_pend = false;
+		DLL_W(1.0);
 	}
 	else
 		_feedback->reset_1ms = false;
@@ -279,7 +281,6 @@ void Channel::DumpAccum()
 	else
 	{
 		PLL();
-		
 	}
 
 	DLL();
@@ -399,11 +400,13 @@ void Channel::DLL()
 	lp = sqrt(float(P[2]));	
 	
 	code_err  = (ep - lp)/(ep + lp);
-		
-	aDLL.x += aDLL.t*(code_err*aDLL.w02);
-	aDLL.z = 0.5*aDLL.x + aDLL.a*aDLL.w02*code_err;
 	
-	code_nco = CODE_RATE + ((carrier_nco - IF_FREQUENCY)*CODE_RATE/L1) + aDLL.z;
+	/* Not working too well right now, debug some later */	
+	//aDLL.x += aDLL.t*(code_err*aDLL.w02);
+	//aDLL.z = 0.5*aDLL.x + aDLL.a*aDLL.w02*code_err;
+	//code_nco = CODE_RATE + ((carrier_nco - IF_FREQUENCY)*CODE_RATE/L1) + aDLL.z;
+	
+	code_nco = CODE_RATE + ((carrier_nco - IF_FREQUENCY)*CODE_RATE/L1) + code_err;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -843,10 +846,10 @@ bool Channel::ValidFrameFormat(uint32 *subframe)
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Channel::PLL_W(float _bw)
+void Channel::PLL_W(float _bwpll)
 {
 	
-	aPLL.PLLBW = _bw;
+	aPLL.PLLBW = _bwpll;
 	aPLL.FLLBW = 50.0;
 	
 	aPLL.b3 = 2.40;
@@ -859,13 +862,19 @@ void Channel::PLL_W(float _bw)
 	aPLL.w0f2 = aPLL.w0f*aPLL.w0f;
 	aPLL.gain = 1.0;
 	aPLL.t = .001*(float)len;
+	
+}
 
-	aDLL.DLLBW = 1.0;
+
+void Channel::DLL_W(float _bwdll)
+{
+	
+	aDLL.DLLBW = _bwdll;
 	aDLL.a = 1.414;
 	aDLL.w0 = aDLL.DLLBW/0.7845;
 	aDLL.w02 = aDLL.w0*aDLL.w0;
 	aDLL.t = .001*(float)len;
-
+	
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -879,7 +888,7 @@ void Channel::Error()
 	mcn0 = CN0 > CN0_old ? CN0 : CN0_old;
 
 	/* Monitor DLL */
-	if((P_avg < 2e4) && (count > 4000))
+	if((P_avg < 2e4) && (count > 1000))
 			active = false;
 
 	/* Monitor CN0 for false PLL lock */

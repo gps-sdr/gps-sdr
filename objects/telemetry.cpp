@@ -258,6 +258,9 @@ void Telemetry::UpdateScreen()
 		case 1:
 			PrintAlmanac();
 			break;
+		case 2:
+			PrintHistory();
+			break;
 		default:
 			PrintChan();
 			PrintSV();
@@ -541,6 +544,67 @@ void Telemetry::PrintAlmanac()
 				mvwprintw(screen,line++,1,"--  ----------  ----------  ----------  --------------       ---        ---\n");
 	}
 	
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Telemetry::PrintHistory()
+{
+	
+	int32 lcv, nvis, ntrack;
+	float elev, azim;
+	Acq_Predicted_S *psv;
+	Acq_History_S *phist;
+	
+	line++;
+	
+	nvis = 0;
+	ntrack = 0;
+	
+	switch(tSelect.mode)
+	{
+		case 0:	mvwprintw(screen,line++,1,"Acq Mode:\t  COLD\n");	break;
+		case 1: mvwprintw(screen,line++,1,"Acq Mode:\t  WARM\n");	break;
+		case 2:	mvwprintw(screen,line++,1,"Acq Mode:\t   HOT\n");	break;
+		default:mvwprintw(screen,line++,1,"Acq Mode:\t  COLD\n");	break;
+	}
+
+
+	for(lcv = 0; lcv < NUM_CODES; lcv++)
+	{
+		
+		psv =  &tSelect.sv_predicted[lcv];
+		if(psv->visible) nvis++;
+		if(psv->tracked) ntrack++;
+						
+	}
+
+	mvwprintw(screen,line++,1,"Mask Angle:\t%6.2f\n",tSelect.mask_angle*(180/PI));
+	mvwprintw(screen,line++,1,"Visible:\t%6d\n",nvis);
+	mvwprintw(screen,line++,1,"Tracked:\t%6d\n",ntrack);
+	
+	line++;
+	mvwprintw(screen,line++,1,"SV  Ant     Type     Attempts     Failures     Successes\n");
+	mvwprintw(screen,line++,1,"--------------------------------------------------------\n");
+	
+	for(lcv = 0; lcv < NUM_CODES; lcv++)
+	{
+		phist =  &tSelect.sv_history[lcv];
+		
+		switch(phist->type)
+		{
+			case 0: mvwprintw(screen,line++,1,"%02d    %01d  STRONG          %4d         %4d          %4d\n",lcv+1,phist->antenna,phist->attempts[0],phist->failures[0],phist->successes[0]);break;
+			case 1: mvwprintw(screen,line++,1,"%02d    %01d  MEDIUM          %4d         %4d          %4d\n",lcv+1,phist->antenna,phist->attempts[1],phist->failures[1],phist->successes[1]);break;
+			case 2: mvwprintw(screen,line++,1,"%02d    %01d    WEAK          %4d         %4d          %4d\n",lcv+1,phist->antenna,phist->attempts[2],phist->failures[2],phist->successes[2]);break;
+		}
+	}
+
+//			case 0: mvwprintw(screen,line++,1,"%02d   %01d  STRONG  %10d  %10d  %10d  %10d  %10d  %10d  %10d  %10d  %10d\n",lcv+1,phist->antenna,phist->attempts[0],
+//			phist->failures[0],phist->successes[0],phist->attempts[1],phist->failures[1],phist->successes[1],phist->attempts[2],phist->failures[2],phist->successes[2]);
+//			break;
+
+		
 }
 /*----------------------------------------------------------------------------------------------*/
 

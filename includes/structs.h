@@ -141,7 +141,7 @@ typedef struct _Acq_History_S
 {
 	
 	int32 sv;			//!< SV number
-	int32 lasttype;		//!< Last acquisiton was what type (STRONG, MEDIUM, WEAK)
+	int32 type;			//!< Last acquisiton was what type (STRONG, MEDIUM, WEAK)
 	int32 antenna;		//!< Which antenna last acq was on
 	int32 count[3];		//!< Successive counts for each type
 	int32 failures[3];	//!< Number of failed acquisitions
@@ -637,6 +637,7 @@ typedef struct _SV_Select_2_Telem_S
 	int32 mode;
 	float mask_angle;
 	Acq_Predicted_S	sv_predicted[NUM_CODES];
+	Acq_History_S	sv_history[NUM_CODES];
 	
 } SV_Select_2_Telem_S;
 /*----------------------------------------------------------------------------------------------*/

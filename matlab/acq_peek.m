@@ -129,7 +129,7 @@ else
                 if(k == 0)
                     figure(1)
                     h = subplot(411)
-                    a = plot(1:vsize,delay,'b');
+                    a = plot(1:vsize,delay,'b.');
                     hold on;
                     b = plot(paxis(ind),delay(ind),'ro');
                     title(sprintf('Pd = %f\n, Td = %f\n',sum(ind)/vsize,tdelay),'FontSize',24);
@@ -138,18 +138,18 @@ else
                     axis([1 vsize 0 1023])
 
                     subplot(412)
-                    c = plot(1:vsize,pd)
+                    c = plot(1:vsize,pd);
                     grid on;
                     ylabel('P_{D}')            
 
                     subplot(413)
-                    d = plot(doppler)
+                    d = plot(doppler);
                     hold on; grid on;
-                    f = plot(doppler,'ro')                    
+                    f = plot(doppler,'ro') ;                   
                     ylabel('Doppler')            
 
                     subplot(414)
-                    e = plot(power)
+                    e = plot(power);
                     grid on;
                     ylabel('Power')
                     k = k+1;
