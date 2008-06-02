@@ -45,8 +45,6 @@ typedef class Channel
 		int32 active;			//!< is this channel active 
 		int32 chan;				//!< channel number
 		int32 sv;				//!< current SV
-		int32 chan_pipe;		//!< named pipe for external correlation peeks
-		int32 chan_hand;		//!< named pipe for external correlation peeks
 		Chan_Packet_S	packet;		//!< dump to named pipe
 		Chan_2_Ephem_S  ephem_packet; //!< dump to ephemeris
 		/*----------------------------------------------------------------------------------------------*/

@@ -41,6 +41,47 @@ void *Ephemeris_Thread(void *_arg)
 
 
 /*----------------------------------------------------------------------------------------------*/
+void Ephemeris::Start()
+{
+	pthread_attr_t tattr;
+	pthread_t tid;
+	int32 ret;
+	sched_param param;
+	
+	/* Unitialized with default attributes */
+	ret = pthread_attr_init (&tattr);
+	
+	/*Ssafe to get existing scheduling param */
+	ret = pthread_attr_getschedparam (&tattr, &param);
+	
+	/* Set the priority; others are unchanged */
+	param.sched_priority = EPHEM_PRIORITY;
+	
+	/* Setting the new scheduling param */
+	ret = pthread_attr_setschedparam(&tattr, &param);
+	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
+	
+	/* With new priority specified */
+	pthread_create(&thread, NULL, Ephemeris_Thread, NULL);
+	
+	if(gopt.verbose)
+		printf("Ephemeris thread started\n");	
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Ephemeris::Stop()
+{
+	pthread_join(thread, NULL);
+	
+	if(gopt.verbose)
+		printf("Ephemeris thread stopped\n");
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 Ephemeris::Ephemeris()
 {
 	int32 lcv;
@@ -284,47 +325,6 @@ void Ephemeris::Unlock()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Ephemeris::Start()
-{
-	pthread_attr_t tattr;
-	pthread_t tid;
-	int32 ret;
-	sched_param param;
-	
-	/* Unitialized with default attributes */
-	ret = pthread_attr_init (&tattr);
-	
-	/*Ssafe to get existing scheduling param */
-	ret = pthread_attr_getschedparam (&tattr, &param);
-	
-	/* Set the priority; others are unchanged */
-	param.sched_priority = EPHEM_PRIORITY;
-	
-	/* Setting the new scheduling param */
-	ret = pthread_attr_setschedparam(&tattr, &param);
-	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-	
-	/* With new priority specified */
-	pthread_create(&thread, NULL, Ephemeris_Thread, NULL);
-	
-	if(gopt.verbose)
-		printf("Ephemeris thread started\n");	
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Ephemeris::Stop()
-{
-	pthread_join(thread, NULL);
-	
-	if(gopt.verbose)
-		printf("Ephemeris thread stopped\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
 void Ephemeris::ClearSV(int32 _sv)
 {
 	iode_master[_sv] = 9999; //some non possible IODE value
@@ -332,6 +332,7 @@ void Ephemeris::ClearSV(int32 _sv)
 	memset(&ephem_data[_sv], 0x0, sizeof(Ephem_Data_S));
 }
 /*----------------------------------------------------------------------------------------------*/
+
 
 /*----------------------------------------------------------------------------------------------*/
 void Ephemeris::ParsePage(int32 _sv_id)

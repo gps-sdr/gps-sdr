@@ -33,7 +33,6 @@ void *Acquisition_Thread(void *_arg)
 		aAcquisition->Inport();
 		aAcquisition->Acquire();
 		aAcquisition->Export(NULL);
-		aAcquisition->UpdateState();
 	}
 	
 	pthread_exit(0);
@@ -119,7 +118,7 @@ Acquisition::Acquisition(float _fsample, float _fif)
 	power    = new CPX[10 * resamps_ms];	
 	coherent = new CPX[10 * resamps_ms];
 	baseband = new CPX[4 * 310 * resamps_ms];
-	wipeoff  	  = new CPX[310 * resamps_ms];
+	_000Hzwipeoff = new CPX[310 * resamps_ms];
 	_250Hzwipeoff = new CPX[310 * resamps_ms];
 	_500Hzwipeoff = new CPX[310 * resamps_ms];
 	_750Hzwipeoff = new CPX[310 * resamps_ms];
@@ -141,17 +140,17 @@ Acquisition::Acquisition(float _fsample, float _fif)
 		wipeoff_gen(dft_rows[lcv], (float)lcv*-25.0, 1000.0, 10);
 	
 	/* Generate mix to baseband */
-	sine_gen(wipeoff, -fif, SAMPLE_FREQUENCY, 10*resamps_ms);
+	sine_gen(_000Hzwipeoff, -fif, SAMPLE_FREQUENCY, 10*resamps_ms);
 	 
 	/* Generate 250 Hz offset wipeoff */
-	sine_gen(_250Hzwipeoff, -250.0, SAMPLE_FREQUENCY, 10*resamps_ms);
-	sine_gen(_500Hzwipeoff, -500.0, SAMPLE_FREQUENCY, 10*resamps_ms);
-	sine_gen(_750Hzwipeoff, -750.0, SAMPLE_FREQUENCY, 10*resamps_ms);
+	sine_gen(_250Hzwipeoff, -fif-250.0, SAMPLE_FREQUENCY, 10*resamps_ms);
+	sine_gen(_500Hzwipeoff, -fif-500.0, SAMPLE_FREQUENCY, 10*resamps_ms);
+	sine_gen(_750Hzwipeoff, -fif-750.0, SAMPLE_FREQUENCY, 10*resamps_ms);
 	
 	/* Copy to all 310 ms */
 	for(lcv = 1; lcv < 31; lcv++)
 	{
-		memcpy(&wipeoff[lcv*10*resamps_ms],wipeoff,10*resamps_ms*sizeof(CPX));
+		memcpy(&_000Hzwipeoff[lcv*10*resamps_ms],_000Hzwipeoff,10*resamps_ms*sizeof(CPX));
 		memcpy(&_250Hzwipeoff[lcv*10*resamps_ms],_250Hzwipeoff,10*resamps_ms*sizeof(CPX));
 		memcpy(&_500Hzwipeoff[lcv*10*resamps_ms],_500Hzwipeoff,10*resamps_ms*sizeof(CPX));
 		memcpy(&_750Hzwipeoff[lcv*10*resamps_ms],_750Hzwipeoff,10*resamps_ms*sizeof(CPX));
@@ -185,7 +184,6 @@ Acquisition::~Acquisition()
 	delete [] buff;
 	delete [] rotate;
 	delete [] msbuff;
-	delete [] wipeoff;
 	delete [] baseband;
 	delete [] baseband_shift;
 	delete [] baseband_rows;
@@ -193,6 +191,7 @@ Acquisition::~Acquisition()
 	delete [] power;
 	delete [] dft;
 	delete [] dft_rows;
+	delete [] _000Hzwipeoff;	
 	delete [] _250Hzwipeoff;
 	delete [] _500Hzwipeoff;	
 	delete [] _750Hzwipeoff;	
@@ -236,14 +235,14 @@ void Acquisition::doPrepIF(int32 _type, CPX *_buff)
 	
 	/* 1) Import data */
 	memcpy(baseband, _buff, ms*resamps_ms*sizeof(CPX));
-	
-	/* Mix down to baseband */
-	sse_cmuls(baseband, wipeoff, ms*resamps_ms, 14);
 
 	/* Do the 250 Hz offsets */
 	sse_cmulsc(&baseband[0], _250Hzwipeoff, &baseband[ms*resamps_ms],   ms*resamps_ms, 14);
 	sse_cmulsc(&baseband[0], _500Hzwipeoff, &baseband[2*ms*resamps_ms], ms*resamps_ms, 14);
 	sse_cmulsc(&baseband[0], _750Hzwipeoff, &baseband[3*ms*resamps_ms], ms*resamps_ms, 14);
+	
+	/* Mix down to baseband */
+	sse_cmuls(baseband, _000Hzwipeoff, ms*resamps_ms, 14);
 	
 	/* Compute forward FFT of IF data */
 	for(lcv = 0; lcv < 4*ms; lcv++)
@@ -257,6 +256,7 @@ void Acquisition::doPrepIF(int32 _type, CPX *_buff)
 		memcpy(p+100,	 		 &baseband[lcv*resamps_ms],			resamps_ms*sizeof(CPX));
 		memcpy(p+100+resamps_ms, &baseband[lcv*resamps_ms],			100*sizeof(CPX));
 	}
+	
 }	
 /*----------------------------------------------------------------------------------------------*/
 
@@ -353,8 +353,8 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 			for(k = 0; k < 2; k++)
 			{
 				
-//				if(gopt.realtime)
-//					usleep(1000);
+				if(gopt.realtime)
+					usleep(1000);
 				
 				/* Do the 10 ms of coherent integration */
 				for(lcv3 = 0; lcv3 < 10; lcv3++)
@@ -462,12 +462,15 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 	CPX temp[10];
 	int32 *dt = (int32 *)&temp[0];
 	int32 *p;
+	double code_doppler;
+	double doppler;
+	int32 shift;
 	
 	result = &results[_sv];
 	index = indext = mag = magt = 0;
 	
 	/* Sweeps through the doppler range */
-	for(lcv = (_doppmin/1000); lcv <=  (_doppmax/1000); lcv++)
+	for(lcv = (_doppmin/1000)+1; lcv <=  (_doppmax/1000); lcv++)
 	{
 		
 		/* Covers the 250 Hz spacing */
@@ -484,6 +487,9 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 				for(i = 0; i < 15; i++)
 				{
 					
+					if(gopt.realtime)
+						usleep(1000);					
+					
 					/* Do the 10 ms of coherent integration */
 					for(lcv3 = 0; lcv3 < 10; lcv3++)
 					{
@@ -494,12 +500,18 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 						piFFT->doiFFT(&coherent[lcv3*resamps_ms], true);
 					}
 						
+					/* Calculate the frquency doppler */
+					doppler = (float)(-lcv*1000) + (float)(lcv2*250);
+					
+					/* Calculate shift in samples */
+					code_doppler = (double)i*.02*IF_SAMPLE_FREQUENCY*doppler/L1;
+					
+					/* Make an integer */
+					shift = (int32)floor(code_doppler);
+						
 					/* For each delay do the post-corr FFT, this REALLY needs sped up */
 					for(lcv3 = 0; lcv3 < resamps_ms; lcv3++)
 					{
-						/* Zero it out */
-						//memset(&temp[0], 0x0, sizeof(int32)*10);
-							
 						/* Copy over the relevant data pts */
 						p = (int32 *)&coherent[lcv3];
 						data[0] = *p; p += resamps_ms;
@@ -529,8 +541,8 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 					
 						x86_cmag(&temp[0], 10);
 							
-						/* Put into the power matrix */
-						p = (int32 *)&power[lcv3];
+						/* Accumulate into the power matrix */
+						p = (int32 *)&power[(lcv3 + shift + SAMPS_MS) % SAMPS_MS];
 						*p += dt[0]; p += resamps_ms;
 						*p += dt[1]; p += resamps_ms;
 						*p += dt[2]; p += resamps_ms;
@@ -541,8 +553,6 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 						*p += dt[7]; p += resamps_ms;
 						*p += dt[8]; p += resamps_ms;
 						*p += dt[9];
-						
-						
 					}
 			
 				}//end i
@@ -606,37 +616,6 @@ void Acquisition::Acquire()
 		default:
 			doAcqStrong(request.sv, request.mindopp, request.maxdopp);
 	}
-	
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-/*! 
- * UpdateState: drive the acquisition SV and state
- * */	
-void Acquisition::UpdateState()
-{
-	
-//	sv++;
-//	if(sv >= NUM_CODES)
-//	{
-//		sv = 0;
-//		switch(state)
-//		{
-//			case ACQ_STRONG:
-//				state = ACQ_MEDIUM;
-//				break;
-//			case ACQ_MEDIUM:
-//				state = ACQ_STRONG;
-//				break;
-//			case ACQ_WEAK:
-//				state = ACQ_STRONG;
-//				break;
-//			default:
-//				state = ACQ_STRONG;
-//		}
-//	}
 	
 }
 /*----------------------------------------------------------------------------------------------*/

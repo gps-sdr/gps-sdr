@@ -32,10 +32,6 @@ Channel::Channel(int32 _chan)
 	if(gopt.verbose)
 		printf("Creating Channel %d\n",chan);
 	
-	sprintf(fname,"/tmp/CHAN%02dPIPE",chan);
-	chan_hand = mkfifo(fname, 0666);
-	chan_pipe = open(fname, O_WRONLY | O_NONBLOCK);
-	
 	if(gopt.log_channel)
 	{
 		sprintf(fname,"chan%02d.dat",chan);
@@ -53,7 +49,7 @@ Channel::Channel(int32 _chan)
 /*----------------------------------------------------------------------------------------------*/
 Channel::~Channel()
 {
-	close(chan_pipe);
+	
 	delete pFFT;
 	
 	if(gopt.log_channel)
@@ -928,6 +924,7 @@ void Channel::Error()
 void Channel::Stop()
 {
 	active = false;
+	Clear();
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -967,14 +964,6 @@ void Channel::Export()
 	packet.x 			= (float)aPLL.x;
 	packet.z 			= (float)aPLL.z;	
 		
-//	bwrote = write(chan_pipe,&packet,sizeof(Chan_Packet_S));
-//	signal(SIGPIPE, SIG_IGN);
-//	if(bwrote < 0)
-//	{
-//		if(errno == EPIPE)
-//			bwrote = 1;
-//	}		
-
 	if(gopt.log_channel && (fp != NULL))
 		fwrite(&packet, sizeof(Chan_Packet_S), 1,  fp);
 }

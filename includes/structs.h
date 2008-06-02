@@ -269,18 +269,18 @@ typedef struct _Phase_lock_loop {
 
 
 /*! \ingroup STRUCTS
- * State of delay lock loop (NOT USED!)
+ * State of delay lock loop
  */
 typedef struct _Delay_lock_loop
 {
 
-	float DLLBW;
-	float x;
-	float z;
+	float DLLBW;				//!< Bandwidth
+	float x;					//!< Velocity accumulator
+	float z;					//!< Proportional feedback
 	float a;
 	float w0;
 	float w02;
-	float t;	
+	float t;					//!< Integration length
 
 } Delay_lock_loop;
 
@@ -315,7 +315,6 @@ typedef struct _Chan_Packet_S
 	float w;					//!< acceleration accumulator state
 	float x;					//!< velocity accumulator state
 	float z;					//!< proportional feedback to NCO
-	float P_buff[20];
 	
 } Chan_Packet_S;
 

@@ -112,6 +112,7 @@ Correlator::Correlator(int32 _chan)
 	
 	if(gopt.verbose)
 		printf("Creating Correlator %d\n",chan);
+		
 }
 /*----------------------------------------------------------------------------------------------*/
 

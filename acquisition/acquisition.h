@@ -49,10 +49,10 @@ class Acquisition
 		CPX *baseband_shift;					//!< Result after mixing the buffer to baseband, used for the "circular shifts"
 		CPX **baseband_rows;					//!< Row pointer
 		CPX *coherent;							//!< Used for the 10 ms coherent integration
-		CPX *wipeoff;							//!< Sinusoid used to perform mix to baseband
-		CPX	*_250Hzwipeoff;						//!< Sinusoid to mix by 250 Hz
-		CPX	*_500Hzwipeoff;						//!< Sinusoid to mix by 250 Hz
-		CPX	*_750Hzwipeoff;						//!< Sinusoid to mix by 250 Hz
+		CPX *_000Hzwipeoff;						//!< Sinusoid used to perform mix to baseband
+		CPX	*_250Hzwipeoff;						//!< Sinusoid to mix by Fif - 250 Hz
+		CPX	*_500Hzwipeoff;						//!< Sinusoid to mix by Fif - 500 Hz
+		CPX	*_750Hzwipeoff;						//!< Sinusoid to mix by Fif - 750 Hz
 		CPX *rotate;							//!< Buffer used for circular rotation of vector
 		CPX *msbuff;							//!< Random buffer for 1 ms stuff
 		CPX *power;
@@ -90,7 +90,6 @@ class Acquisition
 		void Acquire();																		//!< Acquire with respect to current state
 		void Start();																		//!< Start up the thread
 		void Stop();																		//!< End the thread
-		void UpdateState();																	//!< Update state
 		
 };
 

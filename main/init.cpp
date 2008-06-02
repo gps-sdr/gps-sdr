@@ -184,31 +184,52 @@ int32 Hardware_Init(void)
 {
 	
 	if(CPU_MMX())
-		printf("Detected MMX\n");
+	{
+		if(gopt.verbose)
+			printf("Detected MMX\n");
+	}
 	else
 		return(false);
 		
 	if(CPU_SSE())
-		printf("Detected SSE\n");
+	{
+		if(gopt.verbose)
+			printf("Detected SSE\n");
+	}
 	else
 		return(false);
 
 	if(CPU_SSE2())
-		printf("Detected SSE2\n");
+	{
+		if(gopt.verbose)
+			printf("Detected SSE2\n");
+	}
 	else
 		return(false);
 
 	if(CPU_SSE3())
-		printf("Detected SSE3\n");
+	{
+		if(gopt.verbose)
+			printf("Detected SSE3\n");
+	}
 
 	if(CPU_SSSE3())
-		printf("Detected SSSE3\n");
+	{
+		if(gopt.verbose)
+			printf("Detected SSSE3\n");
+	}
 
 	if(CPU_SSE41())
-		printf("Detected SSE4.1\n");
+	{
+		if(gopt.verbose)
+			printf("Detected SSE4.1\n");
+	}
 
 	if(CPU_SSE42())
-		printf("Detected SSE4.2\n");
+	{
+		if(gopt.verbose)
+			printf("Detected SSE4.2\n");
+	}
 
 	return(1);
 
@@ -257,8 +278,11 @@ int32 Object_Init(void)
 	pthread_mutex_unlock(&mInterrupt);
 	memset(gInterrupt, 0x0, MAX_CHANNELS*sizeof(uint32));
 	
-	if(gopt.verbose)
+	//if(gopt.verbose)
+	{
 		printf("Cleared Object Init\n");
+		fflush(stdout);
+	}
 		
 	return(1);
 	
@@ -295,11 +319,13 @@ int32 Pipes_Init(void)
 		pipe((int *)Corr_2_PVT_P[lcv]);
 		pipe((int *)PVT_2_Corr_P[lcv]);
 		fcntl(Trak_2_Corr_P[lcv][READ], F_SETFL, O_NONBLOCK); 
-		//fcntl(Corr_2_PVT_P[lcv][READ], F_SETFL, O_NONBLOCK);
 	}	
 			
-	if(gopt.verbose)
+	//if(gopt.verbose)
+	{
 		printf("Cleared Pipes Init\n");
+		fflush(stdout);
+	}
 		
 	return(1);
 			
@@ -341,11 +367,15 @@ int32 Thread_Init(void)
 	/* Start the SV select thread */
 	pSV_Select->Start();
 	
-	/* Last thing to do */
-	pTelemetry->Start();
-	
-	if(gopt.verbose)
+	//if(gopt.verbose)
+	{	
 		printf("Cleared Thread Init\n");
+		fflush(stdout);
+	}
+
+	/* Last thing to do */
+	sleep(1);
+	pTelemetry->Start();
 	
 	return(1);
 

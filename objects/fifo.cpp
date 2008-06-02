@@ -42,6 +42,45 @@ void *FIFO_Thread(void *_arg)
 
 
 /*----------------------------------------------------------------------------------------------*/
+void FIFO::Start()
+{
+	
+	pthread_attr_t tattr;
+	pthread_t tid;
+	int32 ret;
+	sched_param param;
+	
+	/* Unitialized with default attributes */
+	ret = pthread_attr_init(&tattr);
+	
+	/*Ssafe to get existing scheduling param */
+	ret = pthread_attr_getschedparam(&tattr, &param);
+	
+	/* Set the priority; others are unchanged */
+	param.sched_priority = FIFO_PRIORITY;
+	ret = pthread_attr_setschedparam (&tattr, &param);
+	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
+	
+	pthread_create(&thread, NULL, FIFO_Thread, NULL);
+	
+	if(gopt.verbose)
+		printf("FIFO thread started\n");
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void FIFO::Stop()
+{
+	pthread_join(thread, NULL);
+	
+	if(gopt.verbose)
+		printf("FIFO thread stopped\n");
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void FIFO::SetScale(int32 _agc_scale)
 {
 	agc_scale = _agc_scale;
@@ -240,34 +279,6 @@ void FIFO::Dequeue(int32 _resource, ms_packet *p)
 
 	
 /*----------------------------------------------------------------------------------------------*/
-void FIFO::Start()
-{
-	
-	pthread_attr_t tattr;
-	pthread_t tid;
-	int32 ret;
-	sched_param param;
-	
-	/* Unitialized with default attributes */
-	ret = pthread_attr_init(&tattr);
-	
-	/*Ssafe to get existing scheduling param */
-	ret = pthread_attr_getschedparam(&tattr, &param);
-	
-	/* Set the priority; others are unchanged */
-	param.sched_priority = FIFO_PRIORITY;
-	ret = pthread_attr_setschedparam (&tattr, &param);
-	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-	
-	pthread_create(&thread, NULL, FIFO_Thread, NULL);
-	
-	if(gopt.verbose)
-		printf("FIFO thread started\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
 void FIFO::Open()
 {
 	
@@ -300,13 +311,5 @@ void FIFO::Unlock()
 /*----------------------------------------------------------------------------------------------*/
 
 
-/*----------------------------------------------------------------------------------------------*/
-void FIFO::Stop()
-{
-	pthread_join(thread, NULL);
-	
-	if(gopt.verbose)
-		printf("FIFO thread stopped\n");
-}
-/*----------------------------------------------------------------------------------------------*/
+
 

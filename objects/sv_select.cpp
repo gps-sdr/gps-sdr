@@ -42,6 +42,46 @@ void *SV_Select_Thread(void *_arg)
 
 
 /*----------------------------------------------------------------------------------------------*/
+void SV_Select::Start()
+{
+	pthread_attr_t tattr;
+	pthread_t tid;
+	int32 ret;
+	sched_param param;
+	
+	/* Unitialized with default attributes */
+	ret = pthread_attr_init (&tattr);
+	
+	/*Ssafe to get existing scheduling param */
+	ret = pthread_attr_getschedparam (&tattr, &param);
+	
+	/* Set the priority; others are unchanged */
+	param.sched_priority = TRAK_PRIORITY;
+	
+	/* Setting the new scheduling param */
+	ret = pthread_attr_setschedparam(&tattr, &param);
+	ret = pthread_attr_setschedpolicy(&tattr, SCHED_RR);
+	
+	/* With new priority specified */
+	pthread_create(&thread, NULL, SV_Select_Thread, NULL);
+	
+	if(gopt.verbose)
+		printf("SV_Select thread started\n");	
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void SV_Select::Stop()
+{
+	pthread_join(thread, NULL);
+	
+	if(gopt.verbose)
+		printf("SV_Select thread stopped\n");
+}
+/*----------------------------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------------------------*/
 SV_Select::SV_Select()
 {
 	sv = 0;	
@@ -112,12 +152,11 @@ void SV_Select::Acquire()
 
 	/* If the SV is already being tracked skip the acquisition */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-		if(pChannels[lcv]->getActive())
-			if(pChannels[lcv]->getSV() == sv)
-			{
-				already = 666;
-				sv_prediction[sv].tracked = true;
-			}
+		if(pChannels[lcv]->getSV() == sv)
+		{
+			already = 666;
+			sv_prediction[sv].tracked = true;
+		}
 
 	pthread_mutex_unlock(&mInterrupt);
 	
@@ -225,8 +264,8 @@ bool SV_Select::SetupRequest()
 				doppler = doppler - (doppler % 1000);
 				
 				/* Give it a 3 kHz error range */
-				request.mindopp = (doppler - 4000);
-				request.maxdopp = (doppler + 4000);
+				request.mindopp = (doppler - 2000);
+				request.maxdopp = (doppler + 2000);
 							
 				return(true);
 				
@@ -255,7 +294,7 @@ void SV_Select::UpdateState()
 
 	type[sv]++;
 
-	if(type[sv] > ACQ_MEDIUM)
+	if(type[sv] > ACQ_STRONG)
 		type[sv] = ACQ_STRONG;
 	
 }
@@ -552,43 +591,4 @@ void SV_Select::MaskAngle()
 /*----------------------------------------------------------------------------------------------*/
 
 
-/*----------------------------------------------------------------------------------------------*/
-void SV_Select::Start()
-{
-	pthread_attr_t tattr;
-	pthread_t tid;
-	int32 ret;
-	sched_param param;
-	
-	/* Unitialized with default attributes */
-	ret = pthread_attr_init (&tattr);
-	
-	/*Ssafe to get existing scheduling param */
-	ret = pthread_attr_getschedparam (&tattr, &param);
-	
-	/* Set the priority; others are unchanged */
-	param.sched_priority = TRAK_PRIORITY;
-	
-	/* Setting the new scheduling param */
-	ret = pthread_attr_setschedparam(&tattr, &param);
-	ret = pthread_attr_setschedpolicy(&tattr, SCHED_RR);
-	
-	/* With new priority specified */
-	pthread_create(&thread, NULL, SV_Select_Thread, NULL);
-	
-	if(gopt.verbose)
-		printf("SV_Select thread started\n");	
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void SV_Select::Stop()
-{
-	pthread_join(thread, NULL);
-	
-	if(gopt.verbose)
-		printf("SV_Select thread stopped\n");
-}
-/*----------------------------------------------------------------------------------------------*/
 

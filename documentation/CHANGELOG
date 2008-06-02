@@ -64,5 +64,5 @@ which is the default behaviour.
 05/28/2008 3.0.17a
 
 Added in dump of ephemeris to a file for faster warm start. Fixed MAJOR bug with medium and weak acquisition that resulted in the wrong doppler frequency being
-calculated.
+calculated. Added in code doppler correction for weak signal acquisition.
 

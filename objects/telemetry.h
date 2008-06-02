@@ -73,6 +73,7 @@ typedef class Telemetry
 		void Start();
 		void Stop();
 		
+		void Init();
 		void InitScreen();
 		void UpdateScreen();
 		void EndScreen();
