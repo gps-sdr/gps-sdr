@@ -332,7 +332,7 @@ Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 {
 	Acq_Result_S *result;
-	int32 lcv, lcv2, lcv3, mag, magt, index, indext, k;
+	int32 lcv, lcv2, lcv3, mag, magt, index, indext, j, k, dopp, skip;
 	int32 iaccum, qaccum;
 	CPX temp[10];	
 	int32 data[32];
@@ -418,11 +418,22 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 				/* Found a new maximum */
 				if(magt > mag)
 				{
-					mag = magt;
-					index = indext % resamps_ms;
-					result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
-					result->doppler = (float)(lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0;
-					result->magnitude = (float)mag;
+					
+					skip = false;
+					dopp = lcv*1000 + lcv2*250 + (indext/resamps_ms)*25.0;
+					for(j = 0; j < ncross; j++)
+						if(abs(dopp - cross_doppler[j]) < 50)
+							skip = true;
+												
+					if(!skip)
+					{
+						mag = magt;
+						index = indext % resamps_ms;
+						result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
+						result->doppler = (float)(lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0;
+						result->magnitude = (float)mag;
+					}
+					
 				}
 			
 			}//end k
@@ -455,7 +466,7 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 {
 	
 	Acq_Result_S *result;
-	int32 lcv, lcv2, lcv3, mag, magt, index, indext, k, i;
+	int32 lcv, lcv2, lcv3, mag, magt, index, indext, k, i, j, skip, dopp;
 	int32 iaccum, qaccum;
 	int32 data[32];
 	CPX *dp = (CPX *)&data[0];
@@ -487,8 +498,8 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 				for(i = 0; i < 15; i++)
 				{
 					
-					if(gopt.realtime)
-						usleep(1000);					
+//					if(gopt.realtime)
+//						usleep(1000);					
 					
 					/* Do the 10 ms of coherent integration */
 					for(lcv3 = 0; lcv3 < 10; lcv3++)
@@ -563,11 +574,22 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 				/* Found a new maximum */
 				if(magt > mag)
 				{
-					mag = magt;
-					index = indext % resamps_ms;
-					result->delay = CODE_CHIPS - (float)index*CODE_RATE/ fbase;
-					result->doppler = (float)(lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0;
-					result->magnitude = (float)mag;
+					
+					skip = false;
+					dopp = lcv*1000 + lcv2*250 + (indext/resamps_ms)*25.0;
+					for(j = 0; j < ncross; j++)
+						if(abs(dopp - cross_doppler[j]) < 50)
+							skip = true;
+												
+					if(!skip)
+					{
+						mag = magt;
+						index = indext % resamps_ms;
+						result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
+						result->doppler = (float)(lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0;
+						result->magnitude = (float)mag;
+					}
+					
 				}
 			
 			}//end k
@@ -632,6 +654,7 @@ void Acquisition::Inport()
 	int32 lastcount;
 	int32 ms;
 	int32 ms_per_read;
+	int32 lcv;
 	ms_packet *p = NULL;
 	timespec ret;
 	
@@ -699,6 +722,22 @@ void Acquisition::Inport()
 	pthread_mutex_lock(&mAcq);
 	gAcq_high = false;
 	pthread_mutex_unlock(&mAcq);
+	
+
+	ncross = 0;	
+
+	pthread_mutex_lock(&mInterrupt);
+
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+		if(pChannels[lcv]->getActive())
+			if(pChannels[lcv]->getCN0() > 45.0)	//If the CN0 is really high
+			{
+				ncross++;
+				cross_doppler[lcv] = (int32)floor(pChannels[lcv]->getNCO() - IF_FREQUENCY);
+			}
+
+	pthread_mutex_unlock(&mInterrupt);	
+	
 		
 }
 /*----------------------------------------------------------------------------------------------*/

@@ -159,7 +159,7 @@ void SV_Select::Acquire()
 			}
 
 	pthread_mutex_unlock(&mInterrupt);
-	
+
 	if(already == 666)
 	{
 		GetAlmanac(sv);		
@@ -169,9 +169,7 @@ void SV_Select::Acquire()
 		UpdateState();
 		return;
 	}
-	else
-		sv_prediction[sv].tracked = false;
-	
+
 	/* Run the SV prediction routine based on Almanac data */
 	GetAlmanac(sv);
 	SV_Position(sv);
@@ -265,8 +263,8 @@ bool SV_Select::SetupRequest()
 				doppler = doppler - (doppler % 1000);
 				
 				/* Give it a 3 kHz error range */
-				request.mindopp = (doppler - 3000);
-				request.maxdopp = (doppler + 3000);
+				request.mindopp = (doppler - 1000);
+				request.maxdopp = (doppler + 1000);
 							
 				return(true);
 				
@@ -301,9 +299,6 @@ void SV_Select::ProcessResult()
 		psv->count[type]++;
 		psv->attempts[type]++;
 		psv->successes[type]++;
-
-		/* Map receiver channels to channels on correlator */
-		write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Result_S));
 	}
 	else
 	{
@@ -311,15 +306,30 @@ void SV_Select::ProcessResult()
 		psv->failures[type]++;
 		psv->attempts[type]++;
 
-		if(psv->failures[type] >= 10)
+		if(psv->count[type] >= 10)
 		{
-			psv->failures[type] = 0;
+			psv->count[type] = 0;
 			psv->type++;
 		
-			if(psv->type > ACQ_MEDIUM)
+			if(psv->type > ACQ_WEAK)
 				psv->type = ACQ_STRONG;
 		}	
 		
+	}
+	
+	
+	if(mode == HOT_START)
+	{
+		/* Always a better estimate than the acq engine */
+		result.doppler = sv_prediction[sv].doppler;
+		
+		/* Map receiver channels to channels on correlator */
+		write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Result_S));
+	}
+	else if(result.success)
+	{
+		/* Map receiver channels to channels on correlator */
+		write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Result_S));
 	}
 	
 }

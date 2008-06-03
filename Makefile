@@ -1,6 +1,6 @@
-CC	= g++-4.2
-ASM = g++-4.2
-LINK= g++-4.2
+CC	= g++
+ASM = g++
+LINK= g++
 
 CINCPATHFLAGS = -Iaccessories	\
 				-Iacquisition	\

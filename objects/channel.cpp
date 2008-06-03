@@ -152,13 +152,13 @@ void Channel::Start(int32 _sv, Acq_Result_S result, int32 _corr_len)
 			PLL_W(30.0);
 			break;
 		case 20:
-			PLL_W(18.0);
+			PLL_W(15.0);
 			break;
 		default:
 			PLL_W(30.0);
 	}
 	
-	DLL_W(10.0);
+	DLL_W(1.0);
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -281,9 +281,10 @@ void Channel::DumpAccum()
 	else
 	{
 		PLL();
+		DLL();
 	}
 
-	DLL();
+	
 
 	/* Lowpass filtered values here */
 	I_avg += (fabs((float)I[1]) - I_avg) * .01;
@@ -393,6 +394,7 @@ void Channel::FrequencyLock()
 /*! Make this 2nd order ? */
 void Channel::DLL()
 {	
+	
 	float code_err;
 	float ep, lp;
 	
@@ -402,9 +404,9 @@ void Channel::DLL()
 	code_err  = (ep - lp)/(ep + lp);
 	
 	/* Not working too well right now, debug some later */	
-	//aDLL.x += aDLL.t*(code_err*aDLL.w02);
-	//aDLL.z = 0.5*aDLL.x + aDLL.a*aDLL.w02*code_err;
-	//code_nco = CODE_RATE + ((carrier_nco - IF_FREQUENCY)*CODE_RATE/L1) + aDLL.z;
+//	aDLL.x += aDLL.t*(code_err*aDLL.w02);
+//	aDLL.z = 0.5*aDLL.x + aDLL.a*aDLL.w02*code_err;
+//	code_nco = CODE_RATE + ((carrier_nco - IF_FREQUENCY)*CODE_RATE/L1) + aDLL.z;
 	
 	code_nco = CODE_RATE + ((carrier_nco - IF_FREQUENCY)*CODE_RATE/L1) + code_err;
 }
@@ -454,7 +456,10 @@ void Channel::PLL()
 //	else
 //		dp = 0;	
 
-	df = 0;
+	if(count < 4000)
+		df = 0;
+	else
+		dp = 0;
 
 	/* 3rd order PLL wioth 2nd order FLL assist */
 	aPLL.w += aPLL.t * (aPLL.w0p3 * dp + aPLL.w0f2 * df);
@@ -921,7 +926,7 @@ void Channel::Error()
 		if((mcn0 < 35.0) && (len != 20))
 		{
 			len = 20;
-			PLL_W(18.0);
+			PLL_W(15.0);
 		}
 	}
 	

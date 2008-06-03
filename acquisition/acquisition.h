@@ -72,6 +72,10 @@ class Acquisition
 		int32 sv;								//!< Search for this SV
 		int32 state;							//!< Search using this state (STRONG, MEDIUM, or WEAK)
 		int32 corr;								//!< This correlator requested an acquisition
+		
+		int32 ncross;							//!< Cross corr blocking
+		int32 cross_doppler[MAX_CHANNELS];		//!< Cross corr blocking
+		
 		Acq_Request_S request;					//!< An acquisition request
 		Acq_Result_S results[NUM_CODES];		//!< Where to store the results
 		

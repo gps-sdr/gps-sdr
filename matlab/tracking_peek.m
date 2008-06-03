@@ -35,7 +35,7 @@ fll         = reshape(a(:,10),[12 len]).';
 pll         = reshape(a(:,11),[12 len]).';
 fll_lock    = reshape(a(:,12),[12 len]).';
 
-mask = ~bit_lock;
+mask = ~frame_lock;
 %mask = 1:length(svs);
 
 svs(mask) = NaN;

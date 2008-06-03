@@ -2,8 +2,7 @@
 %   SATELLITE_PEEK() is used to generate a sky plot
 %   1: Sky plot
 
-close('all','force'); clear; clc;
-pause(1.0);
+close all; clear; clc;
 
 % lcv,
 % (int32)pChan->sv,
@@ -31,6 +30,8 @@ azim = reshape(a(:,11),[12 len]).';
 
 azim(find(azim == 0)) = NaN;
 elev(find(elev == 0)) = NaN;
+elev(find(elev < 0)) = NaN;
+elev(find(elev > 90)) = NaN;
 
 % Create the circles
 th = linspace(0,2*pi,50);
@@ -70,7 +71,7 @@ xx = elev.*cos(azim);
 yy = elev.*sin(azim);
 
 % Plot it
-plot(xx,yy,'LineWidth',2)
+plot(xx,yy,'LineWidth',4)
 
 axis equal; axis off;
 
@@ -78,3 +79,5 @@ text(1.05,0,'East')
 text(-.1,1.1,'North')
 text(-1.2,0,'West')
 text(-.1,-1.1,'South')
+
+print -dpng -r0 skyplot
