@@ -7,5 +7,5 @@
 6) Create a simple Kalman filter to put on top of the PVT solution
 7) Found another measurement error, a jump in the 1ms epoch occurs (possibly a double-rollover condition?)										COMPLETE 
 8) Implement a simple RAIM
-9) Dump ephemerides to disk to speed up the warm start mode
-10) Self calibrate the thresholds for the acquisition using a dummy PRN
+9) Dump ephemerides to disk to speed up the warm start mode																						COMPLETE
+10) Self calibrate the thresholds for the acquisition using a dummy PRN																			ABANDONED

@@ -149,10 +149,10 @@ void Channel::Start(int32 _sv, Acq_Result_S result, int32 _corr_len)
 			PLL_W(30.0);
 			break;
 		case 4:
-			PLL_W(30.0);
+			PLL_W(24.0);
 			break;
 		case 20:
-			PLL_W(15.0);
+			PLL_W(18.0);
 			break;
 		default:
 			PLL_W(30.0);
@@ -228,7 +228,6 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	{
 		_feedback->reset_1ms = true;
 		bit_lock_pend = false;
-		DLL_W(1.0);
 	}
 	else
 		_feedback->reset_1ms = false;
@@ -283,8 +282,6 @@ void Channel::DumpAccum()
 		PLL();
 		DLL();
 	}
-
-	
 
 	/* Lowpass filtered values here */
 	I_avg += (fabs((float)I[1]) - I_avg) * .01;
@@ -456,10 +453,7 @@ void Channel::PLL()
 //	else
 //		dp = 0;	
 
-	if(count < 4000)
-		df = 0;
-	else
-		dp = 0;
+	df = 0;
 
 	/* 3rd order PLL wioth 2nd order FLL assist */
 	aPLL.w += aPLL.t * (aPLL.w0p3 * dp + aPLL.w0f2 * df);
@@ -508,7 +502,7 @@ void Channel::BitLock()
 	
 	if(bit_lock == false)
 	{
-		if((_1ms_epoch == 19) && freq_lock)	
+		if((_1ms_epoch == 19) && (count > 4000))	
 		{
 			/* Find the maximum of the power buffer */
 			best_sum = 0; new_epoch = 0;
@@ -525,7 +519,16 @@ void Channel::BitLock()
 			if(new_epoch != best_epoch)
 			{
 				bit_lock_ticks = 0;
-				best_epoch = new_epoch;					
+				best_epoch = new_epoch;
+				_1ms_epoch = (39 - best_epoch) % 20;		
+				
+				/* Copy over the power buffer to put the max in element 19 */
+				for(lcv = 0 ; lcv < 20; lcv++)
+					power_buff[lcv] = P_buff[lcv];
+
+				for(lcv = 0 ; lcv < 20; lcv++)
+					P_buff[lcv] = power_buff[(lcv + best_epoch) % 20];			
+						
 			}
 
 			/* If the epoch has NOT changed in X ms */
@@ -893,15 +896,15 @@ void Channel::Error()
 	mcn0 = CN0 > CN0_old ? CN0 : CN0_old;
 
 	/* Monitor DLL */
-	if((P_avg < 2e4) && (count > 1000))
+	if((P_avg < 2e4) && (count > 2000))
 			active = false;
 
 	/* Monitor CN0 for false PLL lock */
 	if(count > 10000 && mcn0 < 17.0)
 		active = false;
 		
-	/* If 60 seconds have passed and channel has not converged dump it */
-	if(count > 60000 && converged == false)
+	/* If 30 seconds have passed and channel has not converged dump it */
+	if(count > 30000 && converged == false)
 		active = false;		
 	
 	/* The channel should be killed if the nco goes outside the pre generated wipeoff table */
@@ -909,13 +912,8 @@ void Channel::Error()
 		active = false;
 		
 	/* Adjust integration length based on CN0 */
-	if(count > 4000)
+	if(count > 5000)
 	{
-//		if((CN0 >= 40.0) && (len != 1))
-//		{
-//			len = 1;
-//			PLL_W(18.0);
-//		}
 		
 		if((mcn0 > 37.0) && (len != 4))
 		{
@@ -928,6 +926,7 @@ void Channel::Error()
 			len = 20;
 			PLL_W(15.0);
 		}
+		
 	}
 	
 }

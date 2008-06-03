@@ -224,7 +224,7 @@ void Acquisition::doPrepIF(int32 _type, CPX *_buff)
 			ms = 1;
 			break;
 		case 1:
-			ms = 20;
+			ms = 10;
 			break;
 		case 2:
 			ms = 310;
@@ -350,7 +350,8 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 		for(lcv2 = 0; lcv2 < 4; lcv2++)
 		{
 			/* Do both even and odd */
-			for(k = 0; k < 2; k++)
+			//for(k = 0; k < 2; k++)
+			k = 0;
 			{
 				
 				if(gopt.realtime)
@@ -488,7 +489,8 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 		for(lcv2 = 0; lcv2 < 4; lcv2++)
 		{
 			/* Do both even and odd */
-			for(k = 0; k < 2; k++)
+			//for(k = 0; k < 2; k++)
+			k = 0;
 			{
 	
 				/* Clear out incoherent int */
@@ -670,7 +672,7 @@ void Acquisition::Inport()
 			ms_per_read = 1;
 			break;			
 		case ACQ_MEDIUM:
-			ms_per_read = 20;
+			ms_per_read = 10;
 			break;			
 		case ACQ_WEAK:
 			ms_per_read = 310;

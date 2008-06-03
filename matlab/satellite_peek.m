@@ -30,8 +30,9 @@ azim = reshape(a(:,11),[12 len]).';
 
 azim(find(azim == 0)) = NaN;
 elev(find(elev == 0)) = NaN;
-elev(find(elev < 0)) = NaN;
-elev(find(elev > 90)) = NaN;
+mask = find(elev < 0);
+elev(mask) = -elev(mask);
+
 
 % Create the circles
 th = linspace(0,2*pi,50);
@@ -64,14 +65,14 @@ end
 elev = 1-elev/(pi/2);
 
 % Rotate azim to have north be up
-azim = azim + pi/2;
+azim = -azim + pi/2;
 
 % Transform to cartesian
 xx = elev.*cos(azim);
 yy = elev.*sin(azim);
 
 % Plot it
-plot(xx,yy,'LineWidth',4)
+plot(xx,yy,'.','LineWidth',4)
 
 axis equal; axis off;
 

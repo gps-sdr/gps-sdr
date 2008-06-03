@@ -113,12 +113,22 @@ void SV_Select::Inport()
 	/* Pend on PVT sltn */
 	read(PVT_2_SV_Select_P[READ], &input_s, sizeof(PVT_2_SV_Select_S));
 	
-	/* If the PVT has converged and is < 600 seconds old, use it! */
-	if(pnav->stale_ticks < (600*TICS_PER_SECOND) && pnav->initial_convergence)
+	/* If the PVT is current converged use it */
+	if(pnav->converged)
 	{
 		mode = HOT_START;
-		MaskAngle(); //Update the mask angle 
-	}
+		MaskAngle();	
+	} /* If the PVT is less than 10 minutes old, use it */
+	else if((pnav->stale_ticks < (60*TICS_PER_SECOND)) && pnav->initial_convergence)
+	{
+		mode = HOT_START;
+		MaskAngle();
+	} /* Warm start, only use for visibility */
+//	else if(pnav->stale_ticks < (60*TICS_PER_SECOND))
+//	{
+//		mode = WARM_START;
+//		MaskAngle();
+//	} /* Cold start, hardest way of doing things */
 	else
 	{
 		mode = COLD_START;
@@ -139,27 +149,28 @@ void SV_Select::Acquire()
 	/* See if any correlators are available */
 	pthread_mutex_lock(&mInterrupt);
 
-	/* If an empty channel exists, ask for an acquisition */	
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-		if(gInterrupt[lcv] == 0)
-		{
-			chan = lcv;
-			break;
-		}	
-		
-	sv_prediction[sv].tracked = false;		
-
-	/* If the SV is already being tracked skip the acquisition */
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-		if(pChannels[lcv]->getActive())
-			if(pChannels[lcv]->getSV() == sv)
+		/* If an empty channel exists, ask for an acquisition */	
+		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+			if(gInterrupt[lcv] == 0)
 			{
-				already = 666;
-				sv_prediction[sv].tracked = true;
-			}
+				chan = lcv;
+				break;
+			}	
+			
+		sv_prediction[sv].tracked = false;		
+	
+		/* If the SV is already being tracked skip the acquisition */
+		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+			if(pChannels[lcv]->getActive())
+				if(pChannels[lcv]->getSV() == sv)
+				{
+					already = 666;
+					sv_prediction[sv].tracked = true;
+				}
 
 	pthread_mutex_unlock(&mInterrupt);
 
+	/* Update prediction if the SV is being tracked */
 	if(already == 666)
 	{
 		GetAlmanac(sv);		
@@ -234,12 +245,17 @@ bool SV_Select::SetupRequest()
 	request.sv = sv;
 	request.mindopp = -MAX_DOPPLER;
 	request.maxdopp = MAX_DOPPLER;
+	sv_history[sv].mindopp = -MAX_DOPPLER;
+	sv_history[sv].maxdopp = MAX_DOPPLER;
 	
+	if(almanacs[sv].decoded == false)
+		return(true);
+		
 	if(mode == COLD_START)
 	{	
 		return(true);
 	}
-	else if(mode == WARM_START)
+	else if(mode == WARM_START) /* On warm start on use predicted visibility, not Doppler information */
 	{
 		ppred = &sv_prediction[sv];
 				
@@ -248,35 +264,30 @@ bool SV_Select::SetupRequest()
 		else
 			return(false);
 	}
-	else
+	else /* Else use Doppler information to narrow Doppler search space */
 	{
 
 		ppred = &sv_prediction[sv];
 				
-		if(almanacs[sv].decoded)
-		{				
-			if(ppred->visible)
-			{		
-	
-				/* Round to a kHz value */
-				doppler = (int32)ppred->doppler;
-				doppler = doppler - (doppler % 1000);
-				
-				/* Give it a 3 kHz error range */
-				request.mindopp = (doppler - 1000);
-				request.maxdopp = (doppler + 1000);
-							
-				return(true);
-				
-			}
-			else
-			{
-				return(false);
-			}
+		if(ppred->visible)
+		{		
+
+			/* Round to a kHz value */
+			doppler = (int32)ppred->doppler;
+			doppler = doppler - (doppler % 1000);
+			
+			/* Give it a 3 kHz error range */
+			request.mindopp = (doppler - 1000);
+			request.maxdopp = (doppler + 1000);
+			sv_history[sv].mindopp = (doppler - 1000);
+			sv_history[sv].maxdopp = (doppler + 1000);
+									
+			return(true);
+			
 		}
 		else
 		{
-			return(true);
+			return(false);
 		}
 	}
 	
@@ -294,19 +305,31 @@ void SV_Select::ProcessResult()
 	psv = &sv_history[sv];
 	type = psv->type;
 	
+	if((mode == HOT_START) && (almanacs[sv].decoded))
+	{
+		/* Always a better estimate from the PVT and Alamanac than the acq engine */
+		result.doppler = sv_prediction[sv].doppler;
+	}
+		
 	if(result.success)
 	{
+
 		psv->count[type]++;
 		psv->attempts[type]++;
 		psv->successes[type]++;
+		
+		/* Map receiver channels to channels on correlator */
+		write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Result_S));
+		
 	}
 	else
 	{
+
 		psv->count[type]++;
 		psv->failures[type]++;
 		psv->attempts[type]++;
 
-		if(psv->count[type] >= 10)
+		if(psv->count[type] >= 2)
 		{
 			psv->count[type] = 0;
 			psv->type++;
@@ -317,21 +340,6 @@ void SV_Select::ProcessResult()
 		
 	}
 	
-	
-	if(mode == HOT_START)
-	{
-		/* Always a better estimate than the acq engine */
-		result.doppler = sv_prediction[sv].doppler;
-		
-		/* Map receiver channels to channels on correlator */
-		write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Result_S));
-	}
-	else if(result.success)
-	{
-		/* Map receiver channels to channels on correlator */
-		write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Result_S));
-	}
-	
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -340,7 +348,8 @@ void SV_Select::ProcessResult()
 void SV_Select::UpdateState()
 {
 
-	if(++sv == NUM_CODES)
+	sv++;
+	if(sv >= NUM_CODES)
 		sv = 0;		
 	
 }
@@ -472,20 +481,21 @@ void SV_Select::SV_Position(int32 _sv)
 void SV_Select::SV_Predict(int32 _sv)
 {
 	
-	float elev;
-	float azim;
-	float dx, dy, dz;
-	float ct, cp;
-	float st, sp;
-	float sct, scp;
-	float sst, ssp;
-	float theta;
-	float phi;
-	float rho;
-	float e, n, u;
-	float radius;
-	float dt;
-	float relvel;
+	double elev;
+	double azim;
+	double dx, dy, dz;
+	double ct, cp;
+	double st, sp;
+	double sct, scp;
+	double sst, ssp;
+	double theta;
+	double phi;
+	double rho;
+	double e, n, u;
+	double radius;
+	double dt;
+	double relvel;
+	double a, b;
 	
 	SV_Position_S *psv;
 	Acq_Predicted_S *ppred;	
@@ -501,8 +511,6 @@ void SV_Select::SV_Predict(int32 _sv)
 		ct = cos(theta); st = sin(theta);
 		cp = cos(phi);   sp = sin(phi);
 	
-
-
 		dx = (psv->x - pnav->x);
 		dy = (psv->y - pnav->y);
 		dz = (psv->z - pnav->z);
@@ -510,16 +518,24 @@ void SV_Select::SV_Predict(int32 _sv)
 		radius = sqrt(dx*dx + dy*dy + dz*dz);
 		
 		dt = radius / SPEED_OF_LIGHT;
-		
+
+		a = sqrt(pnav->x*pnav->x + pnav->y*pnav->y + pnav->z*pnav->z);  //Vehicle
+		b = sqrt(psv->x*psv->x + psv->y*psv->y + psv->z*psv->z);		//SV
+	
+		/* Law of cosines beotch! OR Dot product relationship */
+		rho   = acos((-dx*pnav->x - dy*pnav->y - dz*pnav->z)/(a*radius));//Boresight angle of SV relative to Vehicle
+		theta = acos((dx*psv->x + dy*psv->y + dz*psv->z)/(b*radius));	 //Boresight angle of vehicle relative to SV
+	
+		/* Predict visibility */
+		if((rho > mask_angle) && (theta < (PI/4)))
+			ppred->visible = true;
+		else
+			ppred->visible = false;
+
 		dx /= radius;
 		dy /= radius;
 		dz /= radius;
-		
-		/* Velocity along line of sight */
-		relvel	 = 	dx * (pnav->vx - psv->vx) + 
-			      	dy * (pnav->vy - psv->vy) +
-			      	dz * (pnav->vz - psv->vz);  		
-		
+
 		/* Elevation of SV relative to Vehicle (cone of exclusion) */
 		e = -st*dx    +  ct*dy;
 		n = -sp*ct*dx + -sp*st*dy + cp*dz;
@@ -530,23 +546,11 @@ void SV_Select::SV_Predict(int32 _sv)
 		ppred->sv = _sv;
 		ppred->elev = atan2(u, rho);
 		ppred->azim = atan2(e, n);
-
-		/* Use the SV position and PVT sltn to make a prediction of: Elev, Azim, Delay, Doppler */
-		theta = psv->longitude; phi = psv->latitude;
-		ct = cos(theta); st = sin(theta);
-		cp = cos(phi);   sp = sin(phi);
-
-		dx = -dx; dy = -dy; dz = -dz;
-
-		/* Elevation of Vehicle relative to SV (cone of inclusion) */
-		e = -st*dx    +  ct*dy;
-		n = -sp*ct*dx + -sp*st*dy + cp*dz;
-		u =  cp*ct*dx +  cp*st*dy + sp*dz;
 		
-		rho = sqrt(n*n + e*e);
-
-		ppred->v_elev = atan2(u, rho);
-		ppred->v_azim = atan2(e, n);
+		/* Velocity along line of sight */
+		relvel	 = 	dx * (pnav->vx - psv->vx) + 
+			      	dy * (pnav->vy - psv->vy) +
+			      	dz * (pnav->vz - psv->vz);  		
 		
 		/* Predict time of flight in terms of chips */
 		ppred->delay = dt + pnav->clock_bias/SPEED_OF_LIGHT - psv->clock_bias; 	/* Seconds */
@@ -554,12 +558,7 @@ void SV_Select::SV_Predict(int32 _sv)
 		/* Predict observed doppler in terms of Hz */
 		ppred->doppler = relvel - pnav->clock_rate - psv->frequency_bias*SPEED_OF_LIGHT;/* meters/second */
 		ppred->doppler = ppred->doppler*L1/SPEED_OF_LIGHT;								/* Hz */
-		
-		/* This will be replaced by a more detailed cone of inclusion and exclusion model later */
-		if(ppred->elev > mask_angle)
-			ppred->visible = true;
-		else
-			ppred->visible = false;
+
 			
 	}
 
@@ -571,6 +570,7 @@ void SV_Select::SV_Predict(int32 _sv)
 void SV_Select::SV_LatLong(int32 _sv)
 {
 
+	/* This is bullshitted as a spherical earth! */
 	float a = 6378137;
 	float b = 6356752.314;
 	float eprime2 = 0.00673949681994; 
@@ -590,17 +590,17 @@ void SV_Select::SV_LatLong(int32 _sv)
 		psv			= &sv_positions[_sv];
 
 		p			= sqrt(psv->x*psv->x + psv->y*psv->y);
-		
+
 		theta		= atan( (psv->z*a)/ (p*b) );
 		
 		latitude	= atan( (psv->z+eprime2*b*sin(theta)*sin(theta)*sin(theta)) /
 						(p-e2*a*cos(theta)*cos(theta)*cos(theta))  );
-						
-		longitude	= atan2( psv->y/p, psv->x/p);
-	
+		
+		longitude	= atan2(psv->y/p, psv->x/p);
+
 		N			= a*a / sqrt(a*a*cos(latitude)*cos(latitude) + b*b*sin(latitude)*sin(latitude));
 	
-		altitude	= p/cos(latitude) - N;N;
+		altitude	= p/cos(latitude) - N;
 	
 		psv->latitude	= latitude;
 		psv->longitude	= longitude;
@@ -622,16 +622,16 @@ void SV_Select::MaskAngle()
 	
 	c = .5*(a + b);
 	
-	if(pnav->altitude < 1000)
-	{
-		mask_angle = 10.0*PI/180.0;
-	}
-	else
-	{
-	
+//	if(pnav->altitude < 1000)
+//	{
+//		mask_angle = PI/2;
+//	}
+//	else
+//	{
+//	
 		radius = pnav->altitude + b; 
-		mask_angle = -acos(b/radius);
-	}	
+		mask_angle = (PI/2)-acos(b/radius); //Boresight, not an elevation!!!!
+//	}	
 	
 }
 /*----------------------------------------------------------------------------------------------*/

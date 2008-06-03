@@ -28,56 +28,73 @@ if(ALLSV == 1)
     %A = get_acq();
     power_s = zeros(32,1);
     power_m = zeros(32,1);
-
+    power_w = zeros(32,1);
+    
     A = get_acq();
+    A(:,5) = A(:,5) / 1e7;
 
     mask_s = A(:,1) == 0;
     mask_m = A(:,1) == 1;
+    mask_w = A(:,1) == 2;    
     power_s(mask_s) = A(mask_s,5);
     power_m(mask_m) = A(mask_m,5);    
+    power_w(mask_w) = A(mask_w,5);        
     last_s = max(find(mask_s == 1));
     last_m = max(find(mask_m == 1));
+    last_w = max(find(mask_m == 1));
 
     figure(1);
 
-    subplot(211)
+    subplot(311)
     a = stem(1:32,power_s,'b','FILLED');
     hold on;
     b = stem(last_s,power_s(last_s),'g','FILLED');
-    % axis([0 33 0 1e9]);
     grid on;      
     xlabel('Strong Acquisition')
 
-    subplot(212)
+    subplot(312)
     c = stem(1:32,power_m,'b','FILLED');
     hold on;
     d = stem(last_m,power_m(last_m),'g','FILLED');        
-%     axis([0 33 0 1e9]);
     grid on;
     xlabel('Medium Acquisition')
 
+    subplot(313)
+    e = stem(1:32,power_w,'b','FILLED');
+    hold on;
+    f = stem(last_w,power_m(last_w),'g','FILLED');        
+    grid on;
+    xlabel('Weak Acquisition')    
+    
     while(1)
 
         A = get_acq();
 
         if(size(A) ~= 0)
-
+            
+            A(:,5) = A(:,5) / 1e7;
+            
             mask_s = A(:,1) == 0;
             mask_m = A(:,1) == 1;
+            mask_w = A(:,1) == 2;    
             power_s(mask_s) = A(mask_s,5);
             power_m(mask_m) = A(mask_m,5);    
+            power_w(mask_w) = A(mask_w,5);        
             last_s = max(find(mask_s == 1));
             last_m = max(find(mask_m == 1));
+            last_w = max(find(mask_m == 1));
 
             set(a,'Ydata',power_s);
             set(c,'Ydata',power_m);        
+            set(e,'Ydata',power_w);                    
 
             set(b,'Xdata',last_s);
             set(d,'Xdata',last_m);
+            set(f,'Xdata',last_w);            
+            
             set(b,'Ydata',power_s(last_s));
             set(d,'Ydata',power_m(last_m));
-
-%            drawnow;
+            set(f,'Ydata',power_w(last_w));            
 
         end
 

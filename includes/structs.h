@@ -133,22 +133,6 @@ typedef struct _Acq_Request_S
 	int32 antenna;		//!< antenna number
 	
 } Acq_Request_S;
-
-/*! \ingroup STRUCTS
- * Keep track of latest acquisition attempts
- */
-typedef struct _Acq_History_S
-{
-	
-	int32 sv;			//!< SV number
-	int32 type;			//!< Last acquisiton was what type (STRONG, MEDIUM, WEAK)
-	int32 antenna;		//!< Which antenna last acq was on
-	int32 count[3];		//!< Successive counts for each type
-	int32 failures[3];	//!< Number of failed acquisitions
-	int32 attempts[3];	//!< Number of attempts
-	int32 successes[3];	//!< Number of successes
-	
-} Acq_History_S;
 /*----------------------------------------------------------------------------------------------*/
 
 //!< Correlator and channel structs
@@ -553,6 +537,25 @@ typedef struct _Acq_Predicted_S
 	float doppler;				//!< Predicated doppler (Hz)
 	
 } Acq_Predicted_S;
+
+
+/*! \ingroup STRUCTS
+ * Keep track of latest acquisition attempts
+ */
+typedef struct _Acq_History_S
+{
+	
+	int32 sv;			//!< SV number
+	int32 type;			//!< Last acquisiton was what type (STRONG, MEDIUM, WEAK)
+	int32 antenna;		//!< Which antenna last acq was on
+	int32 count[3];		//!< Successive counts for each type
+	int32 failures[3];	//!< Number of failed acquisitions
+	int32 attempts[3];	//!< Number of attempts
+	int32 successes[3];	//!< Number of successes
+	int32 mindopp;		//!< Mindopp
+	int32 maxdopp;		//!< Maxdopp
+	
+} Acq_History_S;
 /*----------------------------------------------------------------------------------------------*/
 
 
