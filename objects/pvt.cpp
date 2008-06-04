@@ -791,14 +791,14 @@ bool PVT::PreErrorCheck()
 //				continue;
 //			}
 //
-//			/* Check for 20 km/s absolute pseudorange rate limit */
-//			if(fabs(pseudoranges[lcv].meters_rate) > dpseudo)
-//			{
-//				sv_codes[lcv] = PSEUDO_ERR;
-//				good_channels[lcv] = false;
-//				num_edited_channels++;
-//				continue;
-//			}
+			/* Check for 20 km/s absolute pseudorange rate limit */
+			if(fabs(pseudoranges[lcv].meters_rate) > dpseudo)
+			{
+				sv_codes[lcv] = PSEUDO_ERR;
+				good_channels[lcv] = false;
+				num_edited_channels++;
+				continue;
+			}
 					
 		}
 	}
@@ -1034,8 +1034,8 @@ bool PVT::PostErrorCheck()
 		return(false);
 
 	/* Limit clock rate to 1 km/s */
-//	if(temp_nav.clock_rate > 1e3)
-//		return(false);
+	if(temp_nav.clock_rate > 1e3)
+		return(false);
 	
 	/* Compute residuals */
 	Residuals();

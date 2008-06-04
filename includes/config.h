@@ -30,8 +30,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define MAX_CHANNELS			(12)						//!< Number of channel objects
 #define CPU_CORES				(2)							//!< 1 for a single core, 2 for a dual core system, etc
 #define CORR_PER_CPU			(MAX_CHANNELS/CPU_CORES)	//!< Distribute them up evenly (this should be an INTEGER!)
-#define MAX_ANTENNA				(1)							//!< The number of antennas
-
+#define MAX_ANTENNAS			(1)							//!< The number of antennas
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -64,10 +63,15 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 /* Acquisition defines */
 /*----------------------------------------------------------------------------------------------*/
-#define	THRESH_STRONG			(1.3e7)	//!< Threshold for strong signal detection
+#define ACQ_STRONG				(0)			//!< Acq strong type
+#define ACQ_MEDIUM				(1)			//!< Acq medium type
+#define ACQ_WEAK 				(2)			//!< Acq weak type
+#define ACQ_MAX					(ACQ_MEDIUM)//!< Cap acquisition type to this
+#define ACQ_ITERATIONS			(10)		//!< Do this many acqs at a given type before moving to next type
+#define	THRESH_STRONG			(1.3e7)		//!< Threshold for strong signal detection
 #define	THRESH_MEDIUM			(1.5e7)		//!< Threshold for medium signal detection
 #define	THRESH_WEAK				(1.0e7)		//!< Threshold for weak signal detection
-#define MAX_DOPPLER				7000		//!< Set the maximum Doppler frequency
+#define MAX_DOPPLER				(7000)		//!< Set the maximum Doppler frequency
 /*----------------------------------------------------------------------------------------------*/
 
 

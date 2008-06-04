@@ -208,8 +208,8 @@ void SV_Select::Acquire()
 			
 		}
 		
-		UpdateState();		
-		
+		UpdateState();
+				
 	}
 				
 }
@@ -329,12 +329,12 @@ void SV_Select::ProcessResult()
 		psv->failures[type]++;
 		psv->attempts[type]++;
 
-		if(psv->count[type] >= 2)
+		if(psv->count[type] >= ACQ_ITERATIONS)
 		{
 			psv->count[type] = 0;
 			psv->type++;
 		
-			if(psv->type > ACQ_WEAK)
+			if(psv->type > ACQ_MAX)
 				psv->type = ACQ_STRONG;
 		}	
 		

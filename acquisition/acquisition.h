@@ -26,12 +26,6 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "includes.h"
 
-#define ACQ_STRONG 	(0)
-#define ACQ_MEDIUM 	(1)
-#define ACQ_WEAK 	(2)
-#define ACQ_PREFIX  (0xDEADBEEF)
-#define ACQ_POSTFIX (0xBEEFDEAD)
-
 /*! \ingroup CLASSES
  * 
  */
