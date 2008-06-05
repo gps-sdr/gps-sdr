@@ -100,6 +100,10 @@ PVT::PVT(int32 _mode)
 		master_nav.stale_ticks = 60*TICS_PER_SECOND;
 		ReadPVT();
 	}
+	else
+	{
+		master_nav.stale_ticks = 360*TICS_PER_SECOND;
+	}
 		
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_unlock(&mutex);
