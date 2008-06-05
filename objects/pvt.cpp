@@ -233,7 +233,10 @@ void PVT::Navigate()
 
 	/* Always tag nav sltn with current tic */
 	master_nav.tic = telem.tic;
-
+	
+	/* Always start with an unconverged sltn */
+	master_nav.converged = false;
+	
 	/* Update receiver time */
 	Update_Time();
 	
@@ -265,17 +268,8 @@ void PVT::Navigate()
 		PVT_Estimation();
 		FormModel();
 		PVT_Estimation();
-		
-		/* Do extra iterations if last position was bad */
-		//if(temp_nav.converged == false)
-		{
-			FormModel();
-			PVT_Estimation();
-			FormModel();
-			PVT_Estimation();
-			FormModel();
-			PVT_Estimation();
-		}
+		FormModel();
+		PVT_Estimation();
 		
 		if(PostErrorCheck())
 		{
@@ -1401,7 +1395,7 @@ void PVT::ReadPVT()
 		fscanf(fp,"LAT: %le\n",&master_nav.latitude);
 		fscanf(fp,"LONG: %le\n",&master_nav.longitude);
 		fscanf(fp,"ALT: %le\n",&master_nav.altitude);
-		//master_nav.initial_convergence = true;
+		master_nav.converged = true;
 	}	
 	
 }

@@ -114,21 +114,21 @@ void SV_Select::Inport()
 	read(PVT_2_SV_Select_P[READ], &input_s, sizeof(PVT_2_SV_Select_S));
 	
 	/* If the PVT is current converged use it */
-	if(pnav->converged)
-	{
-		mode = HOT_START;
-		MaskAngle();	
-	} /* If the PVT is less than 10 minutes old, use it */
-	else if((pnav->stale_ticks < (60*TICS_PER_SECOND)) && pnav->initial_convergence)
+	if((pnav->stale_ticks < (60*TICS_PER_SECOND)) && pnav->initial_convergence && pnav->converged)
 	{
 		mode = HOT_START;
 		MaskAngle();
-	} /* Warm start, only use for visibility */
-//	else if(pnav->stale_ticks < (60*TICS_PER_SECOND))
-//	{
-//		mode = WARM_START;
-//		MaskAngle();
-//	} /* Cold start, hardest way of doing things */
+	} /* If the PVT is less than 1 minutes old, still use it */
+	else if(pnav->stale_ticks < (60*TICS_PER_SECOND) && pnav->initial_convergence)
+	{
+		mode = HOT_START;
+		MaskAngle();
+	} /* Warm start, only use for visibility, give it a 10 minute limit though */
+	else if(pnav->stale_ticks < (600*TICS_PER_SECOND) && pnav->converged)
+	{
+		mode = WARM_START;
+		MaskAngle();
+	} /* Cold start, hardest way of doing things */
 	else
 	{
 		mode = COLD_START;
