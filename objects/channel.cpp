@@ -502,7 +502,7 @@ void Channel::BitLock()
 	
 	if(bit_lock == false)
 	{
-		if((_1ms_epoch == 19) && (count > 4000))	
+		if((_1ms_epoch == 19) && (bit_lock_ticks > 2000))	
 		{
 			/* Find the maximum of the power buffer */
 			best_sum = 0; new_epoch = 0;
@@ -528,7 +528,6 @@ void Channel::BitLock()
 
 				for(lcv = 0 ; lcv < 20; lcv++)
 					P_buff[lcv] = power_buff[(lcv + best_epoch) % 20];			
-						
 			}
 
 			/* If the epoch has NOT changed in X ms */

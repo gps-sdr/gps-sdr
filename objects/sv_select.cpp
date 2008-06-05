@@ -33,6 +33,7 @@ void *SV_Select_Thread(void *_arg)
 		aSV_Select->Inport();
 		aSV_Select->Acquire();		
 		aSV_Select->Export();
+		usleep(100000);
 	}
 	
 	pthread_exit(0);
@@ -85,7 +86,7 @@ void SV_Select::Stop()
 SV_Select::SV_Select()
 {
 	sv = 0;	
-	mode = COLD_START;
+	mode = WARM_START;
 	mask_angle = 0.0;
 	
 	pnav = &input_s.master_nav;	
@@ -108,23 +109,21 @@ SV_Select::~SV_Select()
 /*----------------------------------------------------------------------------------------------*/
 void SV_Select::Inport()
 {
+	
 	int32 bread;
 	
 	/* Pend on PVT sltn */
-	read(PVT_2_SV_Select_P[READ], &input_s, sizeof(PVT_2_SV_Select_S));
+	bread = sizeof(PVT_2_SV_Select_S);
+	while(bread == sizeof(PVT_2_SV_Select_S))
+		bread = read(PVT_2_SV_Select_P[READ], &input_s, sizeof(PVT_2_SV_Select_S));	
 	
-	/* If the PVT is current converged use it */
-	if((pnav->stale_ticks < (60*TICS_PER_SECOND)) && pnav->initial_convergence && pnav->converged)
+	/* If the PVT is less than 1 minutes old, still use it */
+	if((pnav->stale_ticks < (60*TICS_PER_SECOND)) && pnav->initial_convergence)
 	{
 		mode = HOT_START;
 		MaskAngle();
-	} /* If the PVT is less than 1 minutes old, still use it */
-	else if(pnav->stale_ticks < (60*TICS_PER_SECOND) && pnav->initial_convergence)
-	{
-		mode = HOT_START;
-		MaskAngle();
-	} /* Warm start, only use for visibility, give it a 10 minute limit though */
-	else if(pnav->stale_ticks < (600*TICS_PER_SECOND) && pnav->converged)
+	} /* Warm start, only use for visibility, give it a 5 minute limit though */ 
+	else if(pnav->stale_ticks < (360*TICS_PER_SECOND))
 	{
 		mode = WARM_START;
 		MaskAngle();

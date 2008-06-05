@@ -310,7 +310,8 @@ int32 Pipes_Init(void)
 	pipe((int *)SV_Select_2_Telem_P);
 	fcntl(SV_Select_2_Telem_P[READ], F_SETFL, O_NONBLOCK);	
 	pipe((int *)PVT_2_SV_Select_P);
-	fcntl(PVT_2_SV_Select_P[WRITE], F_SETFL, O_NONBLOCK);	
+	fcntl(PVT_2_SV_Select_P[WRITE], F_SETFL, O_NONBLOCK);
+	fcntl(PVT_2_SV_Select_P[READ], F_SETFL, O_NONBLOCK);	
 		
 	/* Channel and correlator */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)

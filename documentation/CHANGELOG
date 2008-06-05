@@ -66,3 +66,7 @@ which is the default behaviour.
 Added in dump of ephemeris to a file for faster warm start. Fixed MAJOR bug with medium and weak acquisition that resulted in the wrong doppler frequency being
 calculated. Added in code doppler correction for weak signal acquisition.
 
+
+06/04/2008 3.0.18a
+
+Added in named pipe for real-time tracking channel vis via Matlab

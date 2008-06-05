@@ -421,9 +421,9 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 				{
 					
 					skip = false;
-					dopp = lcv*1000 + lcv2*250 + (indext/resamps_ms)*25.0;
+					dopp = lcv*1000 + lcv2*250 + (indext/resamps_ms)*25;
 					for(j = 0; j < ncross; j++)
-						if(abs(dopp - cross_doppler[j]) < 50)
+						if(abs(dopp - cross_doppler[j]) < 100)
 							skip = true;
 												
 					if(!skip)
@@ -578,9 +578,9 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 				{
 					
 					skip = false;
-					dopp = lcv*1000 + lcv2*250 + (indext/resamps_ms)*25.0;
+					dopp = lcv*1000 + lcv2*250 + (indext/resamps_ms)*25;
 					for(j = 0; j < ncross; j++)
-						if(abs(dopp - cross_doppler[j]) < 50)
+						if(abs(dopp - cross_doppler[j]) < 100)
 							skip = true;
 												
 					if(!skip)
