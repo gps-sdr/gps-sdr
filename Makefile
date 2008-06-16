@@ -26,8 +26,8 @@ HEADERS =   config.h		\
 			includes.h		\
 			macros.h		\
 			protos.h		\
-			signal.h		\
-			structs.h	
+			signaldef.h		\
+			structs.h		
 
 OBJS =		init.o			\
 			shutdown.o		\
@@ -47,6 +47,8 @@ OBJS =		init.o			\
 			pvt.o			\
 			post_process.o
 			
+			
+			
 #Uncomment these to look at the disassembly
 #DIS = 		x86.dis		\
 #			sse.dis		\
@@ -62,7 +64,7 @@ EXE =		gps-sdr			\
 
 All: $(EXE)
 
-gps-sdr: main.o $(OBJS) $(DIS)
+gps-sdr: main.o $(OBJS) $(DIS) $(HEADERS)
 	 $(LINK) $(LDFLAGS) -o $@ main.o $(OBJS)
 
 fft_test: fft_test.o $(OBJS)
@@ -74,7 +76,7 @@ simd_test: simd_test.o $(OBJS)
 acq_test: acq_test.o $(OBJS)
 	 $(LINK) $(LDFLAGS) -o $@ acq_test.o $(OBJS)
 	 
-%.o:%.cpp
+%.o:%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
 %.dis:%.cpp	

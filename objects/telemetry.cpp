@@ -305,7 +305,7 @@ void Telemetry::PrintChan()
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		p = &tChan[lcv];
-		if(active[lcv])
+		if(active[lcv] && p->count > 3000)
 		{
 			
 			strcpy(buff, "---------");
@@ -668,13 +668,14 @@ void Telemetry::LogPseudo()
 		pPseudo = (Pseudorange_S *)	&tNav.pseudoranges[lcv];
 		pMeas = (Measurement_S *)	&tNav.measurements[lcv];
 		
-		fprintf(fp_pseudo,"%02d,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n",
+		fprintf(fp_pseudo,"%02d,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n",
 			lcv,		
 			pPseudo->time,
 			pPseudo->time_rate,
 			pPseudo->meters,
 			pPseudo->meters_rate,
 			pPseudo->residual,
+			pPseudo->rate_residual,
 			pPseudo->time_uncorrected);
 			
 		fprintf(fp_meas,"%02d,%02d,%01d,%8d,%8d,%8d,%.16e,%.16e,%.16e,%.16e\n",

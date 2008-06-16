@@ -31,7 +31,7 @@ if(ALLSV == 1)
     power_w = zeros(32,1);
     
     A = get_acq();
-    A(:,5) = A(:,5) / 1e7;
+%     A(:,5) = A(:,5) / 1e7;
 
     mask_s = A(:,1) == 0;
     mask_m = A(:,1) == 1;
@@ -72,7 +72,7 @@ if(ALLSV == 1)
 
         if(size(A) ~= 0)
             
-            A(:,5) = A(:,5) / 1e7;
+%             A(:,5) = A(:,5) / 1e7;
             
             mask_s = A(:,1) == 0;
             mask_m = A(:,1) == 1;

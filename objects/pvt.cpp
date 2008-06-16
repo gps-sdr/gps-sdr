@@ -151,6 +151,10 @@ void PVT::Inport()
 		measurements[lcv].navigate = false; //important!
 	}
 
+	/* Always clear out this sheit */
+	memset(&measurements[0], 0x0, MAX_CHANNELS*sizeof(Measurement_S));
+	memset(&pseudoranges[0], 0x0, MAX_CHANNELS*sizeof(Pseudorange_S));
+	
 	/* Initial set of Nav Channels, gets refined in Error_Check() */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -451,7 +455,7 @@ void PVT::SV_Positions()
 			partial_sec = measurements[lcv].code_time - sv_positions[lcv].clock_bias;
 			whole_sec = (double)measurements[lcv]._z_count;
 
-			dtk = partial_sec + whole_sec;
+			dtk = partial_sec + whole_sec + .001;
 
 			tk = (double)(dtk - (double)toe);
 			tk_p_toe = (double)(dtk);
@@ -689,6 +693,9 @@ void PVT::SV_Elevations()
 void PVT::PseudoRange()
 {
 	int32 lcv;
+	double cp_scale;
+	
+	cp_scale = (double)TICS_PER_SECOND/(double)(2*ICP_TICS);
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -715,7 +722,7 @@ void PVT::PseudoRange()
 			
 			/* Pseudorange RATE from integrated carrier phase (LESS NOISY) */
 			pseudoranges[lcv].time_rate = measurements[lcv].carrier_phase_prev - measurements[lcv].carrier_phase; //Must switch signs
-			//pseudoranges[lcv].time_rate *= (double)TICS_PER_SECOND/(double)(2*ICP_TICS); //Convert cycles/meas period to cycles/sec
+			pseudoranges[lcv].time_rate *= cp_scale;
 			pseudoranges[lcv].time_rate += (double) IF_FREQUENCY;
 
 			/* Convert rate to meters */
@@ -787,14 +794,14 @@ bool PVT::PreErrorCheck()
 //				continue;
 //			}
 //
-			/* Check for 20 km/s absolute pseudorange rate limit */
-			if(fabs(pseudoranges[lcv].meters_rate) > dpseudo)
-			{
-				sv_codes[lcv] = PSEUDO_ERR;
-				good_channels[lcv] = false;
-				num_edited_channels++;
-				continue;
-			}
+//			/* Check for 20 km/s absolute pseudorange rate limit */
+//			if(fabs(pseudoranges[lcv].meters_rate) > dpseudo)
+//			{
+//				sv_codes[lcv] = PSEUDO_ERR;
+//				good_channels[lcv] = false;
+//				num_edited_channels++;
+//				continue;
+//			}
 					
 		}
 	}
@@ -895,7 +902,7 @@ void PVT::FormModel()
 				      			dircos[lcv][1] * (temp_nav.vy - sv_positions[lcv].vy) +
 				      			dircos[lcv][2] * (temp_nav.vz - sv_positions[lcv].vz);  
 
-		    pseudorangerateres[lcv] = pseudoranges[lcv].meters_rate - (relvel +  temp_nav.clock_rate); //sv clock rate is negligible
+		    pseudorangerateres[lcv] = pseudoranges[lcv].meters_rate - (relvel +  temp_nav.clock_rate  - sv_positions[lcv].frequency_bias*SPEED_OF_LIGHT); 
 		
 		} //end if good_channels
 	
@@ -1064,7 +1071,7 @@ void PVT::Residuals()
 {
 
 	int32 lcv;
-	double range;
+	double range, dx, dy, dz, relvel;
 	
 	/* Pseudorange Residuals */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
@@ -1075,7 +1082,19 @@ void PVT::Residuals()
 						   			(temp_nav.y - sv_positions[lcv].y)*(temp_nav.y - sv_positions[lcv].y) + 
 						   			(temp_nav.z - sv_positions[lcv].z)*(temp_nav.z - sv_positions[lcv].z)	);
 
-				pseudoranges[lcv].residual = pseudoranges[lcv].meters - (range + temp_nav.clock_bias - sv_positions[lcv].clock_bias*SPEED_OF_LIGHT);
+			
+			pseudoranges[lcv].residual = pseudoranges[lcv].meters - (range + temp_nav.clock_bias - sv_positions[lcv].clock_bias*SPEED_OF_LIGHT);
+			
+			dx = (temp_nav.x - sv_positions[lcv].x)/range;
+			dy = (temp_nav.y - sv_positions[lcv].y)/range;
+			dz = (temp_nav.z - sv_positions[lcv].z)/range;
+			
+			relvel	 = 			dx * (temp_nav.vx - sv_positions[lcv].vx) + 
+				      			dy * (temp_nav.vy - sv_positions[lcv].vy) +
+				      			dz * (temp_nav.vz - sv_positions[lcv].vz); 
+			
+			pseudoranges[lcv].rate_residual = pseudoranges[lcv].meters_rate - (relvel + temp_nav.clock_rate - sv_positions[lcv].frequency_bias*SPEED_OF_LIGHT);	
+			
 		}
 	}
 	
@@ -1103,7 +1122,7 @@ bool PVT::Converged()
 	if(k > 0.0)
 	{
 		residual_avg /= k;
-		if(residual_avg < 200.0)
+		if(residual_avg < 2000.0)
 		{
 			temp_nav.converged = true;
 		}

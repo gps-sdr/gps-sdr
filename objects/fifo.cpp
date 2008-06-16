@@ -166,9 +166,13 @@ void FIFO::Inport()
 	}
 	
 	/* Add to the buff */
-	if(gopt.realtime && count < 20)
+	if(gopt.realtime && count == 0)
 	{
 		init_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
+	}
+	else if(gopt.realtime && count < 1000)
+	{
+		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
 	}
 	else
 	{

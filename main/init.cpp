@@ -112,8 +112,8 @@ void Parse_Arguments(int32 argc, char* argv[])
 	gopt.log_channel 	= 0;
 	gopt.log_nav		= 0;
 	gopt.ncurses 		= 1;
-	gopt.doppler_min 	= -10000;
-	gopt.doppler_max 	= 10000;
+	gopt.doppler_min 	= -MAX_DOPPLER;
+	gopt.doppler_max 	= MAX_DOPPLER;
 	gopt.corr_sleep 	= 500;
 	gopt.startup		= COLD_START;
 	strcpy(gopt.filename_direct, "data.bda");
@@ -366,7 +366,8 @@ int32 Thread_Init(void)
 	pEphemeris->Start();
 	
 	/* Start the SV select thread */
-	pSV_Select->Start();
+	if(gopt.realtime)
+		pSV_Select->Start();
 	
 	//if(gopt.verbose)
 	{	
@@ -375,7 +376,6 @@ int32 Thread_Init(void)
 	}
 
 	/* Last thing to do */
-	sleep(1);
 	pTelemetry->Start();
 	
 	return(1);

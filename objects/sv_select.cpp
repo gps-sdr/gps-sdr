@@ -156,8 +156,8 @@ void SV_Select::Acquire()
 				break;
 			}	
 			
-		sv_prediction[sv].tracked = false;		
-	
+		sv_prediction[sv].tracked = false;	
+		
 		/* If the SV is already being tracked skip the acquisition */
 		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 			if(pChannels[lcv]->getActive())
@@ -621,17 +621,12 @@ void SV_Select::MaskAngle()
 	
 	c = .5*(a + b);
 	
-//	if(pnav->altitude < 1000)
-//	{
-//		mask_angle = PI/2;
-//	}
-//	else
-//	{
-//	
-		radius = pnav->altitude + b; 
-		mask_angle = (PI/2)-acos(b/radius); //Boresight, not an elevation!!!!
-//	}	
+	radius = pnav->altitude + c; 
+	mask_angle = (PI/2)-acos(c/radius); //Boresight, not an elevation!!!!
 	
+	if(pnav->altitude < 0)
+		mask_angle = PI/2;
+
 }
 /*----------------------------------------------------------------------------------------------*/
 

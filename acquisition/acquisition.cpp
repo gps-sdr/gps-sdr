@@ -137,7 +137,7 @@ Acquisition::Acquisition(float _fsample, float _fif)
 	
 	/* Generate sinusoid */
 	for(lcv = 0; lcv < 10; lcv++)
-		wipeoff_gen(dft_rows[lcv], (float)-lcv*25.0, 1000.0, 10);
+		wipeoff_gen(dft_rows[lcv], (float)lcv*25.0 - 112.5, 1000.0, 10);
 	
 	/* Generate mix to baseband */
 	sine_gen(_000Hzwipeoff, -fif, SAMPLE_FREQUENCY, 10*resamps_ms);
@@ -500,8 +500,8 @@ Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 				for(i = 0; i < 15; i++)
 				{
 					
-//					if(gopt.realtime)
-//						usleep(1000);					
+					if(gopt.realtime)
+						usleep(1000);					
 					
 					/* Do the 10 ms of coherent integration */
 					for(lcv3 = 0; lcv3 < 10; lcv3++)

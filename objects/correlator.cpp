@@ -393,10 +393,10 @@ void Correlator::Accum(Correlation_S *c, CPX *data, int32 samps)
 	//state.psine = sine_rows[chan];
 	
 	/* First do the wipeoff */
-	x86_cmulsc(data, state.psine, scratch, samps, 14);
+	sse_cmulsc(data, state.psine, scratch, samps, 14);
 	
 	/* Now do the accumulation */
-	x86_prn_accum(scratch, state.pcode[0], state.pcode[1], state.pcode[2], samps, &EPL[0]);
+	sse_prn_accum(scratch, state.pcode[0], state.pcode[1], state.pcode[2], samps, &EPL[0]);
 		
 	c->I[0] += (int32) EPL[0].i;
 	c->I[1] += (int32) EPL[1].i;
@@ -508,7 +508,10 @@ void Correlator::ProcessFeedback(NCO_Command_S *f)
 	/* Update correlator state */
 	if(f->kill)
 	{
-		memset(&state, 0x0, sizeof(Correlator_State_S));
+		/* Clear out some buffers */
+		memset(&state, 		0x0, sizeof(Correlator_State_S));
+		memset(&meas, 		0x0, sizeof(Measurement_S));
+		memset(&meas_buff, 	0x0, TICS_PER_SECOND*sizeof(Measurement_S));
 				
 		/* Set correlator status to inactive */
 		pthread_mutex_lock(&mInterrupt);
@@ -617,7 +620,7 @@ void Correlator::InitCorrelator()
 	nco_phase_inc = (uint32)floor((double)state.carrier_nco*(double)2.097152000000000e+03);
 	nco_phase = 0;	
 	
-	inc = (int32)floor(result.delay*2048.0/1023.0);
+	//inc = (int32)floor(result.delay*2048.0/1023.0);
 	
 	/* Initialize the code bin pointers */
 	bin = (int32) floor((state.code_phase_mod + 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;

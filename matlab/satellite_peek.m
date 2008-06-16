@@ -28,10 +28,12 @@ end
 elev = reshape(a(:,10),[12 len]).';
 azim = reshape(a(:,11),[12 len]).';
 
-azim(find(azim == 0)) = NaN;
-elev(find(elev == 0)) = NaN;
-mask = find(elev < 0);
-elev(mask) = -elev(mask);
+return
+
+% azim(find(azim == 0)) = NaN;
+% elev(find(elev == 0)) = NaN;
+% mask = find(elev < 0);
+% elev(mask) = -elev(mask);
 
 
 % Create the circles

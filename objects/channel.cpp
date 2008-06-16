@@ -249,7 +249,7 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	else
 		_feedback->set_z_count = false;
 	
-	if((P[1] > 5e4) && converged)
+	if((P[1] > 10e4) && converged)
 		_feedback->navigate = navigate;
 	else
 		_feedback->navigate = false;

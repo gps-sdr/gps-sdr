@@ -25,12 +25,12 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 void Parse_Arguments(int32 _argc, char* _argv[]);	//!< Parse command line arguments to setup functionality
 int32 Hardware_Init(void);							//!< Initialize any hardware (for realtime mode)
-int32 Object_Init(void);							//!< Initialize all threaded objects and global variables
+int32 Object_Init(void);								//!< Initialize all threaded objects and global variables
 int32 Pipes_Init(void);								//!< Initialize all pipes
-int32 Thread_Init(void);							//!< Finally start up the threads
-void Thread_Shutdown(void);						//!< First step to shutdown, stopping the threads
+int32 Thread_Init(void);								//!< Finally start up the threads
+void Thread_Shutdown(void);							//!< First step to shutdown, stopping the threads
 void Pipes_Shutdown(void);							//!< Close all the pipes
-void Object_Shutdown(void);						//!< Delete/free all objects
+void Object_Shutdown(void);							//!< Delete/free all objects
 void Hardware_Shutdown(void);						//!< Shutdown any hardware
 /*----------------------------------------------------------------------------------------------*/
 

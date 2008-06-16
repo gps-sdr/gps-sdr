@@ -103,9 +103,14 @@ int main(int32 argc, char* argv[])
 		if(!strcmp(argv[lcv], "-sv"))
 		{
 			lcv++;
-            if(isdigit(argv[lcv][0]))
-				acq_options.sv = (int32)strtof(argv[lcv], &parse);
-            else
+			if(lcv < argc)
+			{
+				if(isdigit(argv[lcv][0]))
+					acq_options.sv = (int32)strtof(argv[lcv], &parse);
+				else
+					usage(argv[0]);
+			}
+			else
 				usage(argv[0]);
 		}
 		else if(!strcmp(argv[lcv], "-s"))
@@ -218,6 +223,10 @@ void run_acq(Acquisition_test_options *_opt)
 					
 			/* Downsample to 2048 samps/ms */
 			downsample(buff, buff_in, SAMPLE_FREQUENCY, IF_SAMPLE_FREQUENCY, IF_SAMPS_MS*310); 
+	
+			printf("AGC Scale: %d\n",agc_scale);
+			
+			agc_scale = 300;
 
 			/* Init AGC scale value */		
 			init_agc(&buff[0], 10*SAMPS_MS, AGC_BITS, &agc_scale);
@@ -252,6 +261,9 @@ void run_acq(Acquisition_test_options *_opt)
 					fprintf(stderr, "Bad GPS acquisition type!\n");
 					exit(-1);
 			}
+			
+			printf("SV: %02d\t%02d\t%10.2f\t%10.0f\t%15.0f\n",lcv+1, results[sv].type,results[sv].delay,results[sv].doppler,results[sv].magnitude);				
+			
 		}
 		else	/* Loop over all SVs */
 		{

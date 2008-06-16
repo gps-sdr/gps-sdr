@@ -3,7 +3,8 @@
 %   1: SV Tracking Status
 %   2: CN) Estimates
 
-close all; clear; clc;
+% close all;
+clear; clc;
 
 % lcv,
 % (int32)pChan->sv,
@@ -35,6 +36,7 @@ fll         = reshape(a(:,10),[12 len]).';
 pll         = reshape(a(:,11),[12 len]).';
 fll_lock    = reshape(a(:,12),[12 len]).';
 
+
 mask = ~frame_lock;
 %mask = 1:length(svs);
 
@@ -43,6 +45,19 @@ CN0(mask) = NaN;
 w(mask) = NaN;
 x(mask) = NaN;
 z(mask) = NaN;
+
+b = CN0(:);
+a = svs(:);
+
+for(lcv = 1:32)
+    
+    [indx, indy] = find(svs == lcv);
+    ind = find(a == lcv);
+    if(indx)
+        CN0sv(lcv,indx) = b(ind);
+    end
+    
+end
 
 figure
 plot(dt,svs,'LineWidth',5)
@@ -53,7 +68,7 @@ title('SV Plot')
 print -dpng -r0 sv.png
 
 figure
-plot(dt,CN0)
+plot(dt,CN0sv)
 grid on; axis([min(dt) max(dt) 20 55])
 xlabel('Time (minutes)')
 ylabel('C/N_{0} Estimate (dB-Hz)')

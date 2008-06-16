@@ -52,12 +52,12 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 /*Herein Lies Many Important File, note thy order is important!*/
 /*----------------------------------------------------------------------------------------------*/
-#include "config.h"				//!< Configure receiver 
+#include "config.h"			//!< Configure receiver 
 #include "signaldef.h"			//!< Define attributes of input data
 #include "defines.h"			//!< Defines from IS-GPS-200D and some other things
-#include "macros.h"				//!< Macros 
+#include "macros.h"			//!< Macros 
 #include "structs.h"			//!< Structs used for interprocess communication 
-#include "protos.h"				//!< Functions & thread prototypes
+#include "protos.h"			//!< Functions & thread prototypes
 #include "simd.h"				//!< Include the SIMD functionality 
 /*----------------------------------------------------------------------------------------------*/
 
@@ -66,7 +66,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "fft.h"				//!< Fixed point FFT object
 #include "fifo.h"				//!< Circular buffer for inporting IF data
 #include "keyboard.h"			//!< Handle user input via keyboard
-#include "correlator.h"			//!< Correlator
+#include "correlator.h"		//!< Correlator
 #include "channel.h"			//!< Tracking channels
 #include "acquisition.h"		//!< Acquisition
 #include "pvt.h"				//!< PVT solution

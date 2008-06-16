@@ -22,8 +22,9 @@ ms20 = reshape(a(:,4),[12 len]).';
 zc = reshape(a(:,5),[12 len]).';
 count = reshape(a(:,6),[12 len]).';
 
-% code_time = code_phase / 1.023e6 + .001 * ms1 + .02 * ms20;
-code_time = .001 * ms1 + .02 * ms20;
+code_time = code_phase / 1.023e6 + .001 * ms1 + .02 * ms20;
+code_time = code_time*c;
+%code_time = .001 * ms1 + .02 * ms20;
 % code_time = mod(code_time, 1.0);
 
 plot(code_time)

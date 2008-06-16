@@ -10,6 +10,7 @@ close('all','force'); clear; clc
 % pPseudo->meters,
 % pPseudo->meters_rate,
 % pPseudo->residual,
+% pPseudo->rate_residual,
 % pPseudo->time_uncorrected
 
 c = 2.99792458e8;
@@ -21,19 +22,23 @@ a = a(1:12*len,:);
 dt = [1:len]/60;
 
 resid = reshape(a(:,6),[12 len]).';
-rate = reshape(a(:,5),[12 len]).';
+rresid = reshape(a(:,7),[12 len]).';
 
 figure
 plot(dt, resid)
-axis([1 max(dt) -200 200])
+% axis([1 max(dt) -200 200])
 grid on;
 ylabel('Residual (m)')
 xlabel('Minutes')
 title('Pseudorange Residuals')
-print -dpng -r0 residuals.png
-
+% print -dpng -r0 residuals.png
 
 figure
-plot(dt, rate)
+plot(dt, rresid)
 % axis([1 max(dt) -200 200])
 grid on;
+ylabel('Residual (m)')
+xlabel('Minutes')
+title('Pseudorange Residuals')
+% print -dpng -r0 residuals.png
+

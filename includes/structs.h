@@ -468,7 +468,8 @@ typedef struct _Pseudorange_S
 	double time_rate;		//!< pseudorange rate in sec/sec 
 	double meters;			//!< pseudorange in meters 
 	double meters_rate;		//!< pseudorange rate in meters/sec 
-	double residual;		//!< residual in meters 
+	double residual;		//!< residual in meters
+	double rate_residual;	//!< rate residual (m/s)
 	double time_uncorrected;//!< raw pseudorange measurements 
 	double previous;		//!< from previous step, used for err check
 
