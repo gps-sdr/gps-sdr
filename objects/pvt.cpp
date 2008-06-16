@@ -455,7 +455,7 @@ void PVT::SV_Positions()
 			partial_sec = measurements[lcv].code_time - sv_positions[lcv].clock_bias;
 			whole_sec = (double)measurements[lcv]._z_count;
 
-			dtk = partial_sec + whole_sec + .001;
+			dtk = partial_sec + whole_sec;
 
 			tk = (double)(dtk - (double)toe);
 			tk_p_toe = (double)(dtk);

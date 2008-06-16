@@ -81,8 +81,8 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define CORR_SPACING			(.5)		//!< How far should the correlators be spaced (chips)
 #define FRAME_SIZE_PLUS_2		(12)		//!< 10 words per frame, 12 = 10 + 2 
 #define MEASUREMENT_INT		(100)		//!< Packets of ~1ms data
-#define CODE_BINS				(100)		//!< Partial code offset bins code resolution -> 1 chip/X bins
-#define CARRIER_SPACING		(10)		//!< Spacing of bins (Hz)
+#define CODE_BINS				(20)		//!< Partial code offset bins code resolution -> 1 chip/X bins
+#define CARRIER_SPACING		(100)		//!< Spacing of bins (Hz)
 #define CARRIER_BINS			(MAX_DOPPLER/CARRIER_SPACING) //!< Number of pre-sampled carrier wipeoff bins
 #define ICP_TICS				(5)			//!< Number of measurement ints (plus-minus) to calculate ICP, 
 											//!< this cannot exceed TICS_PER_SECOND/2 !!!!

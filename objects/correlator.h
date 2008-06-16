@@ -51,17 +51,17 @@ class Correlator
 		
 		/* This  is important, the following array is large and is constant, so it is 
 		 * shared among all instances of this class */
-		static CPX *sine_table;
-		static CPX **sine_rows;
-//		static CPX			sine_table[(2*CARRIER_BINS+1)*2*SAMPS_MS];	//!< Hold the sine lookup table [2*CARRIER_BINS+1][2*SAMPS_MS];
-//		static CPX			*sine_rows[2*CARRIER_BINS+1];				//!< Row pointers to above
+		static CPX 			*sine_table;				//!< Hold the sine wipeoff table
+		static CPX 			**sine_rows;				//!< Row pointers to above
+		static CPX  		*main_code_table;			//!< Hold the PRN lookup table for all 32 SVs  [2*CODE_BINS+1][2*SAMPS_MS];
+		static CPX 			**main_code_rows;			//!< Row pointers to above
 		
-		CPX					*code_table;			//!< Hold the PRN lookup table  [2*CODE_BINS+1][2*SAMPS_MS];
-		CPX					**code_rows;			//!< Row pointers to above
-		CPX					scratch[2*SAMPS_MS];	//!< Scratch data
-		CPX					lookup[SAMPS_MS];		//!< Hold the sine lookup
-		uint32				nco_phase_inc;			//!< For dynamically generating the wipeoff
-		uint32				nco_phase;				//!< For dynamically generating the wipeoff
+		CPX					*code_table;				//!< Local code table
+		CPX					**code_rows;				//!< Row pointers to above
+		CPX					scratch[2*SAMPS_MS];		//!< Scratch data
+		CPX					lookup[SAMPS_MS];			//!< Hold the sine lookup
+		uint32				nco_phase_inc;				//!< For dynamically generating the wipeoff
+		uint32				nco_phase;					//!< For dynamically generating the wipeoff
 		
 	public:
 
@@ -72,11 +72,12 @@ class Correlator
 		void Export();												//!< Dump results to channels and Navigation
 		void Start();												//!< Start the thread
 		void Stop();												//!< Stop the thread
-		void TakeMeasurement();										//!< Take some measurements
-		void SamplePRN();											//!< Sample the PRN code and put it into the code table
-		void InitCorrelator();										//!< Initialize a correlator/channel with an acquisition result
+		void TakeMeasurement();									//!< Take some measurements
+		void SamplePRN();											//!< Sample all 32 PRN codes and put it into the code table
+		void GetPRN(int32 _sv);									//!< Get row pointers to specific PRN
+		void InitCorrelator();									//!< Initialize a correlator/channel with an acquisition result
 		void DumpAccum(Correlation_S *c);							//!< Dump accumulation to channel for processing
-		void UpdateState(int32 samps);								//!< Update correlator state
+		void UpdateState(int32 samps);							//!< Update correlator state
 		void ProcessFeedback(NCO_Command_S *f);		
 		void Accum(Correlation_S *c, CPX *data, int32 samps);		//!< Do the actual accumulation
 		void SineGen(int32 samps);									//!< Dynamic wipeoff generation

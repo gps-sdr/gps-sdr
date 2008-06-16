@@ -25,6 +25,8 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /* Be sure to init static variable prior to use by actual objects */
 CPX *Correlator::sine_table = new CPX[(2*CARRIER_BINS+1)*2*SAMPS_MS];
 CPX **Correlator::sine_rows = new CPX*[2*CARRIER_BINS+1];
+CPX *Correlator::main_code_table = new CPX[NUM_CODES*(2*CODE_BINS+1)*2*SAMPS_MS];
+CPX **Correlator::main_code_rows = new CPX*[NUM_CODES*(2*CODE_BINS+1)];
 
 /*----------------------------------------------------------------------------------------------*/
 void *Correlator_Thread(void *_arg)
@@ -96,6 +98,7 @@ Correlator::Correlator(int32 _chan)
 	state.active = 0;
 	aChannel = pChannels[chan];
 
+	/* Malloc memory for local code vector */
 	code_table = new CPX[(2*CODE_BINS+1)*2*SAMPS_MS];
 	code_rows = new CPX*[2*CODE_BINS+1];
 	for(lcv = 0; lcv < 2*CODE_BINS+1; lcv++)
@@ -103,11 +106,18 @@ Correlator::Correlator(int32 _chan)
 		
 	if(chan == 0)
 	{
+		/* Get the pointers */
 		for(lcv = 0; lcv < 2*CARRIER_BINS+1; lcv++)
 			sine_rows[lcv] = &sine_table[lcv*2*SAMPS_MS];
 			
+		/* Create the wipeoff */
 		for(lcv = -CARRIER_BINS; lcv <= CARRIER_BINS; lcv++)
 			sine_gen(sine_rows[lcv+CARRIER_BINS], -IF_FREQUENCY-(float)lcv*CARRIER_SPACING, SAMPLE_FREQUENCY, 2*SAMPS_MS);
+		
+		for(lcv = 0; lcv < (2*CODE_BINS+1)*NUM_CODES; lcv++)
+			main_code_rows[lcv] = &main_code_table[lcv*2*SAMPS_MS];
+		
+		SamplePRN();
 	}
 	
 	if(gopt.verbose)
@@ -128,6 +138,8 @@ Correlator::~Correlator()
 	{
 		delete [] sine_table;
 		delete [] sine_rows;
+		delete [] main_code_table;
+		delete [] main_code_rows;
 	}	
 	
 	if(gopt.verbose)
@@ -551,36 +563,63 @@ void Correlator::SineGen(int32 _samps)
 /*----------------------------------------------------------------------------------------------*/
 
 
-
-
 /*----------------------------------------------------------------------------------------------*/
 void Correlator::SamplePRN()
 {
 	CPX *row;
-	int32 lcv, lcv2;
+	int32 lcv, lcv2, sv, k;
 	int32 index;
 	float phase_step, phase;
 		
-	code_gen(&scratch[0], result.sv);
+	k = 0;
 	
-	for(lcv = 0; lcv < 2*CODE_BINS+1; lcv++)
+	for(sv = 0; sv < NUM_CODES; sv++)
 	{
-		row = code_rows[lcv];
-		phase = -0.5 + (float)lcv/(float)CODE_BINS;
-		phase_step = CODE_RATE/SAMPLE_FREQUENCY;
-		for(lcv2 = 0; lcv2 < 2*SAMPS_MS; lcv2++)
+		
+		code_gen(&scratch[0], sv);
+	
+		for(lcv = 0; lcv < 2*CODE_BINS+1; lcv++)
 		{
-			index  = (int32)floor(phase + CODE_CHIPS) % CODE_CHIPS;
 			
-			if(scratch[index].i)
-				row[lcv2].i = row[lcv2].q = 0x0000; /* Map 1 to 0x0000, and 0 to 0xffff for SIMD code */
-			else
-				row[lcv2].i = row[lcv2].q = 0xffff;
+			row = main_code_rows[k];
+			k++;
+			
+			phase = -0.5 + (float)lcv/(float)CODE_BINS;
+			phase_step = CODE_RATE/SAMPLE_FREQUENCY;
+			
+			for(lcv2 = 0; lcv2 < 2*SAMPS_MS; lcv2++)
+			{
+				index  = (int32)floor(phase + CODE_CHIPS) % CODE_CHIPS;
 				
-			phase += phase_step;
+				if(scratch[index].i)
+					row[lcv2].i = row[lcv2].q = 0x0000; /* Map 1 to 0x0000, and 0 to 0xffff for SIMD code */
+				else
+					row[lcv2].i = row[lcv2].q = 0xffff;
+					
+				phase += phase_step;
+			}
+		}
+	
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Correlator::GetPRN(int32 _sv)
+{
+	
+	int32 lcv;
+	
+	if(_sv >= 0 && _sv <= 31)
+	{
+		for(lcv = 0; lcv < (2*CODE_BINS+1); lcv++)
+		{
+			memcpy(code_rows[lcv], main_code_rows[lcv + _sv*(2*CODE_BINS+1)], 2*SAMPS_MS*sizeof(CPX));	
 		}
 	}
-				
+                                   
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -614,8 +653,8 @@ void Correlator::InitCorrelator()
 	state._1ms_epoch 			= 0;
 	state._20ms_epoch			= 0;
 	state.rollover 				= (int32) ceil(((double)CODE_CHIPS - state.code_phase)*SAMPLE_FREQUENCY/state.code_nco); /* Calculate rollover point */
-		
-	SamplePRN();
+	
+	GetPRN(state.sv);		
 	
 	nco_phase_inc = (uint32)floor((double)state.carrier_nco*(double)2.097152000000000e+03);
 	nco_phase = 0;	
