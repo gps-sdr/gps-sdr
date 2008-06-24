@@ -18,7 +18,9 @@ close all; clear; clc;
 
 c = 2.99792458e8;
 
-fname = sprintf('../satellites.tlm');
+path = '/home/gheckler/GPS_Data/Car_Test3/'
+fname = [path,'satellites.tlm'];
+
 a = dlmread(fname);
 len = floor(length(a)/12);
 if(len ~= length(a))
@@ -27,8 +29,6 @@ end
 
 elev = reshape(a(:,10),[12 len]).';
 azim = reshape(a(:,11),[12 len]).';
-
-return
 
 % azim(find(azim == 0)) = NaN;
 % elev(find(elev == 0)) = NaN;

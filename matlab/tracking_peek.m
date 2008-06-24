@@ -3,7 +3,7 @@
 %   1: SV Tracking Status
 %   2: CN) Estimates
 
-% close all;
+close all;
 clear; clc;
 
 % lcv,
@@ -21,7 +21,9 @@ clear; clc;
         
 c = 2.99792458e8;
 
-fname = sprintf('../tracking.tlm');
+path = '/home/gheckler/GPS_Data/Car_Test3/'
+fname = [path,'tracking.tlm'];
+
 a = dlmread(fname);
 len = floor(length(a)/12);
 a = a(1:12*len,:);
@@ -36,9 +38,7 @@ fll         = reshape(a(:,10),[12 len]).';
 pll         = reshape(a(:,11),[12 len]).';
 fll_lock    = reshape(a(:,12),[12 len]).';
 
-
-mask = ~frame_lock;
-%mask = 1:length(svs);
+mask = or((~bit_lock), (CN0 < 20));
 
 svs(mask) = NaN;
 CN0(mask) = NaN;
@@ -59,6 +59,8 @@ for(lcv = 1:32)
     
 end
 
+CN0sv(CN0sv == 0) = NaN;
+
 figure
 plot(dt,svs,'LineWidth',5)
 grid on; axis([min(dt) max(dt) 0 33])
@@ -69,7 +71,7 @@ print -dpng -r0 sv.png
 
 figure
 plot(dt,CN0sv)
-grid on; axis([min(dt) max(dt) 20 55])
+grid on; axis([min(dt) max(dt) 25 50])
 xlabel('Time (minutes)')
 ylabel('C/N_{0} Estimate (dB-Hz)')
 title('C/N_{0} Plot')

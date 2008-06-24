@@ -10,7 +10,9 @@ close all; clear; clc;
 
 c = 2.99792458e8;
 
-fname = '../navigation.tlm';
+path = '/home/gheckler/GPS_Data/Car_Test3/'
+fname = [path,'navigation.tlm'];
+
 a = dlmread(fname);
 a = a(1:end-20,:);
 ind = find(a(:,1) == 1);
@@ -21,15 +23,15 @@ tx = 0.0;
 ty = 0.0;
 tz = 0.0;
 
-tx = mean(a(ind,4));
-ty = mean(a(ind,5));
-tz = mean(a(ind,6));
+% tx = mean(a(ind,4));
+% ty = mean(a(ind,5));
+% tz = mean(a(ind,6));
 
-a(:,4) = a(:,4) - tx;
-a(:,5) = a(:,5) - ty;
-a(:,6) = a(:,6) - tz;
+% a(:,4) = a(:,4) - tx;
+% a(:,5) = a(:,5) - ty;
+% a(:,6) = a(:,6) - tz;
 
-a = a(ind(1):end,:);
+% a = a(ind,:);
 
 len = length(a);
 dt = [1:len]/60;
@@ -54,14 +56,14 @@ dt = [1:len]/60;
 
 figure
 subplot(211)
-plot(dt,a(:,1),'LineWidth',2)
+plot(dt,a(:,1))
 grid on; ylabel('Converged'); axis([0 max(dt) 0 2])
 title('Nav Status')
 subplot(212)
-plot(dt,a(:,2),'LineWidth',2)
+plot(dt,a(:,2))
 grid on; ylabel('Nsvs'); axis([0 max(dt) 0 13])
 xlabel('Minutes')
-% print -dpng -r0 nav_status
+print -dpng -r0 nav_status
 
 figure
 subplot(311)
@@ -92,7 +94,8 @@ subplot(312)
 plot(dt,a(:,8))
 grid on; ylabel('v_{y} (m/s)'); axis tight;
 subplot(313)
-plot(dt,a(:,9))
+% plot(dt,a(:,9))
+plot(dt,sqrt(sum(a(:,7:9).^2,2))*2.2369)
 grid on; ylabel('v_{z} (m/s)'); axis tight;
 xlabel('Minutes')
 % print -dpng -r0 velocity

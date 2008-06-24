@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -27,9 +27,9 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 #if USRP_RECORDER
 
-	#define IF_SAMPLE_FREQUENCY	(2048000)			//!< How many CPX samples in a second
-	#define IF_FREQUENCY			(0)					//!< IF frequency
-	#define IF_SAMPS_MS 			(2048)				//!< Samples per millisecond
+	#define IF_SAMPLE_FREQUENCY	(2048000)	//!< How many CPX samples in a second
+	#define IF_FREQUENCY		(0)			//!< IF frequency
+	#define IF_SAMPS_MS 		(2048)		//!< Samples per millisecond
 
 #endif
 /*----------------------------------------------------------------------------------------------*/

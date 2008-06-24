@@ -13,8 +13,8 @@ truthFile = 'leo_motion.csv';
 %truthFile = 'static_motion.csv';
 
 % Default navigation file
-navFile   = '../navigation.tlm';
-
+path = '/home/gheckler/GPS_Data/Car_Test3/'
+fname = [path,'navigation.tlm'];
 
 %% Prepare the Spirent Data
 

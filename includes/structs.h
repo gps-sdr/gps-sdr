@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -25,29 +25,29 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define STRUCTS_H_
 
 
-//!< IF data format 
+//!< IF data format
 /*----------------------------------------------------------------------------------------------*/
 /*! \ingroup STRUCTS
  * Format of IF data
  */
 typedef struct CPX {
-	
+
 	int16 i;	//!< Inphase (real)
 	int16 q;	//!< Quadrature (imaginary)
-	
+
 } CPX;
 
 
 /*! \ingroup STRUCTS
- * 
+ *
  */
 typedef struct MIX {
-	
+
 	int16 i;	//!< Inphase (real)
 	int16 nq;	//!< Quadrature (imaginary)
 	int16 q;	//!< Quadrature (imaginary)
 	int16 ni;	//!< Inphase (real)
-	
+
 } MIX;
 /*----------------------------------------------------------------------------------------------*/
 
@@ -59,13 +59,15 @@ typedef struct MIX {
  */
 typedef struct _Options_S
 {
-	
+
 	int32	verbose;					//!< Do a lot of extra printing
 	int32	realtime;					//!< Run off of USRP
 	int32	post_process; 				//!< Use recorded data
-	int32 	ocean;						//!< Do reflected waveforms 
+	int32 	ocean;						//!< Do reflected waveforms
 	int32 	log_channel;				//!< Log low-level tracking loop info
 	int32	log_nav;					//!< Log nav solution output to disk
+	int32	log_decimate;				//!< Decimate log output by this factor
+	int32	google_earth;				//!< Output .klm file for google earth
 	int32	ncurses;					//!< Use ncurses display
 	int32	doppler_min;				//!< Set minimum Doppler
 	int32	doppler_max;				//!< Set maximum Doppler
@@ -73,8 +75,8 @@ typedef struct _Options_S
 	int32	startup;					//!< Startup warm/cold
 	char	filename_direct[1024];		//!< Skyview filename
 	char	filename_reflected[1024];	//!< Reflected filename
-	
-} Options_S; 
+
+} Options_S;
 /*----------------------------------------------------------------------------------------------*/
 
 //!< FIFO structure for linked list?
@@ -83,13 +85,13 @@ typedef struct _Options_S
  *  linked list structure for circular FIFO buffer
  */
 typedef struct ms_packet {
-	
+
 	ms_packet *next;
 	int32 measurement;				//!< This packet is flagged for a measurement
 	int32 count;					//!< number of packets
 	int32 accessed[MAX_CHANNELS+1];	//!< keep track of accesses
 	CPX data[SAMPS_MS];				//!< payload size
-	
+
 } ms_packet;
 /*----------------------------------------------------------------------------------------------*/
 
@@ -101,7 +103,7 @@ typedef struct ms_packet {
  */
 typedef struct _Acq_Result_S
 {
-	
+
 	int32 count;		//!< packet tag
 	int32 chan;			//!< The channel this SV will be assigned to
 	int32 sv;			//!< SV number
@@ -113,7 +115,7 @@ typedef struct _Acq_Result_S
 	float magnitude;	//!< Magnitude
 	float nf;			//!< Noise floor
 	float snr;			//!< SNR in dB
-	
+
 } Acq_Result_S;
 
 
@@ -122,7 +124,7 @@ typedef struct _Acq_Result_S
  */
 typedef struct _Acq_Request_S
 {
-	
+
 	int32 corr;			//!< which correlator
 	int32 count;		//!< packet tag
 	int32 state;		//!< request started, IF data collected, request complete
@@ -131,7 +133,7 @@ typedef struct _Acq_Request_S
 	int32 maxdopp;		//!< maximum Doppler
 	int32 type;			//!< type (STRONG/MEDIUM/WEAK)
 	int32 antenna;		//!< antenna number
-	
+
 } Acq_Request_S;
 /*----------------------------------------------------------------------------------------------*/
 
@@ -142,17 +144,17 @@ typedef struct _Acq_Request_S
  */
 typedef struct _NCO_Command
 {
-	
+
 	double carrier_nco;	//!< New carr_freq
 	double code_nco;	//!< New code_freq
-	int32 kill;			//!< Stop or start the channel		
+	int32 kill;			//!< Stop or start the channel
 	int32 reset_1ms;	//!< Reset the 1ms counter
 	int32 reset_20ms;	//!< Reset the 20ms counter
 	int32 set_z_count;	//!< Set the z count
 	int32 z_count;		//!< Actual value
 	int32 length;		//!< Integrate for this many ms
 	int32 navigate;		//!< Use this correlator to navigate
-	
+
 } NCO_Command_S;
 
 
@@ -161,10 +163,10 @@ typedef struct _NCO_Command
  */
 typedef struct _Correlation_S
 {
-	
+
 	int32 I[3];
 	int32 Q[3];
-	
+
 } Correlation_S;
 
 
@@ -173,13 +175,13 @@ typedef struct _Correlation_S
  */
 typedef struct _Correlator_State_S
 {
-	
+
 	int32	sv;
 	int32	navigate;			//!< Is this correlator sending out valid measurements
 	int32	active;				//!< Active flag
 	int32  	count;				//!< How long has this been active (ms)
 	int32   scount;				//!< Number of samples in current accumulation
-	double 	code_phase; 		//!< Code phase (chips) 
+	double 	code_phase; 		//!< Code phase (chips)
 	double 	carrier_phase;		//!< Carrier phase (cycles)
 	double  carrier_phase_prev;	//!< Used for phase correction to correlations
 	double 	code_phase_mod;		//!< Code phase (chips), mod 1023
@@ -195,7 +197,7 @@ typedef struct _Correlator_State_S
 	CPX		*pcode[3];			//!< pointer to early-prompt-late codes
 	CPX		*psine;				//!< pointer to Doppler removal vector
 	int32	nav_history[MEASUREMENT_DELAY]; //!< keep track of the navigate flag
-		
+
 } Correlator_State_S;
 
 
@@ -204,9 +206,9 @@ typedef struct _Correlator_State_S
  */
 typedef struct _Measurement_S
 {
-	
+
 	double	code_time;					//!< The code time
-	double 	code_phase; 				//!< Code phase (chips) 
+	double 	code_phase; 				//!< Code phase (chips)
 	double 	carrier_phase;				//!< Carrier phase (cycles)
 	double 	carrier_phase_prev;			//!< Carrier phase prev (cycles)
 	double 	carrier_phase_prev_prev;	//!< Carrier phase prev prev (cycles)
@@ -221,7 +223,7 @@ typedef struct _Measurement_S
 	int32	sv;							//!< For this sv
 	int32	chan;						//!< For this channel
 	int32 	count;						//!< Corresponds to this tic
-	
+
 } Measurement_S;
 
 
@@ -247,7 +249,7 @@ typedef struct _Phase_lock_loop {
 	float pll_lock;				//!< PLL Lock Indicator
 	float fll_lock;				//!< FLL lock indicator
 	float t;					//!< Integration length (ms)
-	int32 fll_lock_ticks;		//!< Is the fll locked? 
+	int32 fll_lock_ticks;		//!< Is the fll locked?
 
 } Phase_lock_loop;
 
@@ -270,11 +272,11 @@ typedef struct _Delay_lock_loop
 
 
 /*! \ingroup STRUCTS
- * Packet dumped to telemetry and to disk to keep track of each channel 
+ * Packet dumped to telemetry and to disk to keep track of each channel
  */
 typedef struct _Chan_Packet_S
 {
-	
+
 	float header;				//!< Header flag
 	float chan;					//!< Channel number
 	float sv;					//!< SV number
@@ -299,7 +301,7 @@ typedef struct _Chan_Packet_S
 	float w;					//!< acceleration accumulator state
 	float x;					//!< velocity accumulator state
 	float z;					//!< proportional feedback to NCO
-	
+
 } Chan_Packet_S;
 
 
@@ -323,43 +325,43 @@ typedef struct _Chan_2_Ephem_S {
 typedef struct _Ephemeris_S
 {
 
-	int32	valid;					//!< 0=No valid data. 
-	int32	tofxmission;			//!< Time of subframe 1 transmission, sec of week. 
-	int32	tow;					//!< Truncated TOW count 
-	int32	subframe_1_health;      //!< Subframe 1 health code. 
-	int32	code_on_L2;             //!< Code on L2 flag. 
-	int32	week_number;			//!< GPS week at time of subframe 1 reception. 
-	int32	L2pdata;                //!< L2 P data flag. 
-	int32	ura;                    //!< Satellite's URA code. 
-	int32	iodc;                   //!< Issue of data, clock. 
-	double	tgd;                    //!< Group delay parameter. 
-	int32	tocwk;					//!< GPS week corresponding to toc. 
-	double	toc;					//!< Reference time of clock data parameter set. 
-	double	af0;					//!< Clock correction polynomial coefficient. 
-	double	af1;					//!< Clock correction polynomial coefficient. 
-	double	af2;					//!< Clock correction polynomial coefficient. 
-	int32	iode;                   //!< Issue of data, ephemeris. 
-	double	crs;					//!< Sine harmonic correction to orbital radius. 
-	double	deltan;					//!< Mean motion delta from computed value. 
-	double	m0;                     //!< Mean anomaly at TOE. 
-	double	cuc;					//!< Cosine harmonic correction to orbital radius. 
-	double	ecc;                    //!< Eccentricity. 
-	double	cus;					//!< Sine harmonic corr to argument of latitude. 
-	double	sqrta;                  //!< Square root of semimajor axis. 
-	int32	toewk;                  //!< GPS week corresponding to toe. 
-	double	toe;					//!< Reference time of ephemeris data set. 
-	int32	fti;                    //!< Fit interval. 
-	double	cic;					//!< Cosine harmonic corr to inclination. 
-	double	om0;                    //!< Right ascension at TOE. 
-	double	cis;					//!< Sine harmonic corr to inclination. 
-	double	in0;                    //!< Inclination at TOE. 
-	double	crc;					//!< Cosine harmonic correction to orbital radius. 
-	double	argp;                   //!< Argument of perigee at TOE. 
-	double	omd;                    //!< Rate of right ascension. 
-	double	idot;                   //!< Rate of inclination. 
-	double	a;						//!< Derived qty: a = sqrta**2. 
-	double	n0;						//!< Derived qty: n0 = sqrt(GravConstant/(a*a*a)). 
-	double	relativistic;			//!< Relativistic correction 
+	int32	valid;					//!< 0=No valid data.
+	int32	tofxmission;			//!< Time of subframe 1 transmission, sec of week.
+	int32	tow;					//!< Truncated TOW count
+	int32	subframe_1_health;      //!< Subframe 1 health code.
+	int32	code_on_L2;             //!< Code on L2 flag.
+	int32	week_number;			//!< GPS week at time of subframe 1 reception.
+	int32	L2pdata;                //!< L2 P data flag.
+	int32	ura;                    //!< Satellite's URA code.
+	int32	iodc;                   //!< Issue of data, clock.
+	double	tgd;                    //!< Group delay parameter.
+	int32	tocwk;					//!< GPS week corresponding to toc.
+	double	toc;					//!< Reference time of clock data parameter set.
+	double	af0;					//!< Clock correction polynomial coefficient.
+	double	af1;					//!< Clock correction polynomial coefficient.
+	double	af2;					//!< Clock correction polynomial coefficient.
+	int32	iode;                   //!< Issue of data, ephemeris.
+	double	crs;					//!< Sine harmonic correction to orbital radius.
+	double	deltan;					//!< Mean motion delta from computed value.
+	double	m0;                     //!< Mean anomaly at TOE.
+	double	cuc;					//!< Cosine harmonic correction to orbital radius.
+	double	ecc;                    //!< Eccentricity.
+	double	cus;					//!< Sine harmonic corr to argument of latitude.
+	double	sqrta;                  //!< Square root of semimajor axis.
+	int32	toewk;                  //!< GPS week corresponding to toe.
+	double	toe;					//!< Reference time of ephemeris data set.
+	int32	fti;                    //!< Fit interval.
+	double	cic;					//!< Cosine harmonic corr to inclination.
+	double	om0;                    //!< Right ascension at TOE.
+	double	cis;					//!< Sine harmonic corr to inclination.
+	double	in0;                    //!< Inclination at TOE.
+	double	crc;					//!< Cosine harmonic correction to orbital radius.
+	double	argp;                   //!< Argument of perigee at TOE.
+	double	omd;                    //!< Rate of right ascension.
+	double	idot;                   //!< Rate of inclination.
+	double	a;						//!< Derived qty: a = sqrta**2.
+	double	n0;						//!< Derived qty: n0 = sqrt(GravConstant/(a*a*a)).
+	double	relativistic;			//!< Relativistic correction
 	int32	zcount;
 	int32	sv;
 
@@ -392,7 +394,7 @@ typedef struct _Almanac_S
 	Raw ephemeris struct
 */
 typedef struct _Ephem_Data_S
-{	
+{
 
 	uint32 subframe_1[FRAME_SIZE_PLUS_2];	//!< Subframe 1
 	uint32 subframe_2[FRAME_SIZE_PLUS_2];	//!< Subframe 2
@@ -400,19 +402,19 @@ typedef struct _Ephem_Data_S
 	uint32 subframe_4[FRAME_SIZE_PLUS_2];	//!< Subframe 4
 	uint32 subframe_5[FRAME_SIZE_PLUS_2];	//!< Subframe 5
 	bool   valid[5];						//!< Good subframes, at determined by the Channel object
-	
-	
+
+
 } Ephem_Data_S;
 
 /*! \ingroup STRUCTS
 	Raw almanac struct
 */
 typedef struct _Almanac_Data_S
-{	
+{
 
 	uint32 page[FRAME_SIZE_PLUS_2];		//!< Store raw binary for all the data
 	bool   good_page;					//!< Mark whether the page is good or not
-	
+
 } 	Almanac_Data_S;
 /*----------------------------------------------------------------------------------------------*/
 
@@ -424,36 +426,36 @@ typedef struct _Almanac_Data_S
 typedef struct _Nav_Solution_S
  {
 
-	double x;			//!< x in meters 
-	double y;			//!< y in meters 
-	double z;			//!< z in meters 
-	
-	double vx;			//!< vx in meters/sec 
-	double vy;			//!< vy in meters/sec 
-	double vz;			//!< vz in meters/sec 
-	
-	double time;		//!< time in seconds 
+	double x;			//!< x in meters
+	double y;			//!< y in meters
+	double z;			//!< z in meters
+
+	double vx;			//!< vx in meters/sec
+	double vy;			//!< vy in meters/sec
+	double vz;			//!< vz in meters/sec
+
+	double time;		//!< time in seconds
 	double clock_bias;	//!< clock bias in seconds
 	double clock_rate;  //!< clock rate in meters/second
-	double latitude;	//!< latitude in decimal radians 
-	double longitude;	//!< longitude in decimal radians 
-	double altitude;	//!< height in meters 
-	
-	double gdop;		//!< geometric dilution of precision 
-	double pdop;		//!< position dilution of precision 
-	double tdop;		//!< time dilution of precision 
-	double hdop;		//!< hdop diultion of precision 
-	double vdop;		//!< vertical dilution of precision 
-	
+	double latitude;	//!< latitude in decimal radians
+	double longitude;	//!< longitude in decimal radians
+	double altitude;	//!< height in meters
+
+	double gdop;		//!< geometric dilution of precision
+	double pdop;		//!< position dilution of precision
+	double tdop;		//!< time dilution of precision
+	double hdop;		//!< hdop diultion of precision
+	double vdop;		//!< vertical dilution of precision
+
 	int32 nsvs;			//!< This is a mask, not a number
-	int32 converged;	//!< declare convergence 
+	int32 converged;	//!< declare convergence
 	int32 tic;			//!< global_tic associated with this solution
-	
+
 	int32 stale_ticks;			//!< count the number of tics since the last good sltn
 	int32 converged_ticks;		//!< count number of converged tics
 	int32 nav_channels;			//!< count number of SVs used in last PVT estimation
 	int32 initial_convergence;	//!< Flag set ONCE if the first convergence has occured
-	
+
 	int32 chanmap[MAX_CHANNELS];
 
 } Nav_Solution_S;
@@ -463,14 +465,14 @@ typedef struct _Nav_Solution_S
 */
 typedef struct _Pseudorange_S
 {
-	
-	double time;			//!< pseudorange in seconds 
-	double time_rate;		//!< pseudorange rate in sec/sec 
-	double meters;			//!< pseudorange in meters 
-	double meters_rate;		//!< pseudorange rate in meters/sec 
+
+	double time;			//!< pseudorange in seconds
+	double time_rate;		//!< pseudorange rate in sec/sec
+	double meters;			//!< pseudorange in meters
+	double meters_rate;		//!< pseudorange rate in meters/sec
 	double residual;		//!< residual in meters
 	double rate_residual;	//!< rate residual (m/s)
-	double time_uncorrected;//!< raw pseudorange measurements 
+	double time_uncorrected;//!< raw pseudorange measurements
 	double previous;		//!< from previous step, used for err check
 
 } Pseudorange_S;
@@ -480,7 +482,7 @@ typedef struct _Pseudorange_S
 */
 typedef struct _SV_Position_S
 {
-	
+
 	double x;				//!< ECEF x coordinate (meters)
 	double y;				//!< ECEF y coordinate (meters)
 	double z;				//!< ECEF z coordinate (meters)
@@ -493,8 +495,8 @@ typedef struct _SV_Position_S
 	double frequency_bias;	//!< SV clock rate bias
 	double transit_time;	//!< Time of flight from SV to receiver
 	double time;			//!< Time used in SV position calculation
-	double latitude;		//!< Latitude using WGS-84 ellipsoid in decimal radians 
-	double longitude;		//!< Longitude using WGS-84 ellipsoid in decimal radians 
+	double latitude;		//!< Latitude using WGS-84 ellipsoid in decimal radians
+	double longitude;		//!< Longitude using WGS-84 ellipsoid in decimal radians
 	double altitude;		//!< height in meters
 
 } SV_Position_S;
@@ -505,7 +507,7 @@ typedef struct _SV_Position_S
 */
 typedef struct _Clock_S
 {
-	
+
 	double receiver_time;		//!< Elapsed receiver time
 	double rate;	 			//!< Clock rate
 	double bias; 				//!< Clock bias
@@ -513,7 +515,7 @@ typedef struct _Clock_S
 	double time;				//!< Best estimate of GPStime
 	double time_raw;			//!< Uncorrected time
 	double week;				//!< GPS week
-	uint32 state;				//!< Clock state	
+	uint32 state;				//!< Clock state
 
 } Clock_S;
 /*----------------------------------------------------------------------------------------------*/
@@ -526,7 +528,7 @@ typedef struct _Clock_S
  */
 typedef struct _Acq_Predicted_S
 {
-	
+
 	int32 sv;					//!< SV number
 	int32 visible;				//!< Should the SV be visible?
 	int32 tracked;				//!< Is it being tracked?
@@ -536,7 +538,7 @@ typedef struct _Acq_Predicted_S
 	float v_azim;				//!< Azimuth of vehice relative to SV
 	float delay;				//!< Predicted delay (seconds)
 	float doppler;				//!< Predicated doppler (Hz)
-	
+
 } Acq_Predicted_S;
 
 
@@ -545,7 +547,7 @@ typedef struct _Acq_Predicted_S
  */
 typedef struct _Acq_History_S
 {
-	
+
 	int32 sv;			//!< SV number
 	int32 type;			//!< Last acquisiton was what type (STRONG, MEDIUM, WEAK)
 	int32 antenna;		//!< Which antenna last acq was on
@@ -555,7 +557,7 @@ typedef struct _Acq_History_S
 	int32 successes[3];	//!< Number of successes
 	int32 mindopp;		//!< Mindopp
 	int32 maxdopp;		//!< Maxdopp
-	
+
 } Acq_History_S;
 /*----------------------------------------------------------------------------------------------*/
 
@@ -567,7 +569,7 @@ typedef struct _Acq_History_S
  */
 typedef struct _FIFO_2_Telem_S
 {
-	
+
 	int32 tic;
 	int32 count;		//!< Number of 1 ms packets processed
 	int32 head;			//!< Head pointer number
@@ -575,32 +577,32 @@ typedef struct _FIFO_2_Telem_S
 	int32 agc_scale;	//!< Value used for AGC scale
 	int32 overflw;		//!< Overflows in last ms
 	int32 nactive;		//!< Number of channels to process the measurment packet
-	 	
+
 } FIFO_2_Telem_S;
 
 
 /*! \ingroup STRUCTS
- * 
+ *
  */
 typedef _Acq_Result_S Acq_2_Telem_S;
 
 
 /*! \ingroup STRUCTS
- * 
+ *
  */
 typedef _Chan_Packet_S Trak_2_Telem_S;
 
 
 /*! \ingroup STRUCTS
- * 
+ *
  */
-typedef struct _Ephem_2_Telem_S 
+typedef struct _Ephem_2_Telem_S
 {
-	
+
 	int32 valid[NUM_CODES];		//!< Valid ephemeris
 	int32 iode[NUM_CODES];		//!< Corresponding IODE
 	int32 avalid[NUM_CODES];	//!< Valid almanac
-	
+
 } Ephem_2_Telem_S;
 
 
@@ -609,13 +611,13 @@ typedef struct _Ephem_2_Telem_S
  */
 typedef struct _PVT_2_Telem_S
 {
-	
+
 	Nav_Solution_S 	master_nav;
 	Clock_S 		master_clock;
 	SV_Position_S	sv_positions[MAX_CHANNELS];
 	Pseudorange_S	pseudoranges[MAX_CHANNELS];
 	Measurement_S	measurements[MAX_CHANNELS];
-	
+
 } PVT_2_Telem_S;
 
 
@@ -624,25 +626,25 @@ typedef struct _PVT_2_Telem_S
  */
 typedef struct _PVT_2_SV_Select_S
 {
-	
+
 	Nav_Solution_S 	master_nav;
 	Clock_S 		master_clock;
-	
+
 } PVT_2_SV_Select_S;
 
 
 /*! \ingroup STRUCTS
- * 
+ *
  */
 typedef struct _SV_Select_2_Telem_S
 {
-	
+
 	int32 type;
 	int32 mode;
 	float mask_angle;
 	Acq_Predicted_S	sv_predicted[NUM_CODES];
 	Acq_History_S	sv_history[NUM_CODES];
-	
+
 } SV_Select_2_Telem_S;
 /*----------------------------------------------------------------------------------------------*/
 

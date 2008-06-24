@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -25,7 +25,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 void *Telemetry_Thread(void *_arg)
 {
-	
+
 	Telemetry *aTelemetry = pTelemetry;
 
 	aTelemetry->InitScreen();
@@ -35,9 +35,9 @@ void *Telemetry_Thread(void *_arg)
 		aTelemetry->Inport();
 		aTelemetry->Export();
 	}
-	
+
 	pthread_exit(0);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -46,25 +46,25 @@ void *Telemetry_Thread(void *_arg)
 void Telemetry::Start()
 {
 	pthread_attr_t tattr;
-	sched_param param;	
+	sched_param param;
 	int32 ret;
-	
+
 	/* Unitialized with default attributes */
 	ret = pthread_attr_init(&tattr);
-	
+
 	/*Ssafe to get existing scheduling param */
 	ret = pthread_attr_getschedparam(&tattr, &param);
-	
+
 	/* Set the priority; others are unchanged */
 	param.sched_priority = TELEM_PRIORITY;
-	
+
 	/* Setting the new scheduling param */
 	ret = pthread_attr_setschedparam(&tattr, &param);
 	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-	
+
 	/* With new priority specified */
 	pthread_create(&thread, NULL, Telemetry_Thread, NULL);
-	
+
 	if(gopt.verbose)
 		printf("Telemetry thread started\n");
 }
@@ -75,7 +75,7 @@ void Telemetry::Start()
 void Telemetry::Stop()
 {
 	pthread_join(thread, NULL);
-	
+
 	if(gopt.verbose)
 		printf("Telemetry thread stopped\n");
 }
@@ -85,12 +85,12 @@ void Telemetry::Stop()
 /*----------------------------------------------------------------------------------------------*/
 Telemetry::Telemetry(int32 _ncurses_on)
 {
-	
+
 	display = 0;
 	count = 0;
 	ncurses_on = _ncurses_on;
-	
-	if(gopt.log_nav)	
+
+	if(gopt.log_nav)
 	{
 		fp_nav = fopen("navigation.tlm","wt");
 		fp_pseudo = fopen("pseudorange.tlm","wt");
@@ -98,13 +98,13 @@ Telemetry::Telemetry(int32 _ncurses_on)
 		fp_chan = fopen("tracking.tlm","wt");
 		fp_sv = fopen("satellites.tlm","wt");
 	}
-	
+
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_unlock(&mutex);
-		
-	if(gopt.verbose)	
+
+	if(gopt.verbose)
 		printf("Creating Telemetry\n");
-		
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -112,24 +112,24 @@ Telemetry::Telemetry(int32 _ncurses_on)
 /*----------------------------------------------------------------------------------------------*/
 Telemetry::~Telemetry()
 {
-	
-	if(gopt.log_nav)	
+
+	if(gopt.log_nav)
 	{
 		fclose(fp_nav);
 		fclose(fp_pseudo);
 		fclose(fp_meas);
-		fclose(fp_chan);	
+		fclose(fp_chan);
 		fclose(fp_sv);
 	}
-	
+
 	if(ncurses_on)
 	{
 		EndScreen();
 	}
-	
+
 	pthread_mutex_destroy(&mutex);
 
-	if(gopt.verbose)	
+	if(gopt.verbose)
 		printf("Destroying Telemetry\n");
 
 }
@@ -157,14 +157,14 @@ void Telemetry::Inport()
 {
 	Chan_Packet_S temp;
 	int32 bread, lcv, num_chans;
-	
+
 	read(FIFO_2_Telem_P[READ], &tFIFO, sizeof(FIFO_2_Telem_S));
 
 	/* Lock correlator status */
 	pthread_mutex_lock(&mInterrupt);
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-	{	
+	{
 		if(gInterrupt[lcv])
 		{
 			tChan[lcv] = pChannels[lcv]->getPacket();
@@ -173,37 +173,37 @@ void Telemetry::Inport()
 		else
 			active[lcv] = 0;
 	}
-	
+
 	/* Unlock correlator status */
-	pthread_mutex_unlock(&mInterrupt);	
-	
+	pthread_mutex_unlock(&mInterrupt);
+
 	read(PVT_2_Telem_P[READ], &tNav, sizeof(PVT_2_Telem_S));
-	
+
 	bread = sizeof(Acq_Result_S);
 	while(bread == sizeof(Acq_Result_S))
 		bread = read(Acq_2_Telem_P[READ],&tAcq,sizeof(Acq_Result_S));
-	
+
 	bread = sizeof(Ephem_2_Telem_S);
 	while(bread == sizeof(Ephem_2_Telem_S))
 		bread = read(Ephem_2_Telem_P[READ], &tEphem, sizeof(Ephem_2_Telem_S));
-	
+
 	bread = sizeof(SV_Select_2_Telem_S);
 	while(bread == sizeof(SV_Select_2_Telem_S))
 		bread = read(SV_Select_2_Telem_P[READ], &tSelect, sizeof(SV_Select_2_Telem_S));
-		
+
 	if(ncurses_on)
 		UpdateScreen();
 
-}	
+}
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::Export()
 {
-	
+
 	/* Cut down the logging rate to 1 time/second even though GUI updates more often */
-	if(gopt.log_nav && (count++%(1000/MEASUREMENT_INT) == 0))
+	if(gopt.log_nav && (count++ % gopt.log_decimate == 0))
 	{
 		LogNav();
 		LogPseudo();
@@ -218,7 +218,7 @@ void Telemetry::Export()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::InitScreen()
 {
-	
+
 	if(ncurses_on)
 	{
 		mainwnd = initscr();
@@ -237,16 +237,16 @@ void Telemetry::InitScreen()
 void Telemetry::UpdateScreen()
 {
 	curs_set(0);
-	
+
 	line = 0;
-	
+
 	wclear(screen);
-	
+
 	mvwprintw(screen,line,1,"                                                                               ");
 	mvwprintw(screen,line++,1,"FIFO:\t%d\t%d\t%d\t%d",(FIFO_DEPTH-(tFIFO.head-tFIFO.tail)) % FIFO_DEPTH,tFIFO.count,tFIFO.agc_scale,tFIFO.overflw);
-	
+
 	Lock();
-	
+
 	switch(display)
 	{
 		case 0:
@@ -267,14 +267,14 @@ void Telemetry::UpdateScreen()
 			PrintNav();
 			PrintEphem();
 			break;
-	}	
-	
+	}
+
 	Unlock();
-	
+
 	wrefresh(screen);
-	   
+
 	refresh();
-   
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -293,38 +293,38 @@ void Telemetry::PrintChan()
 	Chan_Packet_S *p;
 	Nav_Solution_S		*pNav		= &tNav.master_nav;				/* Navigation Solution */
 	Clock_S				*pClock		= &tNav.master_clock;			/* Clock solution */
-	
+
 	int32 lcv;
 	char buff[1024];
 	float cn0;
-	
+
 	line++;
-	mvwprintw(screen,line++,1,"Ch#  SV   CL       Faccel          Doppler     CN0   BE       Locks        Power   Active\n");  	
+	mvwprintw(screen,line++,1,"Ch#  SV   CL       Faccel          Doppler     CN0   BE       Locks        Power   Active\n");
 	mvwprintw(screen,line++,1,"-----------------------------------------------------------------------------------------\n");
-	
+
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		p = &tChan[lcv];
 		if(active[lcv] && p->count > 3000)
 		{
-			
+
 			strcpy(buff, "---------");
-		
+
 			/*Flag buffer*/
 			((int32)p->fll_lock_ticks > 200)   ? buff[0] = 'p'  : buff[0] = 'f';
 			((int32)p->bit_lock)   ? buff[1] = 'B'  : buff[1] = '-';
 			((int32)p->frame_lock) ? buff[2] = 'F'  : buff[2] = '-';
 			(pNav->nsvs >> lcv) & 0x1 ? buff[3] = 'N'  : buff[3] = '-';
-			
+
 			if(((int32)p->subframe > 0) &&  ((int32)p->subframe < 6))
 				buff[(int32)p->subframe+3] = (int32)p->subframe + 48;
-		
+
 			buff[9] = '\0';
-			
+
 			cn0 = p->CN0 > p->CN0_old ? p->CN0 : p->CN0_old;
-			
-			mvwprintw(screen,line++,1,"%2d   %2d   %2d   %10.3f   %14.3f   %5.2f   %2d   %9s   %10.0f   %6d",	
-				lcv,  
+
+			mvwprintw(screen,line++,1,"%2d   %2d   %2d   %10.3f   %14.3f   %5.2f   %2d   %9s   %10.0f   %6d",
+				lcv,
 				(int32)p->sv+1,
 				(int32)p->len,
 				p->w,
@@ -334,13 +334,13 @@ void Telemetry::PrintChan()
 				buff,
 				p->P_avg,
 				(int32)p->count/1000);
-				
+
 		}
 		else
 		{
 			mvwprintw(screen,line++,1,"%2d   --   --   ----------   --------------   -----   --   ---------   ----------   ------",lcv);
 		}
-	}	
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -355,13 +355,13 @@ void Telemetry::PrintSV()
 	Chan_Packet_S *pChan;
 	Nav_Solution_S		*pNav		= &tNav.master_nav;				/* Navigation Solution */
 	Clock_S				*pClock		= &tNav.master_clock;			/* Clock solution */
-	
+
 	int32 lcv;
-	
+
 	line++;
-	
+
 	/* Residuals */
-	mvwprintw(screen,line++,1,"Ch#  SV         SV Time        VX        VY        VZ    Transit Time        Residual\n");		
+	mvwprintw(screen,line++,1,"Ch#  SV         SV Time        VX        VY        VZ    Transit Time        Residual\n");
 	mvwprintw(screen,line++,1,"-------------------------------------------------------------------------------------\n");
 
 	for(lcv	= 0; lcv < MAX_CHANNELS; lcv++)
@@ -369,12 +369,12 @@ void Telemetry::PrintSV()
 		pPos    = (SV_Position_S *)	&tNav.sv_positions[lcv];
 		pChan   = (Chan_Packet_S *)	&tChan[lcv];
 		pPseudo = (Pseudorange_S *)	&tNav.pseudoranges[lcv];
-		
-		
+
+
 		if((pNav->nsvs >> lcv) & 0x1)
 		{
-			mvwprintw(screen,line++,1,"%2d   %2d  %14.7f  %8.2f  %8.2f  %8.2f  %14.8f  %14.8f\n", 
-					lcv,  
+			mvwprintw(screen,line++,1,"%2d   %2d  %14.7f  %8.2f  %8.2f  %8.2f  %14.8f  %14.8f\n",
+					lcv,
 					(int32)pChan->sv+1,
 					pPos->time,
 					pPos->vx,
@@ -385,11 +385,11 @@ void Telemetry::PrintSV()
 		}
 		else
 		{
-			
+
 			mvwprintw(screen,line++,1,"%2d   --  --------------  --------  --------  --------  --------------  --------------\n",lcv);
 		}
-	}	
-	
+	}
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -397,36 +397,36 @@ void Telemetry::PrintSV()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::PrintNav()
 {
-	
+
 	Nav_Solution_S		*pNav		= &tNav.master_nav;				/* Navigation Solution */
 	Clock_S				*pClock		= &tNav.master_clock;			/* Clock solution */
 	char buff[1024];
-	int32 nsvs, lcv;	
+	int32 nsvs, lcv;
 	int32 k = 32;
-	
+
 	line++;
-	
+
 	switch(tAcq.type)
 	{
 		case 0: strcpy(buff,"STRONG"); break;
 		case 1:	strcpy(buff,"MEDIUM"); break;
 		case 2:	strcpy(buff,"  WEAK"); break;
 	}
-	
+
 	mvwprintw(screen,line++,1,"Last Acq: %s, %02d, %7.2f, %7.0f, %10.0f\n",buff,tAcq.sv+1, tAcq.delay, tAcq.doppler, tAcq.magnitude);
-	
+
 	line++;
-	
+
 	/* Nav Solution */
-	nsvs = 0;	
+	nsvs = 0;
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		if((pNav->nsvs >> lcv) & 0x1)
 			nsvs++;
 	}
-	
+
 	mvwprintw(screen,line++,1,"Nav SVs:\t%-2d\n",nsvs);
-	mvwprintw(screen,line++,1,"Receiver Tic:\t%-6d\n",pNav->tic);
+	mvwprintw(screen,line++,1,"Receiver Time:\t%10.2f\n",(float)pNav->tic*TICS_2_SECONDS);
 	mvwprintw(screen,line++,1,"\t\t\t      X\t\t      Y\t\t      Z\n");
 	mvwprintw(screen,line++,1,"Position (m):\t%15.2f\t%15.2f\t%15.2f\n",pNav->x,pNav->y,pNav->z);
 	mvwprintw(screen,line++,1,"Vel (cm/s):\t%15.2f\t%15.2f\t%15.2f\n",100.0*pNav->vx,100.0*pNav->vy,100.0*pNav->vz);
@@ -436,7 +436,7 @@ void Telemetry::PrintNav()
 	mvwprintw(screen,line++,1,"");
 	mvwprintw(screen,line++,1,"\t\t     Clock Bias\t     Clock Rate\t       GPS Time\n");
 	mvwprintw(screen,line++,1,"\t\t%15.6f\t%15.7f\t%15.6f\n",pClock->bias,pClock->rate,pClock->time);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -444,15 +444,15 @@ void Telemetry::PrintNav()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::PrintEphem()
 {
-	
+
 	int32 k, lcv;
-	
+
 	k = 1;
 	line++;
-	
+
 	mvwprintw(screen,line,k++,"EPH: ");
 	k += 4;
-	
+
 	for(lcv = 0; lcv < NUM_CODES; lcv++)
 	{
 		if(tEphem.valid[lcv])
@@ -461,13 +461,13 @@ void Telemetry::PrintEphem()
 			k+=2;
 		}
 	}
-	
+
 	k = 1;
 	line++;
-	
+
 	mvwprintw(screen,line,k++,"ALM: ");
 	k += 4;
-	
+
 	for(lcv = 0; lcv < NUM_CODES; lcv++)
 	{
 		if(tEphem.avalid[lcv])
@@ -475,9 +475,9 @@ void Telemetry::PrintEphem()
 			mvwprintw(screen,line,k++,"%2d",lcv+1);
 			k+=2;
 		}
-	}	
+	}
 
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -485,15 +485,15 @@ void Telemetry::PrintEphem()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::PrintAlmanac()
 {
-	
+
 	int32 lcv, nvis, ntrack;
 	float elev, azim;
 	Acq_Predicted_S *psv;
 	line++;
-	
+
 	nvis = 0;
 	ntrack = 0;
-	
+
 	switch(tSelect.mode)
 	{
 		case 0:	mvwprintw(screen,line++,1,"Acq Mode:\t  COLD\n");	break;
@@ -505,45 +505,45 @@ void Telemetry::PrintAlmanac()
 
 	for(lcv = 0; lcv < NUM_CODES; lcv++)
 	{
-		
+
 		psv =  &tSelect.sv_predicted[lcv];
 		if(psv->visible) nvis++;
 		if(psv->tracked) ntrack++;
-						
+
 	}
 
 	mvwprintw(screen,line++,1,"Mask Angle:\t%6.2f\n",tSelect.mask_angle*(180/PI)-90.0);
 	mvwprintw(screen,line++,1,"Visible:\t%6d\n",nvis);
 	mvwprintw(screen,line++,1,"Tracked:\t%6d\n",ntrack);
-	
+
 	line++;
 	mvwprintw(screen,line++,1,"SV        Elev        Azim     Doppler           Delay   Visible    Tracked\n");
 	mvwprintw(screen,line++,1,"---------------------------------------------------------------------------\n");
-	
+
 	for(lcv = 0; lcv < NUM_CODES; lcv++)
 	{
 		psv =  &tSelect.sv_predicted[lcv];
 		elev = psv->elev*180/PI;
 		azim = psv->azim*180/PI;
-		
+
 		if(elev != 0.0)
 		{
 			if(psv->visible && psv->tracked)
 				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %14.8f       YES        YES\n",lcv+1,elev,azim,psv->doppler,psv->delay);
-				
+
 			if(psv->visible && !psv->tracked)
 				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %14.8f       YES         NO\n",lcv+1,elev,azim,psv->doppler,psv->delay);
-				
+
 			if(!psv->visible && psv->tracked)
 				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %14.8f        NO        YES\n",lcv+1,elev,azim,psv->doppler,psv->delay);
-				
+
 			if(!psv->visible && !psv->tracked)
 				mvwprintw(screen,line++,1,"%02d  %10.2f  %10.2f  %10.2f  %14.8f        NO         NO\n",lcv+1,elev,azim,psv->doppler,psv->delay);
 		}
 		else
 				mvwprintw(screen,line++,1,"--  ----------  ----------  ----------  --------------       ---        ---\n");
 	}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -551,17 +551,17 @@ void Telemetry::PrintAlmanac()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::PrintHistory()
 {
-	
+
 	int32 lcv, nvis, ntrack;
 	float elev, azim;
 	Acq_Predicted_S *psv;
 	Acq_History_S *phist;
-	
+
 	line++;
-	
+
 	nvis = 0;
 	ntrack = 0;
-	
+
 	switch(tSelect.mode)
 	{
 		case 0:	mvwprintw(screen,line++,1,"Acq Mode:\t  COLD\n");	break;
@@ -573,25 +573,25 @@ void Telemetry::PrintHistory()
 
 	for(lcv = 0; lcv < NUM_CODES; lcv++)
 	{
-		
+
 		psv =  &tSelect.sv_predicted[lcv];
 		if(psv->visible) nvis++;
 		if(psv->tracked) ntrack++;
-						
+
 	}
 
 	mvwprintw(screen,line++,1,"Mask Angle:\t%6.2f\n",tSelect.mask_angle*(180/PI)-(90.0));
 	mvwprintw(screen,line++,1,"Visible:\t%6d\n",nvis);
 	mvwprintw(screen,line++,1,"Tracked:\t%6d\n",ntrack);
-	
-	line++;  
+
+	line++;
 	mvwprintw(screen,line++,1,"SV  Ant     Type   Attempt   Fail   Success    DoppMin      DoppMax\n");
 	mvwprintw(screen,line++,1,"-------------------------------------------------------------------\n");
-	
+
 	for(lcv = 0; lcv < NUM_CODES; lcv++)
 	{
 		phist =  &tSelect.sv_history[lcv];
-		
+
 		switch(phist->type)
 		{
 			case 0: mvwprintw(screen,line++,1,"%02d    %01d   STRONG      %4d   %4d      %4d   %8d     %8d\n",
@@ -610,7 +610,7 @@ void Telemetry::PrintHistory()
 //			phist->failures[0],phist->successes[0],phist->attempts[1],phist->failures[1],phist->successes[1],phist->attempts[2],phist->failures[2],phist->successes[2]);
 //			break;
 
-		
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -618,19 +618,19 @@ void Telemetry::PrintHistory()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::LogNav()
 {
-	
+
 	int32 lcv;
 	int32 nsvs;
-	
+
 	Nav_Solution_S		*pNav		= &tNav.master_nav;				/* Navigation Solution */
 	Clock_S				*pClock		= &tNav.master_clock;			/* Clock solution */
-	
-	nsvs = 0;	
+
+	nsvs = 0;
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		if((pNav->nsvs >> lcv) & 0x1)
 			nsvs++;
-	}	
+	}
 		/* Nav solution */
 	fprintf(fp_nav,"%01d,%02d,%08d,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n",
 		pNav->converged,
@@ -650,7 +650,7 @@ void Telemetry::LogNav()
 		pNav->tdop,
 		pNav->vdop,
 		pNav->pdop);
-		
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -660,16 +660,16 @@ void Telemetry::LogPseudo()
 {
 	int32 lcv;
 	Pseudorange_S *pPseudo;
-	Measurement_S *pMeas;	
-	
+	Measurement_S *pMeas;
+
 	/* Pseudo ranges */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		pPseudo = (Pseudorange_S *)	&tNav.pseudoranges[lcv];
 		pMeas = (Measurement_S *)	&tNav.measurements[lcv];
-		
+
 		fprintf(fp_pseudo,"%02d,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n",
-			lcv,		
+			lcv,
 			pPseudo->time,
 			pPseudo->time_rate,
 			pPseudo->meters,
@@ -677,7 +677,7 @@ void Telemetry::LogPseudo()
 			pPseudo->residual,
 			pPseudo->rate_residual,
 			pPseudo->time_uncorrected);
-			
+
 		fprintf(fp_meas,"%02d,%02d,%01d,%8d,%8d,%8d,%.16e,%.16e,%.16e,%.16e\n",
 			lcv,
 			pMeas->sv,
@@ -690,7 +690,7 @@ void Telemetry::LogPseudo()
 			pMeas->carrier_phase_mod,
 			pMeas->carrier_phase);
 	}
-		
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -698,30 +698,30 @@ void Telemetry::LogPseudo()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::LogTracking()
 {
-	
+
 	int32 lcv;
 	Chan_Packet_S *pChan;
-	
+
 	/* Pseudo ranges */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		pChan = (Chan_Packet_S *) &tChan[lcv];
-		
+
 		fprintf(fp_chan,"%02d,%02d,%08d,%01d,%01d,%01d,%02d,%.16e,%.16e,%.16e,%.16e,%.16e\n",
 		lcv,
 		(int32)pChan->sv,
 		(int32)pChan->count,
-		(int32)pChan->bit_lock,		
-		(int32)pChan->frame_lock,		
-		(int32)pChan->subframe,		
+		(int32)pChan->bit_lock,
+		(int32)pChan->frame_lock,
+		(int32)pChan->subframe,
 		(int32)pChan->len,
-		pChan->P_avg,		
-		pChan->CN0,		
-		pChan->fll_lock,		
-		pChan->pll_lock,		
-		pChan->fll_lock_ticks);						
-	}	
-	
+		pChan->P_avg,
+		pChan->CN0,
+		pChan->fll_lock,
+		pChan->pll_lock,
+		pChan->fll_lock_ticks);
+	}
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -729,17 +729,17 @@ void Telemetry::LogTracking()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::LogSV()
 {
-	
+
 	int32 lcv;
 	SV_Position_S *pSV;
 	Chan_Packet_S *pChan;
-	
+
 	/* Pseudo ranges */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		pSV = (SV_Position_S *) &tNav.sv_positions[lcv];
 		pChan = (Chan_Packet_S *) &tChan[lcv];
-		
+
 		fprintf(fp_sv,"%02d,%02d,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n",
 		lcv,
 		(int32)pChan->sv,
@@ -752,8 +752,8 @@ void Telemetry::LogSV()
 		pSV->vz,
 		pSV->elev,
 		pSV->azim);
-	}	
-	
+	}
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
