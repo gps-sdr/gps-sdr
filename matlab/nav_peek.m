@@ -10,7 +10,7 @@ close all; clear; clc;
 
 c = 2.99792458e8;
 
-path = '/home/gheckler/GPS_Data/Car_Test3/'
+path = '/home/gwheckler/workspace/gps-sdr/'
 fname = [path,'navigation.tlm'];
 
 a = dlmread(fname);

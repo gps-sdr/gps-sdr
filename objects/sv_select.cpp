@@ -85,9 +85,10 @@ void SV_Select::Stop()
 /*----------------------------------------------------------------------------------------------*/
 SV_Select::SV_Select()
 {
+	
 	sv = 0;	
 	mode = WARM_START;
-	mask_angle = 0.0;
+	mask_angle = PI/2;
 	
 	pnav = &input_s.master_nav;	
 	pclock = &input_s.master_clock;
@@ -530,7 +531,7 @@ void SV_Select::SV_Predict(int32 _sv)
 			ppred->visible = true;
 		else
 			ppred->visible = false;
-
+		
 		dx /= radius;
 		dy /= radius;
 		dz /= radius;
@@ -621,11 +622,19 @@ void SV_Select::MaskAngle()
 	
 	c = .5*(a + b);
 	
-	radius = pnav->altitude + c; 
-	mask_angle = (PI/2)-acos(c/radius); //Boresight, not an elevation!!!!
-	
-	if(pnav->altitude < 0)
+	if(pnav->altitude < 1000)
+	{
 		mask_angle = PI/2;
+	}
+	else
+	{
+	
+		radius = pnav->altitude + c; 
+		mask_angle = (PI/2) - acos(c/radius); //Boresight, not an elevation!!!!
+	}	
+	
+	/* Add in additional mask */
+	mask_angle += MASK_ANGLE*DEG_2_RAD;	
 
 }
 /*----------------------------------------------------------------------------------------------*/

@@ -98,6 +98,12 @@ Telemetry::Telemetry(int32 _ncurses_on)
 		fp_chan = fopen("tracking.tlm","wt");
 		fp_sv = fopen("satellites.tlm","wt");
 	}
+	
+	if(gopt.google_earth)
+	{
+		fp_ge = fopen("navigation.klm","wt");
+		GoogleEarthHeader();
+	}
 
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_unlock(&mutex);
@@ -122,6 +128,12 @@ Telemetry::~Telemetry()
 		fclose(fp_sv);
 	}
 
+	if(gopt.google_earth)
+	{
+		GoogleEarthFooter();
+		fclose(fp_ge);
+	}	
+	
 	if(ncurses_on)
 	{
 		EndScreen();
@@ -209,6 +221,11 @@ void Telemetry::Export()
 		LogPseudo();
 		LogTracking();
 		LogSV();
+	}
+	
+	if(gopt.google_earth && (count++ % gopt.log_decimate == 0))
+	{
+		LogGoogleEarth();
 	}
 
 }
@@ -426,7 +443,7 @@ void Telemetry::PrintNav()
 	}
 
 	mvwprintw(screen,line++,1,"Nav SVs:\t%-2d\n",nsvs);
-	mvwprintw(screen,line++,1,"Receiver Time:\t%10.2f\n",(float)pNav->tic*TICS_2_SECONDS);
+	mvwprintw(screen,line++,1,"Receiver Time:\t%10.2f\n",(float)pNav->tic/(float)TICS_PER_SECOND);
 	mvwprintw(screen,line++,1,"\t\t\t      X\t\t      Y\t\t      Z\n");
 	mvwprintw(screen,line++,1,"Position (m):\t%15.2f\t%15.2f\t%15.2f\n",pNav->x,pNav->y,pNav->z);
 	mvwprintw(screen,line++,1,"Vel (cm/s):\t%15.2f\t%15.2f\t%15.2f\n",100.0*pNav->vx,100.0*pNav->vy,100.0*pNav->vz);
@@ -756,4 +773,105 @@ void Telemetry::LogSV()
 
 }
 /*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Telemetry::LogGoogleEarth()
+{
+
+	Nav_Solution_S		*pNav		= &tNav.master_nav;				/* Navigation Solution */
+	
+	if(fp_ge != NULL)
+	{
+		if(pNav->converged)
+			fprintf(fp_ge,"%15.9f,%15.9f,%15.9f\n",pNav->longitude*RAD_2_DEG,pNav->latitude*RAD_2_DEG,pNav->altitude);
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Telemetry::GoogleEarthHeader()
+{
+	
+	if(fp_ge != NULL)
+	{
+		fprintf(fp_ge,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+		fprintf(fp_ge,"<kml xmlns=\"http://earth.google.com/kml/2.1\">\n");
+		fprintf(fp_ge,"<Document>\n");
+		fprintf(fp_ge,"<name>\n");
+		fprintf(fp_ge,"navigation.kml\n");
+		fprintf(fp_ge,"</name>\n");
+		fprintf(fp_ge,"<Placemark id=\"GPS SDR\">\n");
+		fprintf(fp_ge,"<name>\n");
+		fprintf(fp_ge,"GPS SDR\n");
+		fprintf(fp_ge,"</name>\n");
+		fprintf(fp_ge,"<visibility>\n");
+		fprintf(fp_ge,"1\n");
+		fprintf(fp_ge,"</visibility>\n");
+		fprintf(fp_ge,"<description>\n");
+		fprintf(fp_ge,"<![CDATA[]]>\n");
+		fprintf(fp_ge,"</description>\n");
+		fprintf(fp_ge,"<Style>\n");
+		fprintf(fp_ge,"<LineStyle>\n");
+		fprintf(fp_ge,"<color>\n");
+		fprintf(fp_ge,"#FF0000FF\n");
+		fprintf(fp_ge,"</color>\n");
+		fprintf(fp_ge,"<width>\n");
+		fprintf(fp_ge,"1.00\n");
+		fprintf(fp_ge,"</width>\n");
+		fprintf(fp_ge,"</LineStyle>\n");
+		fprintf(fp_ge,"<PolyStyle>\n");
+		fprintf(fp_ge,"<color>\n");
+		fprintf(fp_ge,"00ffffff\n");
+		fprintf(fp_ge,"</color>\n");
+		fprintf(fp_ge,"</PolyStyle>\n");
+		fprintf(fp_ge,"</Style>\n");
+		fprintf(fp_ge,"<Polygon id=\"poly_plot3\">\n");
+		fprintf(fp_ge,"<extrude>0</extrude>\n");
+		fprintf(fp_ge,"<altitudeMode>\n");
+		fprintf(fp_ge,"relativeToGround\n");
+		fprintf(fp_ge,"</altitudeMode>\n");
+		fprintf(fp_ge,"<outerBoundaryIs>\n");
+		fprintf(fp_ge,"<extrude>0</extrude>\n");
+		fprintf(fp_ge,"<LinearRing>\n");
+		fprintf(fp_ge,"<extrude>0</extrude>\n");
+		fprintf(fp_ge,"<tessellate>0</tessellate>\n");
+		fprintf(fp_ge,"<altitudeMode>\n");
+		fprintf(fp_ge,"absolute\n");
+		fprintf(fp_ge,"</altitudeMode>\n");
+		fprintf(fp_ge,"<coordinates>\n");
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Telemetry::GoogleEarthFooter()
+{
+	
+	if(fp_ge != NULL)
+	{
+		fprintf(fp_ge,"</coordinates>\n");
+		fprintf(fp_ge,"</LinearRing>\n");
+		fprintf(fp_ge,"</outerBoundaryIs>\n");
+		fprintf(fp_ge,"</Polygon>\n");
+		fprintf(fp_ge,"</Placemark>\n");
+		fprintf(fp_ge,"</Document>\n");
+		fprintf(fp_ge,"</kml>\n");
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+
+
+
+
 

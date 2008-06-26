@@ -55,11 +55,12 @@ typedef class Telemetry
 		int32 count;
 		int32 display;
 		
-		FILE *fp_nav;
-		FILE *fp_chan;
-		FILE *fp_pseudo;
-		FILE *fp_meas;
-		FILE *fp_sv;
+		FILE *fp_nav;		//!< Navigation data
+		FILE *fp_chan;		//!< Channel tracking data
+		FILE *fp_pseudo;	//!< Pseudoranges
+		FILE *fp_meas;		//!< Raw measurements 
+		FILE *fp_sv;		//!< SV position/velocity output
+		FILE *fp_ge;		//!< Google Earth Output
 
 	public:
 
@@ -88,6 +89,9 @@ typedef class Telemetry
 		void LogPseudo();
 		void LogTracking();
 		void LogSV();
+		void LogGoogleEarth();
+		void GoogleEarthFooter();
+		void GoogleEarthHeader();
 };
 
 #endif /* Telemetry_H */

@@ -2,7 +2,7 @@ clear;
 clc;
 close all;
 
-path = '/home/gheckler/GPS_Data/Car_Test3/'
+path = '/home/gwheckler/workspace/gps-sdr/'
 fname = [path,'navigation.tlm'];
 
 a = dlmread(fname);
@@ -22,4 +22,4 @@ z = z(ind);
 phi = 180*phi/pi;
 lambda = 180*lambda/pi;
 
-ge_output('nav.kml',ge_plot3(lambda,phi,h,'lineColor','RR'));
+ge_output('nav.kml',ge_plot3(lambda,phi,h,'lineColor','#FF0000FF'));
