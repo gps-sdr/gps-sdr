@@ -58,7 +58,7 @@ ylabel('I^{2}+Q^{2}');
 subplot(313)
 plot(A(:,21)-1.023e6) 
 hold on;
-plot((A(:,22)-604000)*1.023e6/1.57542e9,'r')
+plot(A(:,22)*1.023e6/2.05e9,'r')
 hold off; grid on;
 ylabel('Code NCO');
 
@@ -103,29 +103,3 @@ hold on;
 plot(A(:,20),'r')
 hold off; grid on;
 ylabel('CN_{0}')
-
-figure(5)
-plot(A(:,11) + i*A(:,14),'b.')
-grid on; axis square; axis equal;
- 
-
-
-
-crap = A(:,end-19:end);
-size(crap)
-[m, ind] = max(crap.');
-
-figure(6)
-
-subplot(211)
-plot(A(:,7),'b')
-grid on; hold on;
-plot(ind,'r')
-ylabel('Best Epoch')
-
-
-figure
-plot(A(:,end-23));
-
-
-

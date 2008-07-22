@@ -3,28 +3,28 @@ USRP_LIB_PATH	= $(GNURADIO)/usrp/host/lib
 USRP_LIB_PATH2	= $(GNURADIO)/usrp/host/lib/.libs/
 USRP_INCLUDES	= $(GNURADIO)/usrp/firmware/include
 
-CC	= g++-4.2
-ASM = g++-4.2
-LINK= g++-4.2
+CC	= g++
+ASM = g++
+LINK= g++
 
 CINCPATHFLAGS = -I$(USRP_INCLUDES) \
 				-I$(USRP_LIB_PATH)
 
 LDFLAGS	= -lpthread -L$(USRP_LIB_PATH) -L$(USRP_LIB_PATH2) -lusrp
 
-CFLAGS = -O2 $(CINCPATHFLAGS)
+CFLAGS = -O3 $(CINCPATHFLAGS)
 
 HEADERS =   db_dbs_rx.h
 
 OBJS =		db_dbs_rx.o
 
-EXE =		usrp_sdr
+EXE =		usrp_gps
 
 # All Target
 all: $(EXE)
 
-usrp_sdr: usrp_sdr.o $(OBJS)
-	 $(LINK) $(LDFLAGS) -o $@ usrp_sdr.o $(OBJS)
+usrp_gps: usrp_gps.o $(OBJS)
+	 $(LINK) $(LDFLAGS) -o $@ usrp_gps.o $(OBJS)
 
 %.o:%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@ 

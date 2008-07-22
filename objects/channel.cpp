@@ -284,9 +284,9 @@ void Channel::DumpAccum()
 	}
 
 	/* Lowpass filtered values here */
-	I_avg += (fabs((float)I[1]) - I_avg) * .01;
-	Q_var += ((float)Q[1]*(float)Q[1] - Q_var) * .01;
-	P_avg += ((float)P[1]/float(len) - P_avg) * .01;
+	I_avg += (fabs((float)I[1]) - I_avg) * .02;
+	Q_var += ((float)Q[1]*(float)Q[1] - Q_var) * .02;
+	P_avg += ((float)P[1]/float(len) - P_avg) * .1;
 
 	/* Try out new CN0 estimate, PG 393 of Global Positioning System, Theory and Applications */
 	if((_1ms_epoch == 0) && freq_lock)
@@ -914,9 +914,9 @@ void Channel::Error()
 	if(count > 5000)
 	{
 		
-		if((mcn0 > 37.0) && (len != 4))
+		if((mcn0 > 37.0) && (len != 1))
 		{
-			len = 4;
+			len = 1;
 			PLL_W(30.0);
 		}
 		
@@ -972,7 +972,7 @@ void Channel::Export()
 	packet.fll_lock		= (float)aPLL.fll_lock;
 	packet.pll_lock		= (float)aPLL.pll_lock;
 	packet.fll_lock_ticks = (float)aPLL.fll_lock_ticks;
-	packet.w			= (float)aPLL.w;
+	packet.w			= (float)aPLL.w/(float)len;
 	packet.x 			= (float)aPLL.x;
 	packet.z 			= (float)aPLL.z;	
 		

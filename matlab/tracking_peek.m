@@ -21,13 +21,14 @@ clear; clc;
         
 c = 2.99792458e8;
 
-path = '/home/gheckler/GPS_Data/Car_Test3/'
+%path = '/home/gheckler/GPS_Data/Car_Test3/'
+path = '/home/gwheckler/workspace/gps-sdr/';
 fname = [path,'tracking.tlm'];
 
 a = dlmread(fname);
 len = floor(length(a)/12);
 a = a(1:12*len,:);
-dt = [1:len]/60;
+dt = [1:len]/600;
 
 svs         = reshape(a(:,2),[12 len]).';
 bit_lock    = reshape(a(:,4),[12 len]).';
@@ -42,9 +43,8 @@ mask = or((~bit_lock), (CN0 < 20));
 
 svs(mask) = NaN;
 CN0(mask) = NaN;
-w(mask) = NaN;
-x(mask) = NaN;
-z(mask) = NaN;
+pll(mask) = NaN;
+fll(mask) = NaN;
 
 b = CN0(:);
 a = svs(:);
@@ -76,3 +76,7 @@ xlabel('Time (minutes)')
 ylabel('C/N_{0} Estimate (dB-Hz)')
 title('C/N_{0} Plot')
 print -dpng -r0 cn0.png
+
+figure
+plot(dt,pll)
+xlabel('Time (minutes)')

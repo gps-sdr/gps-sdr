@@ -694,7 +694,9 @@ void Acquisition::Inport()
 	{
 		/* Get the tail */
 		last = packet.count;
-		pFIFO->Dequeue(MAX_CHANNELS, &packet);	
+		pFIFO->Dequeue(MAX_CHANNELS, &packet);
+//		pFIFO->Wait(MAX_CHANNELS); //Pend until everyone has called dequeue
+		
 		while(packet.count == last)
 		{
 			usleep(250);

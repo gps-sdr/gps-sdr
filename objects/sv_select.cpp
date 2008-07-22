@@ -171,15 +171,15 @@ void SV_Select::Acquire()
 	pthread_mutex_unlock(&mInterrupt);
 
 	/* Update prediction if the SV is being tracked */
-	if(already == 666)
-	{
-		GetAlmanac(sv);		
-		SV_Position(sv);
-		SV_LatLong(sv);
-		SV_Predict(sv);
-		UpdateState();
-		return;
-	}
+//	if(already == 666)
+//	{
+//		GetAlmanac(sv);		
+//		SV_Position(sv);
+//		SV_LatLong(sv);
+//		SV_Predict(sv);
+//		UpdateState();
+//		return;
+//	}
 
 	/* Run the SV prediction routine based on Almanac data */
 	GetAlmanac(sv);
@@ -204,7 +204,8 @@ void SV_Select::Acquire()
 			result.chan = chan;
 				
 			/* Do something! */	
-			ProcessResult();	
+			if(already != 666)
+				ProcessResult();	
 			
 		}
 		
@@ -352,6 +353,7 @@ void SV_Select::UpdateState()
 	if(sv >= NUM_CODES)
 		sv = 0;		
 	
+	//sv = 0;
 }
 /*----------------------------------------------------------------------------------------------*/
 

@@ -72,7 +72,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define THRESH_STRONG			(1.3e7)		//!< Threshold for strong signal detection
 #define THRESH_MEDIUM			(1.5e7)		//!< Threshold for medium signal detection
 #define THRESH_WEAK			(1.0e7)		//!< Threshold for weak signal detection
-#define MAX_DOPPLER			(10000)		//!< Set the maximum Doppler frequency
+#define MAX_DOPPLER			(7000)		//!< Set the maximum Doppler frequency
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -106,14 +106,14 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 
 /*----------------------------------------------------------------------------------------------*/
-#define FIFO_PRIORITY			(99)
-#define CORR_PRIORITY			(98)
-#define EPHEM_PRIORITY			(97)
-#define PVT_PRIORITY			(96)
-#define TRAK_PRIORITY			(95)
-#define ACQ_PRIORITY			(70)
-#define TELEM_PRIORITY			(92)
-#define KEY_PRIORITY			(93)
+#define FIFO_PRIORITY			(89)
+#define CORR_PRIORITY			(88)
+#define EPHEM_PRIORITY			(87)
+#define PVT_PRIORITY			(86)
+#define TRAK_PRIORITY			(85)
+#define ACQ_PRIORITY			(80)
+#define TELEM_PRIORITY			(82)
+#define KEY_PRIORITY			(83)
 /*----------------------------------------------------------------------------------------------*/
 
 

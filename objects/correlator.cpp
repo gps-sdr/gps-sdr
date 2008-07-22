@@ -185,9 +185,11 @@ void Correlator::Inport()
 		}
 	}
 
-	/* Get the tail */
+	/* Should do this ONCE with built in blocking! */	
 	last = packet.count;
 	pFIFO->Dequeue(chan, &packet);
+//	pFIFO->Wait(chan); //Pend until everyone has called dequeue
+	
 	while(packet.count == last)
 	{
 		usleep(gopt.corr_sleep);

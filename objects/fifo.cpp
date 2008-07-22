@@ -120,7 +120,13 @@ FIFO::FIFO()
 	
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_unlock(&mutex);
-	
+
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	{
+		pthread_mutex_init(&chan_mutex[lcv], NULL);
+		pthread_mutex_unlock(&chan_mutex[lcv]);
+	}	
+ 	
 	if(gopt.verbose)
 		printf("Creating FIFO\n");
 		
@@ -131,12 +137,17 @@ FIFO::FIFO()
 /*----------------------------------------------------------------------------------------------*/
 FIFO::~FIFO()
 {
+	int32 lcv;
 	
 	pthread_mutex_destroy(&mutex);	
 	
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	{
+		pthread_mutex_destroy(&chan_mutex[lcv]);	
+	}
+	
 	delete [] if_buff;
 	delete [] buff;
-	
 	
 	close(npipe);
 	
@@ -257,6 +268,9 @@ void FIFO::Dequeue(int32 _resource, ms_packet *p)
 		for(lcv = 0; lcv < MAX_CHANNELS+1; lcv++)
 			tail->accessed[lcv] = 0;
 		
+//		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+//			pthread_mutex_unlock(&chan_mutex[_resource]);
+		
 		if(tail->measurement)
 		{	
 			telem.tic = tail->measurement;
@@ -300,6 +314,14 @@ void FIFO::Open()
 
 
 /*----------------------------------------------------------------------------------------------*/
+void FIFO::Wait(int32 _resource)
+{
+	pthread_mutex_lock(&chan_mutex[_resource]);
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void FIFO::Lock()
 {
 	pthread_mutex_lock(&mutex);
@@ -313,7 +335,6 @@ void FIFO::Unlock()
 	pthread_mutex_unlock(&mutex);
 }
 /*----------------------------------------------------------------------------------------------*/
-
 
 
 

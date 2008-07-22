@@ -38,6 +38,10 @@ class FIFO
 		pthread_t thread;	//!< For the thread
 		pthread_mutex_t	mutex;	//!< Semaphore to protect the FIFO
 		
+		pthread_mutex_t	mutex_head;	//!< Semaphore to protect the FIFO's head
+		pthread_mutex_t	mutex_tail;	//!< Semaphore to protect the FIFO's tail
+		pthread_mutex_t	chan_mutex[MAX_CHANNELS+1];
+		
 
 		CPX *if_buff;		//!< Get the data from the named pipe
 		ms_packet *buff;	//!< 1 second buffer (in 1 ms packets)
@@ -65,7 +69,7 @@ class FIFO
 		void Unlock();
 		void Dequeue(int32 _resource, ms_packet *p);	
 		void SetScale(int32 _agc_scale);
-
+		void Wait(int32 _resource);
 };
 
 #endif /* FIFO_H */
