@@ -861,7 +861,7 @@ void resample(CPX *_in, CPX *_out, options *_opt)
 	{
 
 		/* De-interleave */
-		for(lcv = 0; lcv < 2*samps_ms; lcv++)
+		for(lcv = 0; lcv < samps_ms; lcv++)
 		{
 			p_a[lcv] = *p_in++;
 			p_b[lcv] = *p_in++;
