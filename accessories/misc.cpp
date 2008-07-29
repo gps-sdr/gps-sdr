@@ -12,7 +12,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -22,14 +22,14 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 
 /*----------------------------------------------------------------------------------------------*/
-/*! 
+/*!
  * code_gen, generate the given prn code
  * */
 int32 code_gen(CPX *_dest, int32 _prn)
 {
-	
+
 	uint32 G1[1023];
-	uint32 G2[1023];	
+	uint32 G2[1023];
 	uint32 G1_register[10], G2_register[10];
 	uint32 feedback1, feedback2;
 	uint32 lcv, lcv2;
@@ -42,14 +42,14 @@ int32 code_gen(CPX *_dest, int32 _prn)
 
 	/* A simple error check */
 	if((_prn < 0) || (_prn > 51))
-		return(0);	
+		return(0);
 
 	for(lcv = 0; lcv < 10; lcv++)
 	{
 		G1_register[lcv] = 1;
 		G2_register[lcv] = 1;
 	}
-	
+
 	/* Generate G1 & G2 Register */
 	for(lcv = 0; lcv < 1023; lcv++)
 	{
@@ -61,8 +61,8 @@ int32 code_gen(CPX *_dest, int32 _prn)
 
 		for(lcv2 = 0; lcv2 < 9; lcv2++)
 		{
-			G1_register[lcv2] = G1_register[lcv2+1]; 
-			G2_register[lcv2] = G2_register[lcv2+1]; 
+			G1_register[lcv2] = G1_register[lcv2+1];
+			G2_register[lcv2] = G2_register[lcv2+1];
 		}
 
 		G1_register[9] = feedback1;
@@ -81,37 +81,37 @@ int32 code_gen(CPX *_dest, int32 _prn)
 		delay++;
 		delay %= 1023;
 	}
-		
+
 	return(1);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
-/*! 
+/*!
  * sine_gen, generate a full scale sinusoid of frequency f with sampling frequency fs for _samps samps and put it into _dest
  * */
 void sine_gen(CPX *_dest, double _f, double _fs, int32 _samps)
 {
-	
+
 	int32 lcv;
 	int16 c, s;
 	float phase, phase_step;
-	
+
 	phase = 0;
 	phase_step = (float)TWO_PI*_f/_fs;
-	
+
 	for(lcv = 0; lcv < _samps; lcv++)
 	{
 		c =	(int16)floor(16383.0*cos(phase));
 		s =	(int16)floor(16383.0*sin(phase));
 		_dest[lcv].i = c;
-		_dest[lcv].q = s;  
-			
+		_dest[lcv].q = s;
+
 		phase += phase_step;
 	}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -119,30 +119,30 @@ void sine_gen(CPX *_dest, double _f, double _fs, int32 _samps)
 /*----------------------------------------------------------------------------------------------*/
 void sine_gen(CPX *_dest, double _f, double _fs, int32 _samps, double _p)
 {
-	
+
 	int32 lcv;
 	int16 c, s;
 	double phase, phase_step;
-	
+
 	phase = _p;
 	phase_step = (double)TWO_PI*_f/_fs;
-	
+
 	for(lcv = 0; lcv < _samps; lcv++)
 	{
 		c =	(int16)floor(16383.0*cos(phase));
 		s =	(int16)floor(16383.0*sin(phase));
 		_dest[lcv].i = c;
-		_dest[lcv].q = s;  
-			
+		_dest[lcv].q = s;
+
 		phase += phase_step;
 	}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
-/*! 
+/*!
  * wipeoff_gen, generate a full scale sinusoid of frequency f with sampling frequency fs for _samps samps and put it into _dest
  * */
 void wipeoff_gen(MIX *_dest, double _f, double _fs, int32 _samps)
@@ -154,7 +154,7 @@ void wipeoff_gen(MIX *_dest, double _f, double _fs, int32 _samps)
 
 	phase = 0;
 	phase_step = (double)TWO_PI*_f/_fs;
-	
+
 	for(lcv = 0; lcv < _samps; lcv++)
 	{
 		c =	(int16)floor(16383.0*cos(phase));
@@ -162,44 +162,44 @@ void wipeoff_gen(MIX *_dest, double _f, double _fs, int32 _samps)
 		_dest[lcv].i = _dest[lcv].ni = c;
 		_dest[lcv].q = s;
 		_dest[lcv].nq = -s;
-		  	
+
 		phase += phase_step;
 	}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
-/*! 
+/*!
  * resample, resample a vector where _samps is from _dest
  * */
 void resample(CPX *_dest, CPX *_source, double _fdest, double _fsource, int32 _samps)
 {
-//	
+//
 //	int32 lcv, k;
 //	float phase, phase_step;
-//	
+//
 //	uint32 phase_step;
 //	uint32 phase;
-//	
+//
 //	phase_step = 0xffffffff/_fsource;
 //	phase_step *= _fdest;
-//	
+//
 //	for(lcv = 0; lcv < _samps; lcv++)
 //	{
 //		/* Take advantage of addition rollover */
 //		phase += phase_step;
-//		
+//
 //		if(phase < lphase)
 //			_dest[k] = _source[lcv];
-//			
-//					
+//
+//
 //		k = (int32) floor(phase);
-//		
-//		phase += phase_step;	
+//
+//		phase += phase_step;
 	//}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -207,15 +207,15 @@ void resample(CPX *_dest, CPX *_source, double _fdest, double _fsource, int32 _s
 /*----------------------------------------------------------------------------------------------*/
 void downsample(CPX *_dest, CPX *_source, double _fdest, double _fsource, int32 _samps)
 {
-	
+
 	int32 lcv, k;
 	uint32 phase_step;
 	uint32 lphase, phase;
-	
+
 	phase_step = (uint32)floor((double)4294967296.0*_fdest/_fsource);
-	
+
 	k = lphase = phase = 0;
-	
+
 	for(lcv = 0; lcv < _samps; lcv++)
 	{
 		if(phase <= lphase)
@@ -225,37 +225,37 @@ void downsample(CPX *_dest, CPX *_source, double _fdest, double _fsource, int32 
 		}
 
 		lphase = phase;
-		phase += phase_step;	
+		phase += phase_step;
 	}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
-/*! 
+/*!
  * round_2, round a value to the next LOWEST value of 2^N
  * */
 int32 round_2(int32 _N)
 {
-	
-		
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
-/*! 
- * Gather statistics and run AGC 
+/*!
+ * Gather statistics and run AGC
  * */
 int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 {
@@ -263,7 +263,7 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 	int16 max, *p;
 	int32 lscale;
 	int32 val;
-	
+
 	p = (int16 *)&_buff[0];
 
 	/* First do the scaling */
@@ -271,13 +271,13 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 	for(lcv = 0; lcv < 2*_samps; lcv++)
 	{
 		val = p[lcv];
-			
-		val <<= AGC_BITS;			
+
+		val <<= AGC_BITS;
 		if(val < 0)
 			val -= lscale;
-			
+
 		val /= lscale;
-		
+
 		p[lcv] = val;
 	}
 
@@ -299,29 +299,29 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 	/* Figure out the shift value */
 	if(num > AGC_HIGH)
 		scale[0] += 1;
-		
+
 	if(num < AGC_LOW)
 		scale[0] -= 1;
-		
+
 	if(scale[0] < 1)
 		scale[0] = 1;
 
 	return(num);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
-/*! 
- * Get a rough first guess of scale value to quickly initialize agc 
+/*!
+ * Get a rough first guess of scale value to quickly initialize agc
  * */
 void init_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 {
 	int32 lcv;
 	int16 *p;
 	int32 max;
-	
+
 	p = (int16 *)&_buff[0];
 
 	max = 0;
@@ -329,17 +329,17 @@ void init_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 	{
 		if(p[lcv] > max)
 			max = p[lcv];
-	}	
+	}
 
 //	if(max < (1 << AGC_BITS))
 //		max = 1 << AGC_BITS;
-//	
+//
 //	if(max > (1 << (15+AGC_BITS)))
 //		max = (1 << (15+AGC_BITS));
 
 	if(max > scale[0])
 		scale[0] = max;
-		
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -440,9 +440,9 @@ int32 Invert4x4(double A[4][4], double B[4][4])
 		}
 		column_swap[l] = l;
 	}
-	
+
 	return(1);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -466,10 +466,10 @@ const int32 atan2array[129] =
 
 /*----------------------------------------------------------------------------------------------*/
 /*!
-	4 quadrant fixed point atan function. 
+	4 quadrant fixed point atan function.
 */
 int32 Atan2Approx(int32 y, int32 x)
-{  
+{
 	int32 angle;		/* The arctangent. */
 	int32 index;        /* Index into the arctangent array. */
 	int32 swap;			/* Used to swap the arguments according to the quadrant. */

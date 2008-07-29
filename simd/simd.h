@@ -16,7 +16,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -27,7 +27,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 
 #ifdef GLOBALS_HERE
-	#define EXTERN 
+	#define EXTERN
 #else
 	#define EXTERN extern
 #endif
@@ -58,6 +58,7 @@ void  sse_cmul(CPX *A, CPX *B, int32 cnt) __attribute__ ((noinline));									//
 void  sse_cmuls(CPX *A, CPX *B, int32 cnt, int32 shift) __attribute__ ((noinline));						//!< Pointwise vector multiply with shift
 void  sse_cmulsc(CPX *A, CPX *B, CPX *C, int32 cnt, int32 shift) __attribute__ ((noinline));			//!< Pointwise vector multiply with shift, dump results into C
 void  sse_prn_accum(CPX *A, CPX *E, CPX *P, CPX *L, int32 cnt, CPX *accum) __attribute__ ((noinline));  //!< This is a long story
+void  sse_prn_accum_new(CPX *A, MIX *E, MIX *P, MIX *L, int32 cnt, CPX_ACCUM *accum) __attribute__ ((noinline));  //!< This is a long story
 void  sse_max(int32 *_A, int32 *_index, int32 *_magt, int32 _cnt) __attribute__ ((noinline));
 /*----------------------------------------------------------------------------------------------*/
 
@@ -69,12 +70,13 @@ void  x86_mul(int16 *A, int16 *B, int32 cnt);	//!< Pointwise vector multiply
 int32 x86_dot(int16 *A, int16 *B, int32 cnt);	//!< Compute vector dot product
 
 void  x86_conj(CPX *A, int32 cnt);											//!< Pointwise vector conjugate
-void  x86_cacc(CPX *A, MIX *B, int32 cnt, int32 *iaccum, int32 *baccum);	//!< Compute dot product of cpx and a mix vector	
+void  x86_cacc(CPX *A, MIX *B, int32 cnt, int32 *iaccum, int32 *baccum);	//!< Compute dot product of cpx and a mix vector
 void  x86_cmul(CPX *A, CPX *B, int32 cnt);									//!< Pointwise vector multiply
 void  x86_cmuls(CPX *A, CPX *B, int32 cnt, int32 shift);					//!< Pointwise complex multiply with shift
 void  x86_cmulsc(CPX *A, CPX *B, CPX *C, int32 cnt, int32 shift);			//!< Pointwise vector multiply with shift, dump results into C
 void  x86_cmag(CPX *A, int32 cnt);											//!< Convert from complex to a power
 void  x86_prn_accum(CPX *A, CPX *E, CPX *P, CPX *L, int32 cnt, CPX *accum);  //!< This is a long story
+void  x86_prn_accum_new(CPX *A, MIX *E, MIX *P, MIX *L, int32 cnt, CPX_ACCUM *accum);  //!< This is a long story
 void  x86_max(int32 *_A, int32 *_index, int32 *_magt, int32 _cnt);
 /*----------------------------------------------------------------------------------------------*/
 

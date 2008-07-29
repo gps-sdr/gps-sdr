@@ -39,6 +39,17 @@ typedef struct CPX {
 
 
 /*! \ingroup STRUCTS
+ * Format of complex accumulations
+ */
+typedef struct CPX_ACCUM {
+
+	int32 i;	//!< Inphase (real)
+	int32 q;	//!< Quadrature (imaginary)
+
+} CPX_ACCUM;
+
+
+/*! \ingroup STRUCTS
  *
  */
 typedef struct MIX {
@@ -194,7 +205,7 @@ typedef struct _Correlator_State_S
 	int32  	rollover;			//!< rollover point of C/A code in next ms packet
 	int32	cbin[3];			//!< Code bins
 	int32	sbin;				//!< Carriers bins
-	CPX		*pcode[3];			//!< pointer to early-prompt-late codes
+	MIX		*pcode[3];			//!< pointer to early-prompt-late codes
 	CPX		*psine;				//!< pointer to Doppler removal vector
 	int32	nav_history[MEASUREMENT_DELAY]; //!< keep track of the navigate flag
 

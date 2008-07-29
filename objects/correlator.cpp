@@ -25,8 +25,8 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /* Be sure to init static variable prior to use by actual objects */
 CPX *Correlator::sine_table = new CPX[(2*CARRIER_BINS+1)*2*SAMPS_MS];
 CPX **Correlator::sine_rows = new CPX*[2*CARRIER_BINS+1];
-CPX *Correlator::main_code_table = new CPX[NUM_CODES*(2*CODE_BINS+1)*2*SAMPS_MS];
-CPX **Correlator::main_code_rows = new CPX*[NUM_CODES*(2*CODE_BINS+1)];
+MIX *Correlator::main_code_table = new MIX[NUM_CODES*(2*CODE_BINS+1)*2*SAMPS_MS];
+MIX **Correlator::main_code_rows = new MIX*[NUM_CODES*(2*CODE_BINS+1)];
 
 /*----------------------------------------------------------------------------------------------*/
 void *Correlator_Thread(void *_arg)
@@ -99,8 +99,8 @@ Correlator::Correlator(int32 _chan)
 	aChannel = pChannels[chan];
 
 	/* Malloc memory for local code vector */
-	code_table = new CPX[(2*CODE_BINS+1)*2*SAMPS_MS];
-	code_rows = new CPX*[2*CODE_BINS+1];
+	code_table = new MIX[(2*CODE_BINS+1)*2*SAMPS_MS];
+	code_rows = new MIX*[2*CODE_BINS+1];
 	for(lcv = 0; lcv < 2*CODE_BINS+1; lcv++)
 		code_rows[lcv] = &code_table[lcv*2*SAMPS_MS];
 
@@ -185,11 +185,11 @@ void Correlator::Inport()
 		}
 	}
 
-	/* Should do this ONCE with built in blocking! */	
+	/* Should do this ONCE with built in blocking! */
 	last = packet.count;
 	pFIFO->Dequeue(chan, &packet);
 //	pFIFO->Wait(chan); //Pend until everyone has called dequeue
-	
+
 	while(packet.count == last)
 	{
 		usleep(gopt.corr_sleep);
@@ -409,7 +409,7 @@ void Correlator::UpdateState(int32 samps)
 void Correlator::Accum(Correlation_S *c, CPX *data, int32 samps)
 {
 
-	CPX EPL[3];
+	CPX_ACCUM EPL[3];
 
 	//SineGen(samps);
 	//state.psine = sine_rows[chan];
@@ -418,7 +418,8 @@ void Correlator::Accum(Correlation_S *c, CPX *data, int32 samps)
 	sse_cmulsc(data, state.psine, scratch, samps, 14);
 
 	/* Now do the accumulation */
-	sse_prn_accum(scratch, state.pcode[0], state.pcode[1], state.pcode[2], samps, &EPL[0]);
+	//sse_prn_accum(scratch, state.pcode[0], state.pcode[1], state.pcode[2], samps, &EPL[0]);
+	sse_prn_accum_new(scratch, state.pcode[0], state.pcode[1], state.pcode[2], samps, &EPL[0]);
 
 	c->I[0] += (int32) EPL[0].i;
 	c->I[1] += (int32) EPL[1].i;
@@ -576,7 +577,7 @@ void Correlator::SineGen(int32 _samps)
 /*----------------------------------------------------------------------------------------------*/
 void Correlator::SamplePRN()
 {
-	CPX *row;
+	MIX *row;
 	int32 lcv, lcv2, sv, k;
 	int32 index;
 	float phase_step, phase;
@@ -602,9 +603,11 @@ void Correlator::SamplePRN()
 				index  = (int32)floor(phase + CODE_CHIPS) % CODE_CHIPS;
 
 				if(scratch[index].i)
-					row[lcv2].i = row[lcv2].q = 0x0000; /* Map 1 to 0x0000, and 0 to 0xffff for SIMD code */
+					row[lcv2].i = row[lcv2].ni = 0x0001; /* Map 1 to 0x0000, and 0 to 0xffff for SIMD code */
 				else
-					row[lcv2].i = row[lcv2].q = 0xffff;
+					row[lcv2].i = row[lcv2].ni = 0xffff;
+
+				row[lcv2].q = row[lcv2].nq = 0x0;
 
 				phase += phase_step;
 			}

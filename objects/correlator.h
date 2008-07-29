@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -26,7 +26,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "includes.h"
 
 /*! \ingroup CLASSES
- * 
+ *
  */
 class Correlator
 {
@@ -34,12 +34,12 @@ class Correlator
 	private:
 
 		FILE *crap;
-	
+
 		pthread_t 			thread;	 					//!< For the thread
-		
+
 		int32				packet_count;				//!< Count 1ms packets
 		ms_packet			packet;						//!< 1ms of data
-		
+
 		int32 				chan;			 			//!< Which channel is this?
 		Acq_Result_S 		result; 					//!< An acquisition result has been returned!
 		NCO_Command_S  		feedback;					//!< NCO feedback commands
@@ -48,21 +48,21 @@ class Correlator
 		Measurement_S		meas;						//!< Measurements to dump
 		Measurement_S		meas_buff[TICS_PER_SECOND];	//!< Measurements to dump
 		Channel 			*aChannel;					//!< Get this correlators channel
-		
-		/* This  is important, the following array is large and is constant, so it is 
+
+		/* This  is important, the following array is large and is constant, so it is
 		 * shared among all instances of this class */
 		static CPX 			*sine_table;				//!< Hold the sine wipeoff table
 		static CPX 			**sine_rows;				//!< Row pointers to above
-		static CPX  		*main_code_table;			//!< Hold the PRN lookup table for all 32 SVs  [2*CODE_BINS+1][2*SAMPS_MS];
-		static CPX 			**main_code_rows;			//!< Row pointers to above
-		
-		CPX					*code_table;				//!< Local code table
-		CPX					**code_rows;				//!< Row pointers to above
+		static MIX  		*main_code_table;			//!< Hold the PRN lookup table for all 32 SVs  [2*CODE_BINS+1][2*SAMPS_MS];
+		static MIX 			**main_code_rows;			//!< Row pointers to above
+
+		MIX					*code_table;				//!< Local code table
+		MIX					**code_rows;				//!< Row pointers to above
 		CPX					scratch[2*SAMPS_MS];		//!< Scratch data
 		CPX					lookup[SAMPS_MS];			//!< Hold the sine lookup
 		uint32				nco_phase_inc;				//!< For dynamically generating the wipeoff
 		uint32				nco_phase;					//!< For dynamically generating the wipeoff
-		
+
 	public:
 
 		Correlator(int32 _chan);
@@ -78,7 +78,7 @@ class Correlator
 		void InitCorrelator();									//!< Initialize a correlator/channel with an acquisition result
 		void DumpAccum(Correlation_S *c);							//!< Dump accumulation to channel for processing
 		void UpdateState(int32 samps);							//!< Update correlator state
-		void ProcessFeedback(NCO_Command_S *f);		
+		void ProcessFeedback(NCO_Command_S *f);
 		void Accum(Correlation_S *c, CPX *data, int32 samps);		//!< Do the actual accumulation
 		void SineGen(int32 samps);									//!< Dynamic wipeoff generation
 };
