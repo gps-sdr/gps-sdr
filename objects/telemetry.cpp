@@ -98,10 +98,11 @@ Telemetry::Telemetry(int32 _ncurses_on)
 		fp_chan = fopen("tracking.tlm","wt");
 		fp_sv = fopen("satellites.tlm","wt");
 	}
-	
+
 	if(gopt.google_earth)
 	{
 		fp_ge = fopen("navigation.klm","wt");
+		fp_ge_end = ftell(fp_ge);
 		GoogleEarthHeader();
 	}
 
@@ -130,10 +131,9 @@ Telemetry::~Telemetry()
 
 	if(gopt.google_earth)
 	{
-		GoogleEarthFooter();
 		fclose(fp_ge);
-	}	
-	
+	}
+
 	if(ncurses_on)
 	{
 		EndScreen();
@@ -222,7 +222,7 @@ void Telemetry::Export()
 		LogTracking();
 		LogSV();
 	}
-	
+
 	if(gopt.google_earth && (count++ % gopt.log_decimate == 0))
 	{
 		LogGoogleEarth();
@@ -602,8 +602,8 @@ void Telemetry::PrintHistory()
 	mvwprintw(screen,line++,1,"Tracked:\t%6d\n",ntrack);
 
 	line++;
-	mvwprintw(screen,line++,1,"SV  Ant     Type   Attempt   Fail   Success    DoppMin      DoppMax\n");
-	mvwprintw(screen,line++,1,"-------------------------------------------------------------------\n");
+	mvwprintw(screen,line++,1,"SV  Ant     Type   Attempt   Fail   Success    DoppMin      DoppMax      Doppler      Magnitude\n");
+	mvwprintw(screen,line++,1,"-----------------------------------------------------------------------------------------------\n");
 
 	for(lcv = 0; lcv < NUM_CODES; lcv++)
 	{
@@ -611,14 +611,14 @@ void Telemetry::PrintHistory()
 
 		switch(phist->type)
 		{
-			case 0: mvwprintw(screen,line++,1,"%02d    %01d   STRONG      %4d   %4d      %4d   %8d     %8d\n",
-			lcv+1,phist->antenna,phist->attempts[0],phist->failures[0],phist->successes[0],phist->mindopp,phist->maxdopp);
+			case 0: mvwprintw(screen,line++,1,"%02d    %01d   STRONG      %4d   %4d      %4d   %8d     %8d     %8d     %10d\n",
+			lcv+1,phist->antenna,phist->attempts[0],phist->failures[0],phist->successes[0],phist->mindopp,phist->maxdopp,phist->doppler,phist->magnitude);
 			break;
-			case 1: mvwprintw(screen,line++,1,"%02d    %01d   MEDIUM      %4d   %4d      %4d   %8d     %8d\n",
-			lcv+1,phist->antenna,phist->attempts[1],phist->failures[1],phist->successes[1],phist->mindopp,phist->maxdopp);
+			case 1: mvwprintw(screen,line++,1,"%02d    %01d   MEDIUM      %4d   %4d      %4d   %8d     %8d     %8d     %10d\n",
+			lcv+1,phist->antenna,phist->attempts[1],phist->failures[1],phist->successes[1],phist->mindopp,phist->maxdopp,phist->doppler,phist->magnitude);
 			break;
-			case 2: mvwprintw(screen,line++,1,"%02d    %01d     WEAK      %4d   %4d      %4d   %8d     %8d\n",
-			lcv+1,phist->antenna,phist->attempts[2],phist->failures[2],phist->successes[2],phist->mindopp,phist->maxdopp);
+			case 2: mvwprintw(screen,line++,1,"%02d    %01d     WEAK      %4d   %4d      %4d   %8d     %8d     %8d     %10d\n",
+			lcv+1,phist->antenna,phist->attempts[2],phist->failures[2],phist->successes[2],phist->mindopp,phist->maxdopp,phist->doppler,phist->magnitude);
 			break;
 		}
 	}
@@ -780,11 +780,16 @@ void Telemetry::LogGoogleEarth()
 {
 
 	Nav_Solution_S		*pNav		= &tNav.master_nav;				/* Navigation Solution */
-	
+
 	if(fp_ge != NULL)
 	{
 		if(pNav->converged)
+		{
+			fseek(fp_ge, fp_ge_end, SEEK_SET);
 			fprintf(fp_ge,"%15.9f,%15.9f,%15.9f\n",pNav->longitude*RAD_2_DEG,pNav->latitude*RAD_2_DEG,pNav->altitude);
+			fp_ge_end = ftell(fp_ge);
+			GoogleEarthFooter();
+		}
 	}
 
 }
@@ -794,9 +799,10 @@ void Telemetry::LogGoogleEarth()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::GoogleEarthHeader()
 {
-	
+
 	if(fp_ge != NULL)
 	{
+		fseek(fp_ge, fp_ge_end, SEEK_SET);
 		fprintf(fp_ge,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		fprintf(fp_ge,"<kml xmlns=\"http://earth.google.com/kml/2.1\">\n");
 		fprintf(fp_ge,"<Document>\n");
@@ -842,6 +848,7 @@ void Telemetry::GoogleEarthHeader()
 		fprintf(fp_ge,"absolute\n");
 		fprintf(fp_ge,"</altitudeMode>\n");
 		fprintf(fp_ge,"<coordinates>\n");
+		fp_ge_end = ftell(fp_ge);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -850,9 +857,10 @@ void Telemetry::GoogleEarthHeader()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::GoogleEarthFooter()
 {
-	
+
 	if(fp_ge != NULL)
 	{
+		fseek(fp_ge, fp_ge_end, SEEK_SET);
 		fprintf(fp_ge,"</coordinates>\n");
 		fprintf(fp_ge,"</LinearRing>\n");
 		fprintf(fp_ge,"</outerBoundaryIs>\n");

@@ -24,7 +24,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "includes.h"
 
-#define VECTSIZE (1000)
+#define VECTSIZE (10000)
 #define REPEATS	 (100)
 
 //#define VECTSIZE (32)
@@ -548,17 +548,6 @@ int main(int32 argc, char* argv[])
 	else
 		printf("CPX PRN ACCUM NEW\t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
-
-
-
-
-
-
-
-
-
-
-
 
 	delete [] testvecta;
 	delete [] testvectb;

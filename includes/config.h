@@ -37,10 +37,10 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /* What stuff to log */
 /*----------------------------------------------------------------------------------------------*/
 #define CHANNEL_DEBUG			(1)			//!< Log channel data to HD
-#define CHANNEL_INVESTIGATE	(0)			//!< Try to figure out Nav bug
+#define CHANNEL_INVESTIGATE		(0)			//!< Try to figure out Nav bug
 #define LOG_PSEUDO				(0)			//!< Pseudoranges
 #define LOG_SV					(0)			//!< SV Navigation data
-#define LOG_NAV				(1)			//!< Nav Output
+#define LOG_NAV					(1)			//!< Nav Output
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -67,29 +67,29 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define ACQ_STRONG				(0)			//!< Acq strong type
 #define ACQ_MEDIUM				(1)			//!< Acq medium type
 #define ACQ_WEAK 				(2)			//!< Acq weak type
-#define ACQ_MAX				(ACQ_STRONG)//!< Cap acquisition type to this
+#define ACQ_MAX					(ACQ_STRONG)//!< Cap acquisition type to this
 #define ACQ_ITERATIONS			(10)		//!< Do this many acqs at a given type before moving to next type
 #define THRESH_STRONG			(1.3e7)		//!< Threshold for strong signal detection
 #define THRESH_MEDIUM			(1.5e7)		//!< Threshold for medium signal detection
-#define THRESH_WEAK			(1.0e7)		//!< Threshold for weak signal detection
-#define MAX_DOPPLER			(15000)		//!< Set the maximum Doppler frequency
+#define THRESH_WEAK				(1.0e7)		//!< Threshold for weak signal detection
+#define MAX_DOPPLER				(15000)		//!< Set the maximum Doppler frequency
 /*----------------------------------------------------------------------------------------------*/
 
 
 /* Correlator  Defines */
 /*----------------------------------------------------------------------------------------------*/
-#define CORR_DELAYS			(1)			//!< Number of delays to calculate (plus-minus)
+#define CORR_DELAYS				(1)			//!< Number of delays to calculate (plus-minus)
 #define CORR_SPACING			(.5)		//!< How far should the correlators be spaced (chips)
 #define FRAME_SIZE_PLUS_2		(12)		//!< 10 words per frame, 12 = 10 + 2
-#define MEASUREMENT_INT		(100)		//!< Packets of ~1ms data
+#define MEASUREMENT_INT			(100)		//!< Packets of ~1ms data
 #define CODE_BINS				(20)		//!< Partial code offset bins code resolution -> 1 chip/X bins
-#define CARRIER_SPACING		(20)		//!< Spacing of bins (Hz)
+#define CARRIER_SPACING			(20)		//!< Spacing of bins (Hz)
 #define CARRIER_BINS			(MAX_DOPPLER/CARRIER_SPACING) //!< Number of pre-sampled carrier wipeoff bins
 #define ICP_TICS				(5)			//!< Number of measurement ints (plus-minus) to calculate ICP,
 											//!< this cannot exceed TICS_PER_SECOND/2 !!!!
 
 #define TICS_2_SECONDS			(MEASUREMENT_INT/1000)
-#define TICS_PER_SECOND		(1000/MEASUREMENT_INT)
+#define TICS_PER_SECOND			(1000/MEASUREMENT_INT)
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -99,7 +99,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define PLL_BN					(15)		//!< PLL Bandwidth
 #define FLL_BN					(10)		//!< FLL Bandwidth
 #define AGC_BITS				(5)			//!< AGC to this bit depth
-#define AGC_LOW				(4)			//!< Overflow low
+#define AGC_LOW					(4)			//!< Overflow low
 #define AGC_HIGH				(16)		//!< Overflow high
 #define MEASUREMENT_DELAY		(10)		//!< Number of measurements that have to be marked as navigate to allow PVT
 /*----------------------------------------------------------------------------------------------*/

@@ -50,11 +50,11 @@ OBJS =		init.o			\
 			
 			
 #Uncomment these to look at the disassembly
-DIS = 		x86.dis		\
-			sse.dis		\
-			fft.dis		\
-			acquisition.dis \
-			acq_test.dis 
+#DIS = 		x86.dis		\
+#			sse.dis		\
+#			fft.dis		\
+#			acquisition.dis \
+#			acq_test.dis 
 
 EXE =		gps-sdr			\
 			simd_test		
@@ -89,7 +89,7 @@ clean: minclean exclean cleandoxy
 	
 minclean:
 	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -o -name "*.out" -o -name "*.m~"  -o -name "*.tlm" \) -print`
-	@rm -rvf `find . \( -name "fft_test" -o -name "acq_test" -o -name "current.*" -o -name "usrp_sdr" \) -print`	
+	@rm -rvf `find . \( -name "*.klm" -o -name "fft_test" -o -name "acq_test" -o -name "current.*" -o -name "usrp_sdr" \) -print`	
 	@rm -rvf $(EXE)
 	
 exclean:	

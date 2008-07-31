@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -26,7 +26,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "includes.h"
 
 /*! \ingroup CLASSES
- * 
+ *
  */
 typedef class Telemetry
 {
@@ -36,31 +36,32 @@ typedef class Telemetry
 		int32	  gpipe;	//!< Named pipe to export data to the prop
 		pthread_t thread;	//!< For the thread
 		pthread_mutex_t		mutex;	//!< Protect the following variable
-			
+
 		/* Stuff for ncurses display */
 		WINDOW *mainwnd;
 		WINDOW *screen;
 		WINDOW *my_win;
-		
+
 		FIFO_2_Telem_S 	tFIFO;
 		PVT_2_Telem_S 	tNav;
 		Chan_Packet_S 	tChan[MAX_CHANNELS];
 		Acq_Result_S	tAcq;
 		Ephem_2_Telem_S tEphem;
 		SV_Select_2_Telem_S tSelect;
-		
+
 		int32 active[MAX_CHANNELS];
 		int32 line;
 		int32 ncurses_on;
 		int32 count;
 		int32 display;
-		
+
 		FILE *fp_nav;		//!< Navigation data
 		FILE *fp_chan;		//!< Channel tracking data
 		FILE *fp_pseudo;	//!< Pseudoranges
-		FILE *fp_meas;		//!< Raw measurements 
+		FILE *fp_meas;		//!< Raw measurements
 		FILE *fp_sv;		//!< SV position/velocity output
 		FILE *fp_ge;		//!< Google Earth Output
+		uint32 fp_ge_end;	//!< Hold place of last Google earth pointer, minus the header
 
 	public:
 
@@ -73,7 +74,7 @@ typedef class Telemetry
 		void Export();
 		void Start();
 		void Stop();
-		
+
 		void Init();
 		void InitScreen();
 		void UpdateScreen();
@@ -83,7 +84,7 @@ typedef class Telemetry
 		void PrintNav();
 		void PrintSV();
 		void PrintEphem();
-		void PrintAlmanac();		
+		void PrintAlmanac();
 		void PrintHistory();
 		void LogNav();
 		void LogPseudo();

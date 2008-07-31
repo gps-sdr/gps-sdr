@@ -568,6 +568,8 @@ typedef struct _Acq_History_S
 	int32 successes[3];	//!< Number of successes
 	int32 mindopp;		//!< Mindopp
 	int32 maxdopp;		//!< Maxdopp
+	int32 magnitude;	//!< Last magnitude
+	int32 doppler;		//!< Last doppler
 
 } Acq_History_S;
 /*----------------------------------------------------------------------------------------------*/
