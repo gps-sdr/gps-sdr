@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -28,7 +28,7 @@ void Thread_Shutdown(void)
 {
 	char buff[1024*1024];
 	int32 lcv;
-	
+
 	/* Start the keyboard thread to handle user input from stdio */
 	pKeyboard->Stop();
 
@@ -37,37 +37,37 @@ void Thread_Shutdown(void)
 	write(PVT_2_Telem_P[WRITE], &buff, sizeof(PVT_2_Telem_S));
 	write(SV_Select_2_Telem_P[WRITE], &buff, sizeof(SV_Select_2_Telem_S));
 	write(PVT_2_SV_Select_P[WRITE], &buff, sizeof(PVT_2_SV_Select_S));
-	pTelemetry->Stop();	
+	pTelemetry->Stop();
 
 	/* Stop the FIFO */
 	pFIFO->Stop();
-	
+
 	/* Uh-oh */
 	write(FIFO_2_PVT_P[WRITE], &buff, sizeof(FIFO_2_Telem_S));
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-		write(Corr_2_PVT_P[lcv][WRITE], &buff, sizeof(Measurement_S));	
-	pPVT->Stop();	
-	
-	/* Start up the correlators */		 
+		write(Corr_2_PVT_P[lcv][WRITE], &buff, sizeof(Measurement_S));
+	pPVT->Stop();
+
+	/* Start up the correlators */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-		pCorrelators[lcv]->Stop();	
-	
+		pCorrelators[lcv]->Stop();
+
 	/* Stop the acquistion */
-	write(Trak_2_Acq_P[WRITE], &buff, sizeof(Acq_Request_S));	
+	write(Trak_2_Acq_P[WRITE], &buff, sizeof(Acq_Request_S));
 	pAcquisition->Stop();
-	
+
 	/* Stop the ephemeris */
-	write(Chan_2_Ephem_P[WRITE], &buff, sizeof(Chan_2_Ephem_S));	
+	write(Chan_2_Ephem_P[WRITE], &buff, sizeof(Chan_2_Ephem_S));
 	pEphemeris->Stop();
-	
+
 	/* Stop the tracking */
-	write(Trak_2_Acq_P[WRITE], &buff, sizeof(Acq_Request_S));	
+	write(Trak_2_Acq_P[WRITE], &buff, sizeof(Acq_Request_S));
 	pSV_Select->Stop();
-		
+
 	/* Stop spoofing my named pipe yo */
 	if(gopt.post_process)
 		pPost_Process->Stop();
-			
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -78,7 +78,7 @@ void Pipes_Shutdown(void)
 {
 
 	int32 lcv;
-		
+
 	/* Acq and track play together */
 	close(Trak_2_Acq_P[READ]);
 	close(Trak_2_Acq_P[WRITE]);
@@ -94,7 +94,7 @@ void Pipes_Shutdown(void)
 	close(PVT_2_Telem_P[WRITE]);
 	close(Chan_2_Ephem_P[READ]);
 	close(Chan_2_Ephem_P[WRITE]);
-		
+
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		close(Trak_2_Corr_P[lcv][READ]);
@@ -103,7 +103,7 @@ void Pipes_Shutdown(void)
 		close(Corr_2_PVT_P[lcv][WRITE]);
 		close(PVT_2_Corr_P[lcv][READ]);
 		close(PVT_2_Corr_P[lcv][WRITE]);
-	}	
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -114,15 +114,15 @@ void Pipes_Shutdown(void)
 void Object_Shutdown(void)
 {
 	int32 lcv;
-	
+
 	pthread_mutex_destroy(&mAcq);
-	pthread_mutex_destroy(&mInterrupt);		
-	
+	pthread_mutex_destroy(&mInterrupt);
+
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		delete pCorrelators[lcv];
-		
+
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-		delete pChannels[lcv];	
+		delete pChannels[lcv];
 
 	if(gopt.post_process)
 		delete pPost_Process;
@@ -134,7 +134,7 @@ void Object_Shutdown(void)
 	delete pSV_Select;
 	delete pTelemetry;
 	delete pPVT;
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -143,8 +143,8 @@ void Object_Shutdown(void)
 /*! Close out any hardware */
 void Hardware_Shutdown(void)
 {
-	
-	
+
+
 
 }
 /*----------------------------------------------------------------------------------------------*/

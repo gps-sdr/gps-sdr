@@ -58,7 +58,7 @@ typedef struct _options
 #define WRITE 			(1)
 #define F_L1			(1.57542e9)
 #define F_L2			(1.2276e9)
-#define FIFO_SIZE 		(4001) //!< 2 seconds deep?
+#define FIFO_SIZE 		(4000) //!< 2 seconds deep?
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -80,6 +80,7 @@ CPX		**fifo_rows;	//!< FIFO rows
 CPX		*fifo_buff;		//!< FIFO buffer
 sem_t 	mEMPTY;			//!< # of empty nodes
 sem_t 	mFILLED;		//!< # of full nodes
+pthread_mutex_t mFIFO;
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -302,7 +303,7 @@ int main(int argc, char **argv)
 		fifo_rows[lcv] = &fifo_buff[lcv*SAMPS_PER_READ];
 	}
 
-	fifo_head = FIFO_SIZE/2;
+	fifo_head = 0;
 	fifo_tail = 0;
 
 	pthread_t precord_thread;
@@ -313,9 +314,9 @@ int main(int argc, char **argv)
 
 	grun = true;
 
+	pthread_mutex_init(&mFIFO, NULL);
 	sem_init(&mEMPTY, 0, FIFO_SIZE);	//!< All are empty
 	sem_init(&mFILLED, 0, 0);			//!< None are filled yet
-
 
 	/* Unitialized with default attributes */
 	pthread_attr_init(&tattr);
@@ -344,14 +345,18 @@ int main(int argc, char **argv)
 		usleep(100000);
 	}
 
-	pthread_join(pkey_thread, NULL);
-
 	sem_post(&mFILLED);
+	pthread_mutex_unlock(&mFIFO);
 	pthread_join(pfifo_thread, NULL);
 
 	sem_post(&mEMPTY);
+	pthread_mutex_unlock(&mFIFO);
 	pthread_join(precord_thread, NULL);
 
+	pthread_cancel(pkey_thread);
+	pthread_join(pkey_thread, NULL);
+
+	pthread_mutex_destroy(&mFIFO);
 	sem_destroy(&mEMPTY);
 	sem_destroy(&mFILLED);
 
@@ -455,7 +460,7 @@ void *record_thread(void *opt)
 		/* Set the default master clock freq */
 		dbs_rx_b->set_fpga_master_clock_freq(_opt->f_sample);
 		dbs_rx_b->set_refclk_divisor(16);
-		dbs_rx_b->enable_refclk(true);
+		dbs_rx_b->enable_refclk(false);
 
 		/* Program the board */
 		dbs_rx_b->bandwidth(_opt->bandwidth);
@@ -516,16 +521,15 @@ void *record_thread(void *opt)
 		sem_wait(&mEMPTY);
 
 		/* Read data from USRP */
-		urx->read(&buff[0], buffsize >> 1, &overrun);
-		urx->read(&buff[2048], buffsize >> 1, &overrun);
+		urx->read(&buff[0], buffsize, &overrun);
 
 		/* Do the FIFO stuff */
-		//pthread_mutex_lock(&mFIFO);
+		pthread_mutex_lock(&mFIFO);
 		phead = fifo_rows[fifo_head];
 		memcpy(phead, buff, SAMPS_PER_READ*sizeof(CPX));
 		fifo_head = fifo_head + 1;
 		fifo_head %= FIFO_SIZE;
-		//pthread_mutex_unlock(&mFIFO);
+		pthread_mutex_unlock(&mFIFO);
 
 		/* Added a filled node */
 		sem_post(&mFILLED);
@@ -642,17 +646,15 @@ void *fifo_thread(void *arg)
 		/* Wait for a filled node */
 		sem_wait(&mFILLED);
 
-		//pthread_mutex_lock(&mFIFO);
+		pthread_mutex_lock(&mFIFO);
 		ptail = fifo_rows[fifo_tail];
 		memcpy(&buff[leftover], ptail, SAMPS_PER_READ*sizeof(CPX));
 		fifo_tail = fifo_tail + 1;
 		fifo_tail %= FIFO_SIZE;
-		//pthread_mutex_unlock(&mFIFO);
+		pthread_mutex_unlock(&mFIFO);
 
 		/* I just emptied another node */
 		sem_post(&mEMPTY);
-
-		usleep(100);
 
 		/* Now we have SAMPS_PER_READ samps, 4 possible things to do depending on the state:
 		 * 0) mode == 0 && f_sample == 65.536e6: This mode is the easiest, 1 ms of data per FIFO node,
@@ -779,6 +781,15 @@ void *key_thread(void *_arg)
 
 
 /*----------------------------------------------------------------------------------------------*/
+void kill_program(int _sig)
+{
+	grun = false;
+	printf("Lost GPS-SDR!\n");
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void write_pipe(CPX *_buff, int _npipe, int _bytes)
 {
 
@@ -789,16 +800,12 @@ void write_pipe(CPX *_buff, int _npipe, int _bytes)
 	nbytes = 0; pbuff = (char *)&_buff[0];
 	while((nbytes < _bytes) && grun)
 	{
+		signal(SIGPIPE, kill_program);
 		bwrote = write(_npipe, &pbuff[nbytes], PIPE_BUF);
-		signal(SIGPIPE, SIG_IGN);
+
 		if(bwrote > 0)
-		{
 			nbytes += bwrote;
-		}
-		else
-		{
-			break;
-		}
+
 	}
 
 }
@@ -882,3 +889,6 @@ void resample(CPX *_in, CPX *_out, options *_opt)
 
 }
 /*----------------------------------------------------------------------------------------------*/
+
+
+

@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -25,7 +25,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 void *Ephemeris_Thread(void *_arg)
 {
-	
+
 	Ephemeris *aEphemeris = pEphemeris;
 
 	while(grun)
@@ -33,9 +33,9 @@ void *Ephemeris_Thread(void *_arg)
 		aEphemeris->Import();
 		aEphemeris->Export();
 	}
-	
+
 	pthread_exit(0);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -47,25 +47,25 @@ void Ephemeris::Start()
 	pthread_t tid;
 	int32 ret;
 	sched_param param;
-	
+
 	/* Unitialized with default attributes */
 	ret = pthread_attr_init (&tattr);
-	
+
 	/*Ssafe to get existing scheduling param */
 	ret = pthread_attr_getschedparam (&tattr, &param);
-	
+
 	/* Set the priority; others are unchanged */
 	param.sched_priority = EPHEM_PRIORITY;
-	
+
 	/* Setting the new scheduling param */
 	ret = pthread_attr_setschedparam(&tattr, &param);
 	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-	
+
 	/* With new priority specified */
 	pthread_create(&thread, NULL, Ephemeris_Thread, NULL);
-	
+
 	if(gopt.verbose)
-		printf("Ephemeris thread started\n");	
+		printf("Ephemeris thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -74,7 +74,7 @@ void Ephemeris::Start()
 void Ephemeris::Stop()
 {
 	pthread_join(thread, NULL);
-	
+
 	if(gopt.verbose)
 		printf("Ephemeris thread stopped\n");
 }
@@ -88,17 +88,17 @@ Ephemeris::Ephemeris()
 
 	for(lcv = 0; lcv < NUM_CODES; lcv++)
 		iode_master[lcv] = 9999; //some non possible IODE value
-		
+
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_unlock(&mutex);
-	
+
 	/* Read in stored ephem/almanac on bootup */
-	ReadEphemeris();
+	//ReadEphemeris();
 	ReadAlmanac();
 	Export();
-	
+
 	if(gopt.verbose)
-		printf("Creating Ephemeris\n");	
+		printf("Creating Ephemeris\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -106,9 +106,9 @@ Ephemeris::Ephemeris()
 /*----------------------------------------------------------------------------------------------*/
 Ephemeris::~Ephemeris()
 {
-	
+
 	pthread_mutex_destroy(&mutex);
-	
+
 	if(gopt.verbose)
 		printf("Destructing Ephemeris\n");
 
@@ -133,7 +133,7 @@ int32 sbit(uint32 val, int32 nbits)
 void Ephemeris::Parse(int32 _sv)
 {
 	int32 IODE[3];
-	
+
 	if(ephem_data[_sv].valid[0])
 		IODE[0] = (ephem_data[_sv].subframe_1[7] >> 22) & 0x0000007F;
 	else
@@ -169,7 +169,7 @@ void Ephemeris::Parse(int32 _sv)
 				ephemerides[_sv].cuc =		TWO_N29 *		(double) sbit(ephem_data[_sv].subframe_2[5] >> 14, 16);
 				ephemerides[_sv].cus =		TWO_N29 *		(double) sbit(ephem_data[_sv].subframe_2[7] >> 14, 16);
 				ephemerides[_sv].deltan =	PI_TWO_N43 *	(double) sbit(ephem_data[_sv].subframe_2[3] >> 14, 16);
-				ephemerides[_sv].omd =		PI_TWO_N43 *	(double) sbit(ephem_data[_sv].subframe_3[8] >> 6, 24);	
+				ephemerides[_sv].omd =		PI_TWO_N43 *	(double) sbit(ephem_data[_sv].subframe_3[8] >> 6, 24);
 				ephemerides[_sv].idot =		PI_TWO_N43 *	(double) sbit(ephem_data[_sv].subframe_3[9] >> 8, 14);
 				ephemerides[_sv].ecc =		TWO_N33 *		(double)	((ephem_data[_sv].subframe_2[5] << 18  & 0xFF000000) | (ephem_data[_sv].subframe_2[6] >> 6  & 0x00FFFFFF));
 				ephemerides[_sv].in0 =		PI_TWO_N31 *	(double)	((ephem_data[_sv].subframe_3[4] << 18  & 0xFF000000) | (ephem_data[_sv].subframe_3[5] >> 6  & 0x00FFFFFF));
@@ -189,24 +189,24 @@ void Ephemeris::Parse(int32 _sv)
 				ephemerides[_sv].a = ephemerides[_sv].sqrta * ephemerides[_sv].sqrta;
 				ephemerides[_sv].tofxmission = (int32) (ephemerides[_sv].tow * 1.5);
 				ephemerides[_sv].n0 = sqrt(GRAVITY_CONSTANT/(ephemerides[_sv].a*ephemerides[_sv].a*ephemerides[_sv].a));
-				ephemerides[_sv].zcount = ephemerides[_sv].tow;	
+				ephemerides[_sv].zcount = ephemerides[_sv].tow;
 
 				if(ephemerides[_sv].subframe_1_health == 0)
 					ephemerides[_sv].valid = true;
 				else
 					ephemerides[_sv].valid = false;
-					
+
 				output_s.valid[_sv] = ephemerides[_sv].valid;
 				output_s.iode[_sv] = iode_master[_sv];
 
 				WriteEphemeris();
-					
+
 			} //IODE has changed
 
 		} //IODE matches
 
 	} //if good _sv
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -222,44 +222,44 @@ void Ephemeris::Import()
 	sv = ephem_packet.sv;
 	if((sv < NUM_CODES) && (sv >= 0))
 	{
-		
+
 		switch(ephem_packet.subframe)
 		{
 			case 1:
 			{
 				for(lcv = 0; lcv < FRAME_SIZE_PLUS_2; lcv++)
-					ephem_data[sv].subframe_1[lcv] = ephem_packet.word_buff[lcv];	
-				
+					ephem_data[sv].subframe_1[lcv] = ephem_packet.word_buff[lcv];
+
 				ephem_data[sv].valid[0] = true;
-				break;		
+				break;
 			}
 			case 2:
 			{
 				for(lcv = 0; lcv < FRAME_SIZE_PLUS_2; lcv++)
-					ephem_data[sv].subframe_2[lcv] = ephem_packet.word_buff[lcv];	
-				
+					ephem_data[sv].subframe_2[lcv] = ephem_packet.word_buff[lcv];
+
 				ephem_data[sv].valid[1] = true;
-				break;		
+				break;
 			}
 			case 3:
 			{
 				for(lcv = 0; lcv < FRAME_SIZE_PLUS_2; lcv++)
-					ephem_data[sv].subframe_3[lcv] = ephem_packet.word_buff[lcv];	
-				
+					ephem_data[sv].subframe_3[lcv] = ephem_packet.word_buff[lcv];
+
 				ephem_data[sv].valid[2] = true;
-				break;	
+				break;
 			}
 			case 4:
 			{
 				/* Get the sv_id */
 				sv_id = (ephem_packet.word_buff[2] >> 22) & 0x0000003F;
-				
+
 				if((sv_id > 0) && (sv_id < 33))
 				{
 					/* Copy over data */
 					for(lcv = 0; lcv < FRAME_SIZE_PLUS_2; lcv++)
 						almanac_data[sv_id - 1].page[lcv] = ephem_packet.word_buff[lcv];
-					
+
 					/* Process */
 					Lock();
 					ParsePage(sv_id);
@@ -271,26 +271,26 @@ void Ephemeris::Import()
 			{
 				/* Get the sv_id */
 				sv_id = (ephem_packet.word_buff[2] >> 22) & 0x0000003F;
-				
+
 				if((sv_id > 0) && (sv_id < 33))
 				{
 					/* Copy over data */
 					for(lcv = 0; lcv < FRAME_SIZE_PLUS_2; lcv++)
 						almanac_data[sv_id - 1].page[lcv] = ephem_packet.word_buff[lcv];
-					
+
 					/* Process */
 					Lock();
 					ParsePage(sv_id);
 					Unlock();
 				}
-				break;		
+				break;
 			}
 			default:
 			{
 				break;
 			}
 		}
-		
+
 		Lock();
 		Parse(sv);
 		Unlock();
@@ -344,7 +344,7 @@ void Ephemeris::ParsePage(int32 _sv_id)
 		_sv_id = _sv_id - 1;
 		if(almanacs[_sv_id].decoded == false)
 		{
-	
+
 			almanacs[_sv_id].ecc		=	(double) TWO_N21 * (double)( (almanac_data[_sv_id].page[2] >> 6)  & 0x0000FFFF );
 			almanacs[_sv_id].toa		=	(double) TWO_P12 * (double)(	(almanac_data[_sv_id].page[3] >> 22) & 0x000000FF );
 			almanacs[_sv_id].sqrta		=	(double) TWO_N11 * (double)( (almanac_data[_sv_id].page[5] >> 6)  & 0x00FFFFFF );
@@ -357,7 +357,7 @@ void Ephemeris::ParsePage(int32 _sv_id)
 			almanacs[_sv_id].af0		=	(double) TWO_N20 * (double)(	sbit((almanac_data[_sv_id].page[9] >> 19 & 0x000007F8) + (almanac_data[_sv_id].page[9] >> 8 & 0x00000007),  11) );
 			almanacs[_sv_id].decoded = true;
 			output_s.avalid[_sv_id] = true;
-			
+
 			WriteAlmanac();
 		}
 	}
@@ -370,7 +370,7 @@ void Ephemeris::ParsePage(int32 _sv_id)
 void Ephemeris::WriteEphemeris()
 {
 	FILE *fp;
-	
+
 	fp = fopen("current.eph","w");
 
 	if(fp != NULL)
@@ -388,21 +388,21 @@ void Ephemeris::ReadEphemeris()
 {
 	int32 lcv;
 	FILE *fp;
-	
+
 	fp = fopen("current.eph","r");
 
 	if(fp != NULL)
 	{
 		fread(&ephemerides[0], sizeof(Ephemeris_S), NUM_CODES, fp);
 		fclose(fp);
-		
+
 		for(lcv = 0; lcv < NUM_CODES; lcv++)
 		{
 			output_s.valid[lcv] = ephemerides[lcv].valid;
 			iode_master[lcv] = ephemerides[lcv].iode;
 			output_s.iode[lcv] = iode_master[lcv];
-		}			
-		
+		}
+
 	}
 
 }
@@ -415,7 +415,7 @@ void Ephemeris::WriteAlmanac()
 	int32 lcv;
 	Almanac_S *p;
 	FILE *fp;
-	
+
 	fp = fopen("current.alm","wt");
 
 	if(fp != NULL)
@@ -442,9 +442,9 @@ void Ephemeris::WriteAlmanac()
 				fprintf(fp,"\n");
 			}
 		}
-		
+
 		fclose(fp);
-		
+
 	}
 
 }
@@ -452,13 +452,13 @@ void Ephemeris::WriteAlmanac()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Ephemeris::ReadAlmanac()	
+void Ephemeris::ReadAlmanac()
 {
-	
+
 	int32 prn, week;
 	Almanac_S *p;
 	FILE *fp;
-	
+
 	fp = fopen("current.alm","rt");
 
 	if(fp != NULL)
@@ -485,11 +485,11 @@ void Ephemeris::ReadAlmanac()
 			fscanf(fp,"week:                       %4d\n",&p->week);
 			fscanf(fp,"\n");
 		}
-		
+
 		fclose(fp);
 	}
-	
-	
+
+
 }
 /*----------------------------------------------------------------------------------------------*/
 

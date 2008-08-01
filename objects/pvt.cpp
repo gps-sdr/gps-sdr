@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -25,10 +25,10 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 void *PVT_Thread(void *_arg)
 {
-	
+
 	PVT *aPVT = pPVT;
 	int32 key;
-	
+
 	while(grun)
 	{
 		aPVT->Inport();
@@ -37,9 +37,9 @@ void *PVT_Thread(void *_arg)
 		aPVT->Export();
 		aPVT->Unlock();
 	}
-	
+
 	pthread_exit(0);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -51,25 +51,25 @@ void PVT::Start()
 	pthread_t tid;
 	int32 ret;
 	sched_param param;
-	
+
 	/* Unitialized with default attributes */
 	ret = pthread_attr_init (&tattr);
-	
+
 	/*Ssafe to get existing scheduling param */
 	ret = pthread_attr_getschedparam (&tattr, &param);
-	
+
 	/* Set the priority; others are unchanged */
 	param.sched_priority = PVT_PRIORITY;
-	
+
 	/* Setting the new scheduling param */
 	ret = pthread_attr_setschedparam(&tattr, &param);
 	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-	
+
 	/* With new priority specified */
 	pthread_create(&thread, NULL, PVT_Thread, NULL);
-	
+
 	if(gopt.verbose)
-		printf("PVT thread started\n");	
+		printf("PVT thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -77,13 +77,13 @@ void PVT::Start()
 /*----------------------------------------------------------------------------------------------*/
 void PVT::Stop()
 {
-	
+
 	WritePVT();
-	
+
 	pthread_join(thread, NULL);
-	
+
 	if(gopt.verbose)
-		printf("PVT thread stopped\n");		
+		printf("PVT thread stopped\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -91,9 +91,9 @@ void PVT::Stop()
 /*----------------------------------------------------------------------------------------------*/
 PVT::PVT(int32 _mode)
 {
-	
+
 	Reset();
-	
+
 	if(_mode == WARM_START)
 	{
 		master_clock.time0 = GPSTime();
@@ -104,13 +104,13 @@ PVT::PVT(int32 _mode)
 	{
 		master_nav.stale_ticks = 360*TICS_PER_SECOND;
 	}
-		
+
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_unlock(&mutex);
-			
-	if(gopt.verbose)	
+
+	if(gopt.verbose)
 		printf("Creating PVT\n");
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -118,11 +118,11 @@ PVT::PVT(int32 _mode)
 /*----------------------------------------------------------------------------------------------*/
 PVT::~PVT()
 {
-	
-	
+
+
 	pthread_mutex_destroy(&mutex);
-			
-	if(gopt.verbose)	
+
+	if(gopt.verbose)
 		printf("Destructing PVT\n");
 
 }
@@ -133,17 +133,17 @@ PVT::~PVT()
 void PVT::Inport()
 {
 	int32 success, lcv, lcv2;
-	int32 num_chans;	
+	int32 num_chans;
 	int32 bytes_read;
 	int32 messagesize;
 	int32 sv, chan, bread;
 	Measurement_S temp;
 
-	/* Get number of channels coming off the pipe */	
+	/* Get number of channels coming off the pipe */
 	read(FIFO_2_PVT_P[READ], &telem, sizeof(FIFO_2_Telem_S));
-	
+
 	master_nav.nav_channels = 0;
-	
+
 	/* Set good_channels to false */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -154,29 +154,29 @@ void PVT::Inport()
 	/* Always clear out this sheit */
 	memset(&measurements[0], 0x0, MAX_CHANNELS*sizeof(Measurement_S));
 	memset(&pseudoranges[0], 0x0, MAX_CHANNELS*sizeof(Pseudorange_S));
-	
+
 	/* Initial set of Nav Channels, gets refined in Error_Check() */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		read(Corr_2_PVT_P[lcv][READ], &temp, sizeof(Measurement_S));
-		
+
 		if(temp.navigate == true)
 		{
 			sv_codes[lcv] = NOMINAL;
 			good_channels[lcv] = true;
 			master_nav.nav_channels++;
-					
+
 			if(master_sv[lcv] == 666)			/* This SV has not been assigned to a channel */
 			{
 				master_sv[lcv] = temp.sv;
 				measurements[lcv] = temp;
 			}
 			else if(master_sv[lcv] != temp.sv)	/* The SV on this channel has changed */
-			{			
+			{
 				Reset(lcv);
 				master_sv[lcv] = temp.sv;
-				measurements[lcv] = temp;			
-			} 
+				measurements[lcv] = temp;
+			}
 			else 								/* Everything is good just update the measurement */
 			{
 				measurements[lcv] = temp;
@@ -190,14 +190,14 @@ void PVT::Inport()
 	{
 		if(good_channels[lcv])
 		{
-			
+
 			/* Calculate the total code time */
-			measurements[lcv].code_time = (measurements[lcv].code_phase_mod/CODE_RATE) +	
+			measurements[lcv].code_time = (measurements[lcv].code_phase_mod/CODE_RATE) +
 										(double)(measurements[lcv]._20ms_epoch * .02) +
 										(double)(measurements[lcv]._1ms_epoch * .001);
 		}
 	}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -206,7 +206,7 @@ void PVT::Inport()
 void PVT::Export()
 {
 	int32 lcv;
-	
+
 	master_nav.nsvs = 0;
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -215,23 +215,23 @@ void PVT::Export()
 			master_nav.nsvs += (0x1 << lcv);
 		}
 		master_nav.chanmap[lcv] = ephemerides[lcv].valid;
-	}		
+	}
 
 	/* Dump to Telemetry */
 	memcpy(&output.master_nav,   &master_nav,   sizeof(Nav_Solution_S));
 	memcpy(&output.master_clock, &master_clock, sizeof(Clock_S));
-	memcpy(&output.sv_positions, &sv_positions, MAX_CHANNELS*sizeof(SV_Position_S));	
+	memcpy(&output.sv_positions, &sv_positions, MAX_CHANNELS*sizeof(SV_Position_S));
 	memcpy(&output.pseudoranges, &pseudoranges, MAX_CHANNELS*sizeof(Pseudorange_S));
 	memcpy(&output.measurements, &measurements, MAX_CHANNELS*sizeof(Measurement_S));
 
 	write(PVT_2_Telem_P[WRITE], &output, sizeof(PVT_2_Telem_S));
-	
+
 	/* Dump to SV Select */
 	memcpy(&sv_select.master_nav,   &master_nav,   sizeof(Nav_Solution_S));
 	memcpy(&sv_select.master_clock, &master_clock, sizeof(Clock_S));
-	
+
 	write(PVT_2_SV_Select_P[WRITE], &sv_select, sizeof(PVT_2_SV_Select_S));
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -242,55 +242,64 @@ void PVT::Navigate()
 
 	/* Always tag nav sltn with current tic */
 	master_nav.tic = telem.tic;
-	
+
 	/* Update receiver time */
 	Update_Time();
-	
+
 	/* Get Ephemerides */
-	Get_Ephemerides();	
-	
-	/* Either completely initialize the clock or just the bias */	
+	Get_Ephemerides();
+
+	/* Either completely initialize the clock or just the bias */
 	if(master_clock.state == CLOCK_UNINITIALIZED)
 		ClockInit();
 
-	/* Do SV Positions */			
+	/* Do SV Positions */
 	SV_Positions();
-	SV_TransitTime();		
+	SV_TransitTime();
 	SV_Correct();
 	SV_Elevations();
-	
+
 	/* Pseudoranges */
-	PseudoRange();	
-	
+	PseudoRange();
+
 	if(PreErrorCheck())  //If everything looks good then navigate
 	{
-		/* Copy over master_nav to temp_nav */	
+		/* Copy over master_nav to temp_nav */
 		memcpy(&temp_nav, &master_nav, sizeof(Nav_Solution_S));
+		temp_nav.x = 0;
+		temp_nav.y = 0;
+		temp_nav.z = 0;
+		temp_nav.vx = 0;
+		temp_nav.vy = 0;
+		temp_nav.vz = 0;
+
 
 		/* Ummm Yeah, you need to do the point solution */
-		FormModel();		
-		PVT_Estimation();
 		FormModel();
 		PVT_Estimation();
 		FormModel();
 		PVT_Estimation();
 		FormModel();
 		PVT_Estimation();
-		
+		FormModel();
+		PVT_Estimation();
+		FormModel();
+		PVT_Estimation();
+
 		if(PostErrorCheck())
 		{
-			
-			master_nav.converged = true;		
+
+			master_nav.converged = true;
 			master_nav.converged_ticks++;
 			master_nav.stale_ticks = 0;
-			
+
 			if(master_nav.initial_convergence == false)
 				master_nav.initial_convergence = true;
-				
-			ClockUpdate();			
+
+			ClockUpdate();
 			LatLong();
 			DOP();
-			
+
 		}
 		else
 		{
@@ -298,7 +307,7 @@ void PVT::Navigate()
 			master_nav.converged_ticks = 0;
 			master_nav.stale_ticks++;
 		}
-		
+
 	}
 	else
 	{
@@ -314,23 +323,23 @@ void PVT::Navigate()
 /*----------------------------------------------------------------------------------------------*/
 void PVT::Update_Time()
 {
-		
-	master_clock.receiver_time	+= MEASUREMENT_INT*.001;			      
+
+	master_clock.receiver_time	+= MEASUREMENT_INT*.001;
 	master_clock.time_raw 		= master_clock.time0 + master_clock.receiver_time;
-	master_clock.time 			= master_clock.time_raw - master_clock.bias;      
-					      
+	master_clock.time 			= master_clock.time_raw - master_clock.bias;
+
 	/* Week Rollover ! */
-	if(master_clock.time > SECONDS_IN_WEEK)	
-	{	
-	
-		master_clock.week += 1.0;			      
+	if(master_clock.time > SECONDS_IN_WEEK)
+	{
+
+		master_clock.week += 1.0;
 		master_clock.time0 -= SECONDS_IN_WEEK;
-		
+
 		//recompute these
 		master_clock.time_raw 	= master_clock.time0 + master_clock.receiver_time;
-		master_clock.time 		= master_clock.time_raw - master_clock.bias;      
+		master_clock.time 		= master_clock.time_raw - master_clock.bias;
 	}
-			      
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -340,8 +349,8 @@ void PVT::ClockUpdate()
 {
 
 	/* Update GPStime for current iteration (for use in PPS timer block) */
-	master_clock.time 	-= master_nav.clock_bias/SPEED_OF_LIGHT; 
-											    	
+	master_clock.time 	-= master_nav.clock_bias/SPEED_OF_LIGHT;
+
 	/* Update components for next iteration */
 	master_clock.bias 	+= master_nav.clock_bias/SPEED_OF_LIGHT;
 	master_clock.rate 	 = master_nav.clock_rate;
@@ -359,10 +368,10 @@ void PVT::Get_Ephemerides()
 
 	/* Protect the Ephemeris object with a mutex */
 	pEphemeris->Lock();
-	
+
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		if(good_channels[lcv])		
+		if(good_channels[lcv])
 		{
 			sv = master_sv[lcv];
 			temp_iode = pEphemeris->getIODE(sv);
@@ -374,7 +383,7 @@ void PVT::Get_Ephemerides()
 					master_iode[lcv] = temp_iode;
 				}
 			}
-			
+
 		} /* if good_channel */
 	}/* for channels */
 
@@ -383,12 +392,12 @@ void PVT::Get_Ephemerides()
 	/* Recalculate good channels */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		if(good_channels[lcv] && ephemerides[lcv].valid)		
+		if(good_channels[lcv] && ephemerides[lcv].valid)
 			good_channels[lcv] = true;
 		else
 			good_channels[lcv] = false;
 	}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -399,7 +408,7 @@ void PVT::ClockInit()
 
 	int32 lcv;
 	double time_of_transmission;
-	
+
 	/* Initialize the clock to the time-of-transmission of the first GPS signal that we find, this is accurate to within the transit time */
 	if(master_clock.state == CLOCK_UNINITIALIZED)
 		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
@@ -416,7 +425,7 @@ void PVT::ClockInit()
 				master_clock.state 			= CLOCK_NOMINAL;
 				break;
 			}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -437,7 +446,7 @@ void PVT::SV_Positions()
 
 	double whole_sec;
 	double partial_sec;
-	
+
 	Ephemeris_S* ephem;
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
@@ -445,10 +454,10 @@ void PVT::SV_Positions()
 		if(good_channels[lcv] && ephemerides[lcv].valid)
 		{
 			ephem = &ephemerides[lcv];
-			
-			/* Compute the difference, in seconds, between the epoch and wk & sec. */ 
+
+			/* Compute the difference, in seconds, between the epoch and wk & sec. */
 			toe = (double) ephem->toe;
-					 	
+
 			/* Time of transmission is calculated directly tracking channel */
 			partial_sec = measurements[lcv].code_time - sv_positions[lcv].clock_bias;
 			whole_sec = (double)measurements[lcv]._z_count;
@@ -463,13 +472,13 @@ void PVT::SV_Positions()
 			else if (tk < (-HALF_OF_SECONDS_IN_WEEK))
 				tk += SECONDS_IN_WEEK;
 
-			//Mean anomaly, M (rads). 
+			//Mean anomaly, M (rads).
 			Mdot = ephem->n0 + ephem->deltan;
 			M = ephem->m0 + Mdot * tk;
 
-			// Obtain eccentric anomaly E by solving Kepler's equation. 
+			// Obtain eccentric anomaly E by solving Kepler's equation.
 			ecc = ephem->ecc;
-						
+
 			sqrt1mee = sqrt (1.0 - ecc * ecc);
 			E = M;
 			for (iter = 0; iter < 20; iter++)
@@ -481,20 +490,20 @@ void PVT::SV_Positions()
 				E += dtemp;
 			}
 
-			/* Compute the relativistic correction term (seconds). */ 
+			/* Compute the relativistic correction term (seconds). */
 			ephem->relativistic = (double)(-4.442807633E-10) * ecc * ephem->sqrta * sE;
 
 			Edot = dEdM * Mdot;
 
-			/* Compute the argument of latitude, P. */ 
+			/* Compute the argument of latitude, P. */
 			P = atan2 (sqrt1mee * sE, cE - ecc) + ephem->argp;
 			Pdot = sqrt1mee * dEdM * Edot;
 
-			/* Generate harmonic correction terms for P and R. */ 
+			/* Generate harmonic correction terms for P and R. */
 			s2P = sin (2.0 * P);
 			c2P = cos (2.0 * P);
 
-			/* Compute the corrected argument of latitude, U. */ 
+			/* Compute the corrected argument of latitude, U. */
 			U = P + (ephem->cus * s2P + ephem->cuc * c2P);
 			sU = sin (U);
 			cU = cos (U);
@@ -502,53 +511,53 @@ void PVT::SV_Positions()
 			sUdot = cU * Udot;
 			cUdot = -sU * Udot;
 
-			/* Compute the corrected radius, R. */ 
-			R = ephem->a * (1.0 - ecc * cE) + (ephem->crs * s2P + 
+			/* Compute the corrected radius, R. */
+			R = ephem->a * (1.0 - ecc * cE) + (ephem->crs * s2P +
 				ephem->crc * c2P);
 			Rdot = ephem->a * ecc * sE * Edot + 2.0 * Pdot
 				* (ephem->crs * c2P - ephem->crc * s2P);
 
-			/* Compute the corrected orbital inclination, I. */ 
+			/* Compute the corrected orbital inclination, I. */
 			I = ephem->in0 + ephem->idot * tk
 			+ (ephem->cis * s2P + ephem->cic * c2P);
 			sI = sin (I);
 			cI = cos (I);
 			Idot = ephem->idot + 2.0 * Pdot * (ephem->cis * c2P - ephem->cic * s2P);
 
-			/* Compute the satellite's position in its orbital plane, (Xp,Yp). */ 
+			/* Compute the satellite's position in its orbital plane, (Xp,Yp). */
 			Xp = R * cU;
 			Yp = R * sU;
 			Xpdot = Rdot * cU + R * cUdot;
 			Ypdot = Rdot * sU + R * sUdot;
 
-			/* Compute the longitude of the ascending node, L. */ 
+			/* Compute the longitude of the ascending node, L. */
 			L = ephem->om0 + tk * (ephem->omd - (double)WGS84OE) - (double)WGS84OE * ephem->toe;
 			Ldot = ephem->omd - (double)WGS84OE;
 			sL = sin (L);
 			cL = cos (L);
 
-			/* Compute the satellite's position in space, (x,y,z). */ 
+			/* Compute the satellite's position in space, (x,y,z). */
 			sv_positions[lcv].x = Xp * cL - Yp * cI * sL;
 			sv_positions[lcv].y = Xp * sL + Yp * cI * cL;
 	        sv_positions[lcv].z = Yp * sI;
-	        
-	        
+
+
 	        /* Compute SV clock correction */
 			sv_positions[lcv].time = tk;
 			toc = ephem->toc;
-			
-			
-			sv_positions[lcv].clock_bias = ephem->af0 + 
-													(ephem->af1 *(tk_p_toe - toc)) + 
-													(ephem->af2 *(tk_p_toe - toc)*(tk_p_toe - toc)) + 
-													ephem->relativistic; 
+
+
+			sv_positions[lcv].clock_bias = ephem->af0 +
+													(ephem->af1 *(tk_p_toe - toc)) +
+													(ephem->af2 *(tk_p_toe - toc)*(tk_p_toe - toc)) +
+													ephem->relativistic;
 
 			sv_positions[lcv].clock_bias -= ephem->tgd;
-			
+
 			sv_positions[lcv].frequency_bias = ephem->af1 + (ephem->af2 *(tk_p_toe - toc)*2.0);
 
 
-			/* Satellite's velocity, (vx,vy,vz). */ 
+			/* Satellite's velocity, (vx,vy,vz). */
 			sv_positions[lcv].vx = -Ldot * (sv_positions[lcv].y)
 			+ Xpdot * cL
 			- Ypdot * cI * sL
@@ -560,14 +569,14 @@ void PVT::SV_Positions()
 			- Yp * sI * Idot * cL;
 
 			sv_positions[lcv].vz = +Yp * cI * Idot
-			+ Ypdot * sI; 
-				
+			+ Ypdot * sI;
+
 		} //end if good channel
 		else
 		{
 			sv_positions[lcv].vx = 0;
 			sv_positions[lcv].vy = 0;
-        	sv_positions[lcv].vz = 0;			
+        	sv_positions[lcv].vz = 0;
 			sv_positions[lcv].x = 0;
 			sv_positions[lcv].y = 0;
         	sv_positions[lcv].z = 0;
@@ -578,7 +587,7 @@ void PVT::SV_Positions()
 			sv_positions[lcv].transit_time = 0;
 			sv_positions[lcv].time = 0;
 		}
-		
+
 	}	//end lcv
 
 }
@@ -597,12 +606,12 @@ void PVT::SV_TransitTime()
 	{
 		if(good_channels[lcv])
 		{
-			sv_positions[lcv].transit_time = sqrt( (master_nav.x - sv_positions[lcv].x)*(master_nav.x - sv_positions[lcv].x) + 
-												   (master_nav.y - sv_positions[lcv].y)*(master_nav.y - sv_positions[lcv].y) + 
+			sv_positions[lcv].transit_time = sqrt( (master_nav.x - sv_positions[lcv].x)*(master_nav.x - sv_positions[lcv].x) +
+												   (master_nav.y - sv_positions[lcv].y)*(master_nav.y - sv_positions[lcv].y) +
 												   (master_nav.z - sv_positions[lcv].z)*(master_nav.z - sv_positions[lcv].z) );
 			sv_positions[lcv].transit_time /= SPEED_OF_LIGHT;
 		}
-		
+
 	}
 
 
@@ -631,7 +640,7 @@ void PVT::SV_Correct()
 
 			sv_positions[lcv].x = x_n;
 			sv_positions[lcv].y = y_n;
-			
+
 		}
 
 	}
@@ -658,16 +667,16 @@ void PVT::SV_Elevations()
 
 	theta = master_nav.longitude;
 	phi = master_nav.latitude;
-	
+
 	ct = cos(theta); st = sin(theta);
 	cp = cos(phi);   sp = sin(phi);
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-	
+
 		if(good_channels[lcv])
 		{
-			radius = pseudoranges[lcv].time*SPEED_OF_LIGHT;	
+			radius = pseudoranges[lcv].time*SPEED_OF_LIGHT;
 			dx = (sv_positions[lcv].x - master_nav.x)/radius;
 			dy = (sv_positions[lcv].y - master_nav.y)/radius;
 			dz = (sv_positions[lcv].z - master_nav.z)/radius;
@@ -675,12 +684,12 @@ void PVT::SV_Elevations()
 			e = -st*dx    +  ct*dy;
 			n = -sp*ct*dx + -sp*st*dy + cp*dz;
 			u =  cp*ct*dx +  cp*st*dy + sp*dz;
-		
+
 			rho = sqrt(n*n + e*e);
 			sv_positions[lcv].elev = atan2(u, rho);
 			sv_positions[lcv].azim = atan2(e, n);
 		}
-		
+
 	}
 
 }
@@ -692,32 +701,32 @@ void PVT::PseudoRange()
 {
 	int32 lcv;
 	double cp_scale;
-	
+
 	cp_scale = (double)TICS_PER_SECOND/(double)(2*ICP_TICS);
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		if(good_channels[lcv])
 		{
-			
+
 			/* Clear out the residual */
-			pseudoranges[lcv].residual = 0; 
-		
+			pseudoranges[lcv].residual = 0;
+
 			/* For an error check */
-			pseudoranges[lcv].previous = pseudoranges[lcv].time_uncorrected; 
-				
+			pseudoranges[lcv].previous = pseudoranges[lcv].time_uncorrected;
+
 			/* Time of transmission is calculated directly tracking channel */
 			pseudoranges[lcv].time = master_clock.time - measurements[lcv].code_time - (double)measurements[lcv]._z_count;
-				
+
 			/* Convert to meters */
-			pseudoranges[lcv].meters = pseudoranges[lcv].time*(double)SPEED_OF_LIGHT;	
-				
+			pseudoranges[lcv].meters = pseudoranges[lcv].time*(double)SPEED_OF_LIGHT;
+
 			/* Raw measurements, not ones that have the GPS clock bias added in */
 			pseudoranges[lcv].time_uncorrected = measurements[lcv].code_time + (double)measurements[lcv]._z_count;
-						
+
 			/* Pseudorange RATE from instantaneous Doppler (NOISY) */
 //			pseudoranges[lcv].time_rate = -((double)(measurements[lcv].carrier_nco) - IF_FREQUENCY);
-			
+
 			/* Pseudorange RATE from integrated carrier phase (LESS NOISY) */
 			pseudoranges[lcv].time_rate = measurements[lcv].carrier_phase_prev - measurements[lcv].carrier_phase; //Must switch signs
 			pseudoranges[lcv].time_rate *= cp_scale;
@@ -725,7 +734,7 @@ void PVT::PseudoRange()
 
 			/* Convert rate to meters */
 			pseudoranges[lcv].meters_rate = SPEED_OF_LIGHT * pseudoranges[lcv].time_rate / L1;
-			
+
 		}
 	}
 
@@ -737,7 +746,7 @@ void PVT::PseudoRange()
 bool PVT::PreErrorCheck()
 {
 	double radius, dpseudo, dtime;
-	
+
 	int32 lcv, good_chan;
 	int32 num_edited_channels = 0;
 
@@ -753,7 +762,7 @@ bool PVT::PreErrorCheck()
 	{
 		if(good_channels[lcv])
 		{
-		
+
 			/* Make sure the ephemeris has been decoded	- need several checks here to be reasonably sure */
 			if(ephemerides[lcv].valid != 1)
 			{
@@ -773,7 +782,7 @@ bool PVT::PreErrorCheck()
 				num_edited_channels++;
 				continue;
 			}
-			
+
 			/* Check for isnan velocities */
 			if(isnan(sv_positions[lcv].vx) || isnan(sv_positions[lcv].vy) || isnan(sv_positions[lcv].vz))
 			{
@@ -782,7 +791,7 @@ bool PVT::PreErrorCheck()
 				num_edited_channels++;
 				continue;
 			}
-		
+
 			/* Check for 20 km/s absolute pseudorange rate limit */
 //			if(fabs(pseudoranges[lcv].time_uncorrected - pseudoranges[lcv].previous) > dtime)
 //			{
@@ -800,10 +809,10 @@ bool PVT::PreErrorCheck()
 //				num_edited_channels++;
 //				continue;
 //			}
-					
+
 		}
 	}
-	
+
 	/* Recompute number of good channels */
 	master_nav.nav_channels = 0;
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
@@ -811,7 +820,7 @@ bool PVT::PreErrorCheck()
 		if(good_channels[lcv])
 			master_nav.nav_channels++;
 	}
-	
+
 	if(master_nav.nav_channels > 3)
 		return(true);
 	else
@@ -824,38 +833,38 @@ bool PVT::PreErrorCheck()
 /*----------------------------------------------------------------------------------------------*/
 void PVT::ErrorCheckCrossCorr()
 {
-	
+
 	int32 lcv, lcv2, cross;
 	double a, in0, ecc;
-	
+
 	/* Channel by channel resets */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		if(good_channels[lcv] && (pChannels[lcv]->getCN0() > 45.0))
 		{
-			
+
 			a = ephemerides[lcv].a;
 			in0 = ephemerides[lcv].in0;
 			ecc = ephemerides[lcv].ecc;
-			
+
 			for(lcv2 = 0; lcv2 < MAX_CHANNELS; lcv2++)
 			{
 				if(lcv2 == lcv)
 					continue;
-					
+
 				if(good_channels[lcv2] && (pChannels[lcv2]->getCN0() < 40.0))
 				{
 					cross = false;
-					
+
 					if(ephemerides[lcv2].a == a)
-						cross = true;		
-					
-					if(ephemerides[lcv2].in0 == in0) 					
 						cross = true;
-				
+
+					if(ephemerides[lcv2].in0 == in0)
+						cross = true;
+
 					if(ephemerides[lcv2].ecc == ecc)
 						cross = true;
-						
+
 					/* Detected cross-correlation, dump SV with lower CN0, kill channel */
 					if(cross)
 					{
@@ -868,7 +877,7 @@ void PVT::ErrorCheckCrossCorr()
 			}
 		}
 	}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -879,33 +888,33 @@ void PVT::FormModel()
 
 	int32 lcv;
 	double relvel, range;
-	
+
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 
 		if(good_channels[lcv])
 		{
-			range =	sqrt( 	(temp_nav.x - sv_positions[lcv].x)*(temp_nav.x - sv_positions[lcv].x) +  		
-							(temp_nav.y - sv_positions[lcv].y)*(temp_nav.y - sv_positions[lcv].y) + 
+			range =	sqrt( 	(temp_nav.x - sv_positions[lcv].x)*(temp_nav.x - sv_positions[lcv].x) +
+							(temp_nav.y - sv_positions[lcv].y)*(temp_nav.y - sv_positions[lcv].y) +
 					   		(temp_nav.z - sv_positions[lcv].z)*(temp_nav.z - sv_positions[lcv].z) );
-				
+
 			pseudorangeres[lcv] = pseudoranges[lcv].meters - (range + temp_nav.clock_bias - sv_positions[lcv].clock_bias*SPEED_OF_LIGHT);
 
 			dircos[lcv][0] = (temp_nav.x - sv_positions[lcv].x)/range;
 			dircos[lcv][1] = (temp_nav.y - sv_positions[lcv].y)/range;
 			dircos[lcv][2] = (temp_nav.z - sv_positions[lcv].z)/range;
-			dircos[lcv][3] = 1.0;	
-			
-			relvel	 = 			dircos[lcv][0] * (temp_nav.vx - sv_positions[lcv].vx) + 
-				      			dircos[lcv][1] * (temp_nav.vy - sv_positions[lcv].vy) +
-				      			dircos[lcv][2] * (temp_nav.vz - sv_positions[lcv].vz);  
+			dircos[lcv][3] = 1.0;
 
-		    pseudorangerateres[lcv] = pseudoranges[lcv].meters_rate - (relvel +  temp_nav.clock_rate  - sv_positions[lcv].frequency_bias*SPEED_OF_LIGHT); 
-		
+			relvel	 = 			dircos[lcv][0] * (temp_nav.vx - sv_positions[lcv].vx) +
+				      			dircos[lcv][1] * (temp_nav.vy - sv_positions[lcv].vy) +
+				      			dircos[lcv][2] * (temp_nav.vz - sv_positions[lcv].vz);
+
+		    pseudorangerateres[lcv] = pseudoranges[lcv].meters_rate - (relvel +  temp_nav.clock_rate  - sv_positions[lcv].frequency_bias*SPEED_OF_LIGHT);
+
 		} //end if good_channels
-	
-	}//end for 
-	
+
+	}//end for
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -919,14 +928,14 @@ void PVT::PVT_Estimation()
 	double D[MAX_CHANNELS];
 	double L[MAX_CHANNELS];
 	double sum;
-	 
-	nav_channels = master_nav.nav_channels;	 
-	 
+
+	nav_channels = master_nav.nav_channels;
+
 	k = 0;
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		if(good_channels[lcv])
-		{	
+		{
 			L[k] = pseudorangeres[lcv];
 			D[k] = pseudorangerateres[lcv];
 			alpha[k] = dircos[lcv];
@@ -948,7 +957,7 @@ void PVT::PVT_Estimation()
 
 	/* Invert alpha_2 */
 	inv = Invert4x4(alpha_2, alpha_inv);
-		
+
 	/* alpha_pinv = inv(A'A)*A' */
 	for(i = 0; i < 4; i++)
 	{
@@ -960,7 +969,7 @@ void PVT::PVT_Estimation()
 			alpha_pinv[i][j] = sum;
 		}
 	}
-	
+
 	/* Estimate Postion and Clock Bias Updates */
 	//dR = A_pinv*L;
 	for(i = 0; i < 4; i++)
@@ -970,13 +979,13 @@ void PVT::PVT_Estimation()
 			sum += alpha_pinv[i][k]*L[k];
 		dr[i] = sum;
 	}
-	
+
 	/* Update Postion and Clock Bias */
 	temp_nav.x += dr[0];
 	temp_nav.y += dr[1];
 	temp_nav.z += dr[2];
 	temp_nav.clock_bias += dr[3];
-		
+
 	/* Estimate Velocity and Clock Rate Updates	 */
 	//dR = A_pinv*D
 	for(i = 0; i < 4; i++)
@@ -986,7 +995,7 @@ void PVT::PVT_Estimation()
 			sum += alpha_pinv[i][k]*D[k];
 		dr[i] = sum;
 	}
-	
+
 	/* Update Velocity and Clock Rate */
 	temp_nav.vx += dr[0];
 	temp_nav.vy += dr[1];
@@ -1000,11 +1009,11 @@ void PVT::PVT_Estimation()
 /*----------------------------------------------------------------------------------------------*/
 bool PVT::PostErrorCheck()
 {
-	
+
 	double rpos, rvel;
 	double rp;
 	double rv;
-	
+
 	/* Catch any serious errors */
 	if(isnan(temp_nav.x) || isnan(temp_nav.y) || isnan(temp_nav.z))
 		return(false);
@@ -1020,27 +1029,27 @@ bool PVT::PostErrorCheck()
 
 	/* Limit radius to 20 Re */
 	rpos = 6356.75e3*20;
-	
+
 	/* Limit velocity to 20 km/s */
 	rvel = 20e3;
 
 	/* Check for a position and velocity */
 	rp = sqrt(temp_nav.x  * temp_nav.x  + temp_nav.y  * temp_nav.y  + temp_nav.z  * temp_nav.z);
 	rv = sqrt(temp_nav.vx * temp_nav.vx + temp_nav.vy * temp_nav.vy + temp_nav.vz * temp_nav.vz);
-	
+
 	if(rp > rpos)
 		return(false);
-		
+
 	if(rv > rvel)
 		return(false);
 
 	/* Limit clock rate to 1 km/s */
 	if(temp_nav.clock_rate > 1e3)
 		return(false);
-	
+
 	/* Compute residuals */
 	Residuals();
-	
+
 	/* Check for convergence */
 	if(Converged())
 	{
@@ -1049,12 +1058,12 @@ bool PVT::PostErrorCheck()
 		master_nav.y = temp_nav.y;
 		master_nav.z = temp_nav.z;
 		master_nav.clock_bias = temp_nav.clock_bias;
-			
+
 		master_nav.vx = temp_nav.vx;
 		master_nav.vy = temp_nav.vy;
 		master_nav.vz = temp_nav.vz;
 		master_nav.clock_rate = temp_nav.clock_rate;
-			
+
 		return(true);
 	}
 	else
@@ -1070,32 +1079,32 @@ void PVT::Residuals()
 
 	int32 lcv;
 	double range, dx, dy, dz, relvel;
-	
+
 	/* Pseudorange Residuals */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		if(good_channels[lcv])
 		{
-			range      =  	sqrt(	(temp_nav.x - sv_positions[lcv].x)*(temp_nav.x - sv_positions[lcv].x) +  		
-						   			(temp_nav.y - sv_positions[lcv].y)*(temp_nav.y - sv_positions[lcv].y) + 
+			range      =  	sqrt(	(temp_nav.x - sv_positions[lcv].x)*(temp_nav.x - sv_positions[lcv].x) +
+						   			(temp_nav.y - sv_positions[lcv].y)*(temp_nav.y - sv_positions[lcv].y) +
 						   			(temp_nav.z - sv_positions[lcv].z)*(temp_nav.z - sv_positions[lcv].z)	);
 
-			
+
 			pseudoranges[lcv].residual = pseudoranges[lcv].meters - (range + temp_nav.clock_bias - sv_positions[lcv].clock_bias*SPEED_OF_LIGHT);
-			
+
 			dx = (temp_nav.x - sv_positions[lcv].x)/range;
 			dy = (temp_nav.y - sv_positions[lcv].y)/range;
 			dz = (temp_nav.z - sv_positions[lcv].z)/range;
-			
-			relvel	 = 			dx * (temp_nav.vx - sv_positions[lcv].vx) + 
+
+			relvel	 = 			dx * (temp_nav.vx - sv_positions[lcv].vx) +
 				      			dy * (temp_nav.vy - sv_positions[lcv].vy) +
-				      			dz * (temp_nav.vz - sv_positions[lcv].vz); 
-			
-			pseudoranges[lcv].rate_residual = pseudoranges[lcv].meters_rate - (relvel + temp_nav.clock_rate - sv_positions[lcv].frequency_bias*SPEED_OF_LIGHT);	
-			
+				      			dz * (temp_nav.vz - sv_positions[lcv].vz);
+
+			pseudoranges[lcv].rate_residual = pseudoranges[lcv].meters_rate - (relvel + temp_nav.clock_rate - sv_positions[lcv].frequency_bias*SPEED_OF_LIGHT);
+
 		}
 	}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -1106,7 +1115,7 @@ bool PVT::Converged()
 	int32 lcv;
 	double k = 0.0;
 	double residual_avg = 0.0;
-	
+
 	/* Check residuals? */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -1116,7 +1125,7 @@ bool PVT::Converged()
 			k += 1.0;
 		}
 	}
-			
+
 	if(k > 0.0)
 	{
 		residual_avg /= k;
@@ -1146,7 +1155,7 @@ void PVT::LatLong()
 
 	float a = 6378137;
 	float b = 6356752.314;
-	float eprime2 = 0.00673949681994; 
+	float eprime2 = 0.00673949681994;
 	float e2 = 0.00669438006676;
 	float p;
 	float theta;
@@ -1156,16 +1165,16 @@ void PVT::LatLong()
 	float altitude;
 
 	p			= sqrt(master_nav.x*master_nav.x + master_nav.y*master_nav.y);
-	
+
 	theta		= atan( (master_nav.z*a)/ (p*b) );
-	
+
 	latitude	= atan( (master_nav.z+eprime2*b*sin(theta)*sin(theta)*sin(theta)) /
 						(p-e2*a*cos(theta)*cos(theta)*cos(theta))  );
-						
+
 	longitude	= atan2( master_nav.y/p, master_nav.x/p);
-	
+
 	N			= a*a / sqrt(a*a*cos(latitude)*cos(latitude) + b*b*sin(latitude)*sin(latitude));
-	
+
 	altitude	= p/cos(latitude) - N;
 
 	master_nav.latitude	 = latitude;
@@ -1210,25 +1219,25 @@ void PVT::DOP()
 	verx = master_nav.x/temp;
 	very = master_nav.y/temp;
 	verz = master_nav.z/temp;
-	
+
 	/* vertical DOP */
 	vdop = 0.0;
 	for (lcv2 = 0; lcv2 < nav_channels; lcv2++)
 	{
-		vdop += (alpha_pinv[0][lcv2] * verx + alpha_pinv[1][lcv2] * very + alpha_pinv[2][lcv2] * verz) * 
+		vdop += (alpha_pinv[0][lcv2] * verx + alpha_pinv[1][lcv2] * very + alpha_pinv[2][lcv2] * verz) *
 				(alpha_pinv[0][lcv2] * verx + alpha_pinv[1][lcv2] * very + alpha_pinv[2][lcv2] * verz);
 	}
 
 	/* other DOPS */
 	gdop = pdop + tdop;
 	hdop = pdop - vdop;
-	
+
 	master_nav.gdop = sqrt(gdop);
 	master_nav.pdop = sqrt(pdop);
 	master_nav.tdop = sqrt(tdop);
 	master_nav.hdop = sqrt(hdop);
 	master_nav.vdop = sqrt(vdop);
-  
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -1238,7 +1247,7 @@ void PVT::Reset()
 {
 
 	int32 lcv;
-	
+
 	/* Reset to center of the earth	 */
 	memset(&master_clock,0x0,sizeof(Clock_S));
 	memset(&master_nav,0x0,sizeof(Nav_Solution_S));
@@ -1246,7 +1255,7 @@ void PVT::Reset()
 	/* Reset Each Channel */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		Reset(lcv);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -1263,13 +1272,13 @@ void PVT::Reset(int32 _chan)
 
 	/* Reset Error Codes */
 	sv_codes[_chan] = INACTIVE;
-	
+
 	/* Zero out data associated with SV */
-	memset(&measurements[_chan], 0x0, sizeof(Measurement_S));	
+	memset(&measurements[_chan], 0x0, sizeof(Measurement_S));
 	memset(&sv_positions[_chan], 0x0, sizeof(SV_Position_S));
 	memset(&pseudoranges[_chan], 0x0, sizeof(Pseudorange_S));
 	memset(&ephemerides[_chan],  0x0, sizeof(Ephemeris_S));
-	
+
 	good_channels[_chan] = false;
 
 }
@@ -1279,19 +1288,19 @@ void PVT::Reset(int32 _chan)
 /*----------------------------------------------------------------------------------------------*/
 double PVT::GPSTime()
 {
-	
+
 	double epochdiff = 315964819;	//Difference in zero epochs
 	double offest = 10;				//Unix to TAI;
 	double leap_seconds = 23;		//TAI to UTC/GPS
 	double gps_second;
 	timeval tv;
-		
+
 	gettimeofday(&tv, NULL);
-	
+
 	gps_second = (double)tv.tv_sec + (double)tv.tv_usec * 1e-6;
 	gps_second -= epochdiff;
 	gps_second = fmod(gps_second,SECONDS_IN_WEEK);
-	
+
 	return(gps_second);
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -1329,39 +1338,39 @@ void PVT::Raim()
 		{
 			/* Set to false */
 			good_channels[lcv] = false;
-			
+
 			/* Redo PVT calculation */
 			FormModel();
 			PVT_Estimation();
-			Residuals();			
-			
+			Residuals();
+
 			residual_sum = 0;
-			
+
 			/* Check residuals? */
 			for(lcv2 = 0; lcv2 < MAX_CHANNELS; lcv2++)
 				if(good_channels[lcv2])
 					residual_sum += fabs(pseudoranges[lcv2].residual);
 
-			/* Minimize the residuals */					
+			/* Minimize the residuals */
 			if(residual_sum > max_sum)
 			{
 				max_index = lcv;
 				residual_sum = max_sum;
 			}
-			
-			good_channels[lcv] = true;					
+
+			good_channels[lcv] = true;
 		}
-	}	
+	}
 
 	/* Set to false */
 	good_channels[max_index] = false;
 	sv_codes[max_index] = RAIM_ERR;
-				
+
 	/* Redo PVT calculation */
 	FormModel();
 	PVT_Estimation();
-	Residuals();			
-	
+	Residuals();
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -1369,17 +1378,17 @@ void PVT::Raim()
 /*----------------------------------------------------------------------------------------------*/
 void PVT::WritePVT()
 {
-	
+
 	FILE *fp;
-	
+
 	fp = fopen("lastpvt.txt","wt");
 
 	if(fp != NULL)
-	{	
+	{
 		fprintf(fp,"X:\t%.16e\n",master_nav.x);
 		fprintf(fp,"Y:\t%.16e\n",master_nav.y);
 		fprintf(fp,"Z:\t%.16e\n",master_nav.z);
-		fprintf(fp,"B:\t%.16e\n",master_nav.clock_bias);		
+		fprintf(fp,"B:\t%.16e\n",master_nav.clock_bias);
 		fprintf(fp,"VX:\t%.16e\n",master_nav.vx);
 		fprintf(fp,"VY:\t%.16e\n",master_nav.vy);
 		fprintf(fp,"VZ:\t%.16e\n",master_nav.vz);
@@ -1388,7 +1397,7 @@ void PVT::WritePVT()
 		fprintf(fp,"LONG:\t%.16e\n",master_nav.longitude);
 		fprintf(fp,"ALT:\t%.16e\n",master_nav.altitude);
 	}
-	
+
 }
 /*----------------------------------------------------------------------------------------------*
 
@@ -1396,17 +1405,17 @@ void PVT::WritePVT()
 /*----------------------------------------------------------------------------------------------*/
 void PVT::ReadPVT()
 {
-	
+
 	FILE *fp;
-	
+
 	fp = fopen("lastpvt.txt","rt");
 
 	if(fp != NULL)
-	{	
+	{
 		fscanf(fp,"X: %le\n",&master_nav.x);
 		fscanf(fp,"Y: %le\n",&master_nav.y);
 		fscanf(fp,"Z: %le\n",&master_nav.z);
-		fscanf(fp,"B: %le\n",&master_nav.clock_bias);		
+		fscanf(fp,"B: %le\n",&master_nav.clock_bias);
 		fscanf(fp,"VX: %le\n",&master_nav.vx);
 		fscanf(fp,"VY: %le\n",&master_nav.vy);
 		fscanf(fp,"VZ: %le\n",&master_nav.vz);
@@ -1414,8 +1423,8 @@ void PVT::ReadPVT()
 		fscanf(fp,"LAT: %le\n",&master_nav.latitude);
 		fscanf(fp,"LONG: %le\n",&master_nav.longitude);
 		fscanf(fp,"ALT: %le\n",&master_nav.altitude);
-	}	
-	
+	}
+
 }
 /*----------------------------------------------------------------------------------------------*/
 

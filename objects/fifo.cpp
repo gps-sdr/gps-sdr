@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -25,7 +25,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 void *FIFO_Thread(void *_arg)
 {
-	
+
 	FIFO *aFIFO = pFIFO;
 
 	aFIFO->Open();
@@ -34,9 +34,9 @@ void *FIFO_Thread(void *_arg)
 	{
 		aFIFO->Inport();
 	}
-	
+
 	pthread_exit(0);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -44,25 +44,25 @@ void *FIFO_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void FIFO::Start()
 {
-	
+
 	pthread_attr_t tattr;
 	pthread_t tid;
 	int32 ret;
 	sched_param param;
-	
+
 	/* Unitialized with default attributes */
 	ret = pthread_attr_init(&tattr);
-	
+
 	/*Ssafe to get existing scheduling param */
 	ret = pthread_attr_getschedparam(&tattr, &param);
-	
+
 	/* Set the priority; others are unchanged */
 	param.sched_priority = FIFO_PRIORITY;
 	ret = pthread_attr_setschedparam (&tattr, &param);
 	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-	
+
 	pthread_create(&thread, NULL, FIFO_Thread, NULL);
-	
+
 	if(gopt.verbose)
 		printf("FIFO thread started\n");
 }
@@ -73,7 +73,7 @@ void FIFO::Start()
 void FIFO::Stop()
 {
 	pthread_join(thread, NULL);
-	
+
 	if(gopt.verbose)
 		printf("FIFO thread stopped\n");
 }
@@ -92,32 +92,32 @@ void FIFO::SetScale(int32 _agc_scale)
 FIFO::FIFO()
 {
 	int32 lcv;
-	
+
 	/* Create the buffer */
 	buff = new ms_packet[FIFO_DEPTH];
-	
+
 	memset(buff, 0x0, sizeof(ms_packet)*FIFO_DEPTH);
-	
+
 	head = &buff[0];
 	tail = &buff[0];
-	
+
 	for(lcv = 0; lcv < FIFO_DEPTH-1; lcv++)
 		buff[lcv].next = &buff[lcv+1];
-		
+
 	buff[FIFO_DEPTH-1].next = &buff[0];
-		
+
 	/* Buffer for the raw IF data */
 	if_buff = new CPX[IF_SAMPS_MS];
-	
+
 	/* Make pipe write non-blocking, this is to prevent the USRP from overflowing,
 	 * which hoses the data steam. It is up to the CLIENT to make sure it is
 	 * receiving continguous data packets */
 	//fcntl(npipe, F_SETFL, O_NONBLOCK);
 
 	tic = overflw = count = 0;
-	
+
 	agc_scale = 1 << AGC_BITS;
-	
+
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_unlock(&mutex);
 
@@ -125,11 +125,11 @@ FIFO::FIFO()
 	{
 		pthread_mutex_init(&chan_mutex[lcv], NULL);
 		pthread_mutex_unlock(&chan_mutex[lcv]);
-	}	
- 	
+	}
+
 	if(gopt.verbose)
 		printf("Creating FIFO\n");
-		
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -138,22 +138,31 @@ FIFO::FIFO()
 FIFO::~FIFO()
 {
 	int32 lcv;
-	
-	pthread_mutex_destroy(&mutex);	
-	
+
+	pthread_mutex_destroy(&mutex);
+
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		pthread_mutex_destroy(&chan_mutex[lcv]);	
+		pthread_mutex_destroy(&chan_mutex[lcv]);
 	}
-	
+
 	delete [] if_buff;
 	delete [] buff;
-	
+
 	close(npipe);
-	
+
 	if(gopt.verbose)
 		printf("Destructing FIFO\n");
-	
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void kill_program(int _sig)
+{
+	grun = false;
+	printf("Lost USRP-GPS!\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -162,20 +171,21 @@ FIFO::~FIFO()
 void FIFO::Inport()
 {
 	int32 lcv;
-	char *p;	
-	int32 nbytes, bread, bytes_per_read, agc_scale_p = agc_scale;	
+	char *p;
+	int32 nbytes, bread, bytes_per_read, agc_scale_p = agc_scale;
 
 	bytes_per_read = IF_SAMPS_MS*sizeof(CPX);
-	
+
 	/* Get data from pipe (1 ms) */
 	nbytes = 0; p = (char *)&if_buff[0];
 	while((nbytes < bytes_per_read) && grun)
 	{
+		signal(SIGPIPE, kill_program);
 		bread = read(npipe, &p[nbytes], PIPE_BUF);
 		if(bread >= 0)
 			nbytes += bread;
 	}
-	
+
 	/* Add to the buff */
 	if(gopt.realtime && count == 0)
 	{
@@ -187,12 +197,12 @@ void FIFO::Inport()
 	}
 	else
 	{
-		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);	
+		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
 		Enqueue();
-	}		
+	}
 
 	/* Resample? */
-	count++;	
+	count++;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -200,12 +210,12 @@ void FIFO::Inport()
 /*----------------------------------------------------------------------------------------------*/
 void FIFO::Enqueue()
 {
-	
+
 	Lock();
-	
+
 	int32 lcv;
 	ms_packet *p;
-	
+
 	if(head->next == tail)
 	{
 		overflw++;
@@ -225,10 +235,10 @@ void FIFO::Enqueue()
 		}
 		else
 			head->measurement = 0;
-	
+
 		for(lcv = 0; lcv < (MAX_CHANNELS+1); lcv++)
 			head->accessed[lcv] = 666;
-		
+
 		head = head->next;
 	}
 
@@ -249,7 +259,7 @@ void FIFO::Dequeue(int32 _resource, ms_packet *p)
 	{
 		memcpy(p, tail, sizeof(ms_packet));
 		tail->accessed[_resource] = 333;
-	}		
+	}
 
 	complete = 1;
 
@@ -267,48 +277,48 @@ void FIFO::Dequeue(int32 _resource, ms_packet *p)
 	{
 		for(lcv = 0; lcv < MAX_CHANNELS+1; lcv++)
 			tail->accessed[lcv] = 0;
-		
+
 //		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 //			pthread_mutex_unlock(&chan_mutex[_resource]);
-		
+
 		if(tail->measurement)
-		{	
+		{
 			telem.tic = tail->measurement;
 			telem.count = count;
 			telem.head = ((uint32)head - (uint32)&buff[0])/sizeof(ms_packet);
 			telem.tail = ((uint32)tail - (uint32)&buff[0])/sizeof(ms_packet);
 			telem.agc_scale = agc_scale;
 			telem.overflw = overflw;
-			
+
 			write(FIFO_2_Telem_P[WRITE], &telem, sizeof(FIFO_2_Telem_S));
 			write(FIFO_2_PVT_P[WRITE], &telem, sizeof(FIFO_2_Telem_S));
 
-			tail->measurement = 0;					
+			tail->measurement = 0;
 		}
-	
+
 		if(tail->next != head)
 			tail = tail->next;
 	}
-	
+
 	Unlock();
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
-	
+
 /*----------------------------------------------------------------------------------------------*/
 void FIFO::Open()
 {
-	
+
 	/* Open the USRP_Uno pipe to get IF data */
 	if(gopt.verbose)
 		printf("Opening GPS pipe.\n");
-		
+
 	npipe = open("/tmp/GPSPIPE",O_RDONLY);
-	
+
 	if(gopt.verbose)
 		printf("GPS pipe open.\n");
-		
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
