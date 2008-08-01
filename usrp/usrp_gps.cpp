@@ -795,6 +795,10 @@ void write_pipe(CPX *_buff, int _npipe, int _bytes)
 		{
 			nbytes += bwrote;
 		}
+		else
+		{
+			break;
+		}
 	}
 
 }
