@@ -57,9 +57,9 @@ OBJS =		init.o			\
 #			acq_test.dis 
 
 EXE =		gps-sdr			\
-			simd_test		
-#			fft_test		\
-#			acq_test		
+			simd-test		
+#			fft-test		\
+#			acq-test		
 			
 
 All: $(EXE)
@@ -67,14 +67,14 @@ All: $(EXE)
 gps-sdr: main.o $(OBJS) $(DIS) $(HEADERS)
 	 $(LINK) $(LDFLAGS) -o $@ main.o $(OBJS)
 
-fft_test: fft_test.o $(OBJS)
-	 $(LINK) $(LDFLAGS) -o $@ fft_test.o $(OBJS)
+simd-test: simd-test.o $(OBJS)
+	 $(LINK) $(LDFLAGS) -o $@ simd-test.o $(OBJS)
 
-simd_test: simd_test.o $(OBJS)
-	 $(LINK) $(LDFLAGS) -o $@ simd_test.o $(OBJS)
+fft-test: fft-test.o $(OBJS)
+	 $(LINK) $(LDFLAGS) -o $@ fft-test.o $(OBJS)
 	 
-acq_test: acq_test.o $(OBJS)
-	 $(LINK) $(LDFLAGS) -o $@ acq_test.o $(OBJS)
+acq-test: acq-test.o $(OBJS)
+	 $(LINK) $(LDFLAGS) -o $@ acq-test.o $(OBJS)
 	 
 %.o:%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@ 

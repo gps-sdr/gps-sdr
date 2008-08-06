@@ -18,13 +18,13 @@ HEADERS =   db_dbs_rx.h
 
 OBJS =		db_dbs_rx.o
 
-EXE =		usrp_gps
+EXE =		usrp-gps
 
 # All Target
 all: $(EXE)
 
-usrp_gps: usrp_gps.o $(OBJS)
-	 $(LINK) $(LDFLAGS) -o $@ usrp_gps.o $(OBJS)
+usrp-gps: usrp-gps.o $(OBJS)
+	 $(LINK) $(LDFLAGS) -o $@ usrp-gps.o $(OBJS)
 
 %.o:%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@ 
