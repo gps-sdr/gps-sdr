@@ -331,11 +331,11 @@ void init_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 			max = p[lcv];
 	}
 
-//	if(max < (1 << AGC_BITS))
-//		max = 1 << AGC_BITS;
-//
-//	if(max > (1 << (15+AGC_BITS)))
-//		max = (1 << (15+AGC_BITS));
+	if(max < (1 << AGC_BITS))
+		max = 1 << AGC_BITS;
+
+	if(max > (1 << (8+AGC_BITS)))
+		max = (1 << (8+AGC_BITS));
 
 	if(max > scale[0])
 		scale[0] = max;

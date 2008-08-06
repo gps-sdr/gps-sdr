@@ -96,6 +96,7 @@ void usage(char *_str)
 	fprintf(stderr, "[-l] operate in L1-L2 mode, A as L1, B as L2\n");
 	fprintf(stderr, "[-w] <bandwidth> bandwidth of lowpass filter\n");
 	fprintf(stderr, "[-v] output extra debug info\n");
+	fprintf(stderr, "[-r] dump data to disk\n");
 	fprintf(stderr, "[-c] the USRP samples at a modified 65.536 MHz (default is 64 MHz)\n");
 	fflush(stderr);
 
@@ -288,6 +289,10 @@ int main(int argc, char **argv)
 
 			case 'v':
 				record_options.verbose = 1;
+				break;
+
+			case 'r':
+				record_options.record = 1;
 				break;
 
 			default:
@@ -589,6 +594,7 @@ void *fifo_thread(void *arg)
 
 	options *_opt = (options *)arg;
 	int fifo, npipe, lcv, bwrite, filled, empty;
+	FILE *fp_out = NULL;
 
 	CPX buff[16384]; //Base buffer
 	CPX db_a[16384]; //Buffer for double buffering
@@ -596,6 +602,9 @@ void *fifo_thread(void *arg)
 
 	int leftover;
 	int sample_mode;
+
+	if(_opt->record)
+		fp_out = fopen("gps.dba","wb");
 
 	if(_opt->f_sample == 65.536e6)
 	{
@@ -687,6 +696,10 @@ void *fifo_thread(void *arg)
 			case 0:
 				resample(buff, buff_out, _opt);
 				write_pipe(buff_out, npipe, bwrite);
+
+				if(_opt->record)
+					fwrite(buff_out, 0x1, bwrite, fp_out);
+
 				leftover = 0;
 				break;
 			case 1:
@@ -695,6 +708,9 @@ void *fifo_thread(void *arg)
 				{
 					resample(buff, buff_out, _opt);
 					write_pipe(buff_out, npipe, bwrite);
+
+					if(_opt->record)
+						fwrite(buff_out, 0x1, bwrite, fp_out);
 				}
 				break;
 			case 2:
@@ -703,17 +719,22 @@ void *fifo_thread(void *arg)
 				resample(buff, buff_out, _opt);
 				write_pipe(buff_out, npipe, bwrite);
 
+				if(_opt->record)
+					fwrite(buff_out, 0x1, bwrite, fp_out);
+
 				/* Move excess bytes at end of buffer down to the base */
 				memcpy(db_a, &buff[4000], leftover*sizeof(int));
 				memcpy(buff, db_a, leftover*sizeof(int));
 
 				if(leftover > 4000)
 				{
-
 					resample(buff, buff_out, _opt);
 					write_pipe(buff_out, npipe, bwrite);
-					leftover -= 4000;
 
+					if(_opt->record)
+						fwrite(buff_out, 0x1, bwrite, fp_out);
+
+					leftover -= 4000;
 					memcpy(db_a, &buff[4000], leftover*sizeof(int));
 					memcpy(buff, db_a, leftover*sizeof(int));
 				}
@@ -725,6 +746,9 @@ void *fifo_thread(void *arg)
 				resample(buff, buff_out, _opt);
 				write_pipe(buff_out, npipe, bwrite);
 
+				if(_opt->record)
+					fwrite(buff_out, 0x1, bwrite, fp_out);
+
 				/* Move excess bytes at end of buffer down to the base */
 				memcpy(db_a, &buff[8000], leftover*sizeof(int));
 				memcpy(buff, db_a, leftover*sizeof(int));
@@ -734,8 +758,11 @@ void *fifo_thread(void *arg)
 
 					resample(buff, buff_out, _opt);
 					write_pipe(buff_out, npipe, bwrite);
-					leftover -= 8000;
 
+					if(_opt->record)
+						fwrite(buff_out, 0x1, bwrite, fp_out);
+
+					leftover -= 8000;
 					memcpy(db_a, &buff[8000], leftover*sizeof(int));
 					memcpy(buff, db_a, leftover*sizeof(int));
 				}
@@ -761,6 +788,9 @@ void *fifo_thread(void *arg)
 
 
 	close(npipe);
+
+	if(_opt->record)
+		fclose(fp_out);
 
 	if(_opt->verbose)
 		printf("FIFO thread stop\n");

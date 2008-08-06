@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -25,7 +25,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 void *Post_Process_Thread(void *_arg)
 {
-	
+
 	Post_Process *aPost_Process = pPost_Process;
 
 	aPost_Process->Open();
@@ -35,9 +35,9 @@ void *Post_Process_Thread(void *_arg)
 		aPost_Process->Inport();
 		aPost_Process->Export();
 	}
-	
+
 	pthread_exit(0);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -62,45 +62,51 @@ void Post_Process::Stop()
 Post_Process::Post_Process(char *_fname)
 {
 	int32 lcv, k, type, agc_scale;
-		
+
 	buff_in = new CPX[310*IF_SAMPS_MS];
 	buff = new CPX[310*SAMPS_MS];
 	memset(&results[0], 0x0, NUM_CODES*sizeof(Acq_Result_S));
 	Acq_Result_S *p;
-	
+
+	agc_scale = 0;
+
 	/* Create named pipe */
 	fifo = mkfifo("/tmp/GPSPIPE", 0666);
 
-	/* Open the source file */	
+	/* Open the source file */
 	strcpy(fname, _fname);
 	fp = fopen(fname, "rb");
-	
+	if(fp == NULL)
+		printf("Could not open %s for reading\n",fname);
+
 	/* First read in several seconds of data */
-	fread(buff_in, sizeof(CPX), 310*IF_SAMPS_MS, fp);
-	
+	fread(&buff_in[0], sizeof(CPX), 310*IF_SAMPS_MS, fp);
+
 	/* Rewind the data */
 	fseek(fp, 0x0, SEEK_SET);
-			
+
 	/* Downsample to 2048 samps/ms */
-	downsample(buff, buff_in, SAMPLE_FREQUENCY, IF_SAMPLE_FREQUENCY, IF_SAMPS_MS*310); 
+	downsample(buff, buff_in, SAMPLE_FREQUENCY, IF_SAMPLE_FREQUENCY, IF_SAMPS_MS*310);
 
 	/* Init the AGC scale value */
 	init_agc(&buff[0], SAMPS_MS, AGC_BITS, &agc_scale);
-	
-	/* Now actually run the AGC */		
-	for(lcv = 0; lcv < 310; lcv++)		
-		run_agc(&buff[lcv*SAMPS_MS], SAMPS_MS, AGC_BITS, &agc_scale);	
+
+	/* Now actually run the AGC */
+	for(lcv = 0; lcv < 310; lcv++)
+		run_agc(&buff[lcv*SAMPS_MS], SAMPS_MS, AGC_BITS, &agc_scale);
 
 	pFIFO->SetScale(agc_scale);
-	
+	printf("AGC Scale: %d\n",agc_scale);
+
+
 	printf("Type   SV        Delay      Doppler             Power    Detected\n");
 	printf("-----------------------------------------------------------------\n");
-	
+
 	/* Now do the acquisition(s) */
 	for(type = 0; type < 1; type++)
 	{
 		pAcquisition->doPrepIF(type, buff);
-			
+
 		for(lcv = 0; lcv < NUM_CODES; lcv++)
 		{
 			if(results[lcv].success == 0)
@@ -111,16 +117,16 @@ Post_Process::Post_Process(char *_fname)
 					results[lcv] = pAcquisition->doAcqMedium(lcv, gopt.doppler_min, gopt.doppler_max);
 				else
 					results[lcv] = pAcquisition->doAcqWeak(lcv, gopt.doppler_min, gopt.doppler_max);
-					
+
 				p = &results[lcv];
 				printf("  %02d,  %02d,  %10.2f,  %10.0f,  %15.0f,          %1d\n",p->type,lcv+1,p->delay,p->doppler,p->magnitude,p->success);
 			}
-					
+
 		}
-	}	
-	
+	}
+
 	pAcquisition->Export("AcqPP.txt");
-	
+
 	/* For the detected SVs, start up correlators */
 	k = 0;
 	for(lcv = 0; lcv < NUM_CODES; lcv++)
@@ -133,10 +139,10 @@ Post_Process::Post_Process(char *_fname)
 				break;
 		}
 	}
-	
+
 	if(gopt.verbose)
 		printf("Creating Post_Process\n");
-	
+
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -149,9 +155,9 @@ Post_Process::~Post_Process()
 	close(npipe);
 	delete [] buff;
 	delete [] buff_in;
-	
+
 	if(gopt.verbose)
-		printf("Destructing Post_Process\n");	
+		printf("Destructing Post_Process\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -162,7 +168,7 @@ void Post_Process::Inport()
 
 	fread(&buff[0], sizeof(CPX), IF_SAMPS_MS, fp);
 	if(feof(fp))
-		grun = false; 
+		grun = false;
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -180,7 +186,7 @@ void Post_Process::Parse()
 void Post_Process::Export()
 {
 //
-//	int32 nbytes, bwrote, bread;; 
+//	int32 nbytes, bwrote, bread;;
 //	char *pbuff;
 //
 //	bread = IF_SAMPS_MS*sizeof(CPX);
@@ -190,12 +196,12 @@ void Post_Process::Export()
 //	while((nbytes < bread) && grun)
 //	{
 //		bwrote = write(npipe, buff[nbytes], PIPE_BUF);
-//		
+//
 //		signal(SIGPIPE, SIG_IGN);
 //		if(bwrote > 0)
 //			nbytes += bwrote;
-//	}	
-//	
+//	}
+//
 	write(npipe, &buff[0], sizeof(CPX)*IF_SAMPS_MS);
 	usleep(250);
 }
@@ -205,9 +211,9 @@ void Post_Process::Export()
 /*----------------------------------------------------------------------------------------------*/
 void Post_Process::Open()
 {
-	
+
 	npipe = open("/tmp/GPSPIPE", O_WRONLY);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 

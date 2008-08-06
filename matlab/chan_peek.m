@@ -58,7 +58,7 @@ ylabel('I^{2}+Q^{2}');
 subplot(313)
 plot(A(:,21)-1.023e6) 
 hold on;
-plot(A(:,22)*1.023e6/2.05e9,'r')
+plot(A(:,22)*1.023e6/1.57542e9,'r')
 hold off; grid on;
 ylabel('Code NCO');
 
