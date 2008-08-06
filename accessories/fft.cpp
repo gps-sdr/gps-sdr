@@ -19,7 +19,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "includes.h"
 
-#define NO_SIMD
+//#define NO_SIMD
 
 #ifdef NO_SIMD
 	void rank(CPX *_A, CPX *_B, MIX *_W, int32 _nblocks, int32 _bsize);
@@ -31,10 +31,10 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 	void bfly_noscale(CPX *_A, CPX *_B, MIX *_W);
 	void bflydf_noscale(CPX *_A, CPX *_B, MIX *_W);
 #else
-	void rank(CPX *_A, CPX *_B, MIX *_W, int32 _nblocks, int32 _bsize)  __attribute__ ((noinline));;
-	void rankdf(CPX *_A, CPX *_B, MIX *_W, int32 _nblocks, int32 _bsize)  __attribute__ ((noinline));;
-	void rank_noscale(CPX *_A, CPX *_B, MIX *_W, int32 _nblocks, int32 _bsize)  __attribute__ ((noinline));;
-	void rankdf_noscale(CPX *_A, CPX *_B, MIX *_W, int32 _nblocks, int32 _bsize)  __attribute__ ((noinline));;
+	void rank(CPX *_A, CPX *_B, MIX *_W, int32 _nblocks, int32 _bsize)  __attribute__ ((noinline));
+	void rankdf(CPX *_A, CPX *_B, MIX *_W, int32 _nblocks, int32 _bsize)  __attribute__ ((noinline));
+	void rank_noscale(CPX *_A, CPX *_B, MIX *_W, int32 _nblocks, int32 _bsize)  __attribute__ ((noinline));
+	void rankdf_noscale(CPX *_A, CPX *_B, MIX *_W, int32 _nblocks, int32 _bsize)  __attribute__ ((noinline));
 #endif
 
 FFT::FFT()

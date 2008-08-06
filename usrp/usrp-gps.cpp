@@ -37,6 +37,7 @@ typedef struct _options
 	int		mode;		//!< Run in a  2 antenna mode with 2 DBS-RXs, Run in a  2 antenna mode, board A L1, board B L2
 	int		verbose;	//!< Output debug info
 	int		decimate;	//!< Decimation level
+	int		record;		//!< Dump data to disk
 	double	f_lo_a;		//!< LO freq for board A
 	double	f_ddc_a;	//!< DDC freq for board A
 	double	f_lo_b;		//!< LO freq for board B
@@ -88,7 +89,7 @@ pthread_mutex_t mFIFO;
 void usage(char *_str)
 {
 
-	fprintf(stderr, "usage: [-gr] [-gi] [-d] [-l] [-w] [-n]\n");
+	fprintf(stderr, "usage: [-gr] [-gi] [-d] [-l] [-w] [-v] [-c]\n");
 	fprintf(stderr, "[-gr] <gain> set rf gain in dB (DBSRX only)\n");
 	fprintf(stderr, "[-gi] <gain> set if gain in dB (DBSRX only)\n");
 	fprintf(stderr, "[-d] operate in two antenna mode, A & B as L1\n");
@@ -119,28 +120,28 @@ int echo_options(options *_opt)
 	switch(urx->daughterboard_id(0))
 	{
 		case 1:
-			fprintf(stdout,"Board A:\t\tBasic RX\n"); break;
+			fprintf(stdout,"Board A:\t\t\tBasic RX\n"); break;
 		case 2:
-			fprintf(stdout,"Board A:\t\tDBS RX\n"); break;
+			fprintf(stdout,"Board A:\t\t\t DBS RX\n"); break;
 		default:
-			fprintf(stdout,"Board A:\t\tUnknown\n"); break;
+			fprintf(stdout,"Board A:\t\t\tUnknown\n"); break;
 	}
 
 	switch(urx->daughterboard_id(1))
 	{
 		case 1:
-			fprintf(stdout,"Board A:\t\tBasic RX\n"); break;
+			fprintf(stdout,"Board B:\t\t\tBasic RX\n"); break;
 		case 2:
-			fprintf(stdout,"Board A:\t\tDBS RX\n"); break;
+			fprintf(stdout,"Board B:\t\t\t DBS RX\n"); break;
 		default:
-			fprintf(stdout,"Board A:\t\tUnknown\n"); break;
+			fprintf(stdout,"Board B:\t\t\tUnknown\n"); break;
 	}
 
 	switch(_opt->mode)
 	{
-		case 0: fprintf(stdout, "Single L1 mode		(L1->A)\n"); break;
-		case 1: fprintf(stdout, "Dual L1 mode		(L1->A L1->B)\n"); break;
-		case 2: fprintf(stdout, "Dual L1-L2C mode	(L1->A L2C->B)\n"); break;
+		case 0: fprintf(stdout, "Single L1 mode			(L1->A)\n"); break;
+		case 1: fprintf(stdout, "Dual L1 mode			(L1->A L1->B)\n"); break;
+		case 2: fprintf(stdout, "Dual L1-L2C mode		(L1->A L2C->B)\n"); break;
 	}
 
 	/* Error check based on the mode */
@@ -191,15 +192,15 @@ int echo_options(options *_opt)
 
 	}
 
-	fprintf(stdout, "USRP Sample Rate:\t%6.2f\n",_opt->f_sample);
-	fprintf(stdout, "USRP Decimation:\t%d\n",_opt->decimate);
-	fprintf(stdout, "DBSRX LO A:\t\t%f\n",_opt->f_lo_a);
-	fprintf(stdout, "DBSRX LO B:\t\t%f\n",_opt->f_lo_b);
-	fprintf(stdout, "DDC Frequency A:\t%f\n",_opt->f_ddc_a);
-	fprintf(stdout, "DDC Frequency B:\t%f\n",_opt->f_ddc_b);
-	fprintf(stdout, "RF Gain:\t\t%f\n",_opt->gr);
-	fprintf(stdout, "IF Gain:\t\t%f\n",_opt->gi);
-	fprintf(stdout, "DBSRX Bandwidth:\t%f\n",_opt->bandwidth);
+	fprintf(stdout, "USRP Sample Rate:\t% 15.2f\n",_opt->f_sample);
+	fprintf(stdout, "USRP Decimation:\t% 15d\n",_opt->decimate);
+	fprintf(stdout, "DBSRX LO A:\t\t% 15.2f\n",_opt->f_lo_a);
+	fprintf(stdout, "DBSRX LO B:\t\t% 15.2f\n",_opt->f_lo_b);
+//	fprintf(stdout, "DDC Frequency A:\t%f\n",_opt->f_ddc_a);
+//	fprintf(stdout, "DDC Frequency B:\t%f\n",_opt->f_ddc_b);
+	fprintf(stdout, "RF Gain:\t\t% 15.2f\n",_opt->gr);
+	fprintf(stdout, "IF Gain:\t\t% 15.2f\n",_opt->gi);
+	fprintf(stdout, "DBSRX Bandwidth:\t% 15.2f\n",_opt->bandwidth);
 
 	delete urx;
 
@@ -227,6 +228,8 @@ int main(int argc, char **argv)
 	record_options.f_ddc_b = 	0;		//!< no DDC correction
 	record_options.bandwidth =	16.0e6; //!< DBS-RX is set to 10 MHz wide
 	record_options.f_sample = 	64.0e6;	//!< Nominal sample rate
+	record_options.verbose = 	0;		//!< Output extra debugging info
+	record_options.record = 	0;		//!< Record data to disk
 
 	for(lcv = 1; lcv < argc; lcv++)
 	{
@@ -283,6 +286,10 @@ int main(int argc, char **argv)
 				record_options.f_sample = 65.536e6;
 				break;
 
+			case 'v':
+				record_options.verbose = 1;
+				break;
+
 			default:
 				usage (argv[0]);
 		}
@@ -322,9 +329,9 @@ int main(int argc, char **argv)
 	pthread_attr_init(&tattr);
 	pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
 
-	pthread_create(&pfifo_thread, &tattr, fifo_thread, (void *)&record_options);
-	pthread_create(&pkey_thread, &tattr, key_thread, (void *)&record_options);
 	pthread_create(&precord_thread, &tattr, record_thread, (void *)&record_options);
+	pthread_create(&pkey_thread, &tattr, key_thread, (void *)&record_options);
+	pthread_create(&pfifo_thread, &tattr, fifo_thread, (void *)&record_options);
 
 	pthread_attr_getschedparam(&tattr, &tparam);
 
@@ -439,13 +446,15 @@ void *record_thread(void *opt)
 
 		if(_opt->verbose)
 		{
-			printf("DBS-RX A BW: \t\t%f\n",dbs_rx_a->bw());
-			printf("DBS-RX A LO: \t\t%f\n",dbs_rx_a->freq());
-			printf("DBS-RX A IF Gain: \t%f\n",dbs_rx_a->if_gain());
-			printf("DBS-RX A RF Gain: \t%f\n",dbs_rx_a->rf_gain());
-			printf("DBS-RX A Diff: \t\t%f\n",dbs_rx_a->freq()-_opt->f_lo_a);
+			printf("DBS-RX A Configuration\n");
+			printf("DBS-RX A BW: \t\t% 15.2f\n",dbs_rx_a->bw());
+			printf("DBS-RX A LO: \t\t% 15.2f\n",dbs_rx_a->freq());
+			printf("DBS-RX A IF Gain: \t% 15.2f\n",dbs_rx_a->if_gain());
+			printf("DBS-RX A RF Gain: \t% 15.2f\n",dbs_rx_a->rf_gain());
+			printf("DDC 0: \t\t\t% 15.2f\n",urx->rx_freq(0));
+			//printf("DBS-RX A Diff: \t\t%f\n",dbs_rx_a->freq()-_opt->f_lo_a);
 		}
-		printf("DDC 0: \t\t\t%f\n",urx->rx_freq(0));
+
 
 	}
 
@@ -472,15 +481,6 @@ void *record_thread(void *opt)
 		if(_opt->mode)
 		{
 
-			if(_opt->verbose)
-			{
-				printf("DBS-RX B BW: \t\t%f\n",dbs_rx_b->bw());
-				printf("DBS-RX B LO: \t\t%f\n",dbs_rx_b->freq());
-				printf("DBS-RX B IF Gain: \t%f\n",dbs_rx_b->if_gain());
-				printf("DBS-RX B RF Gain: \t%f\n",dbs_rx_b->rf_gain());
-				printf("DBS-RX B Diff: \t\t%f\n",dbs_rx_b->freq()-_opt->f_lo_b);
-			}
-
 			/* Add additional frequency to ddc to account for imprecise LO programming */
 			ddc_correct_b = dbs_rx_b->freq() - _opt->f_lo_b;
 
@@ -498,7 +498,16 @@ void *record_thread(void *opt)
 
 			urx->set_ddc_phase(1, 0);
 
-			printf("DDC 1: \t\t\t%f\n",urx->rx_freq(1));
+			if(_opt->verbose)
+			{
+				printf("DBS-RX B Actual Configuration\n");
+				printf("DBS-RX B BW: \t\t% 15.2f\n",dbs_rx_b->bw());
+				printf("DBS-RX B LO: \t\t% 15.2f\n",dbs_rx_b->freq());
+				printf("DBS-RX B IF Gain: \t% 15.2f\n",dbs_rx_b->if_gain());
+				printf("DBS-RX B RF Gain: \t% 15.2f\n",dbs_rx_b->rf_gain());
+				printf("DDC 1: \t\t\t% 15.2f\n",urx->rx_freq(1));
+				//printf("DBS-RX B Diff: \t\t%f\n",dbs_rx_b->freq()-_opt->f_lo_b);
+			}
 
 		}
 	}
@@ -544,13 +553,20 @@ void *record_thread(void *opt)
 
 	}
 
-	printf("Stopping USRP\n");
+	if(_opt->verbose)
+		printf("Stopping USRP\n");
 	urx->stop();
-	printf("USRP Stopped\n");
 
-	printf("Closing pipe\n");
+	if(_opt->verbose)
+		printf("USRP Stopped\n");
+
+	if(_opt->verbose)
+		printf("Closing pipe\n");
+
 	close(npipe);
-	printf("Pipe closed\n");
+
+	if(_opt->verbose)
+		printf("Pipe closed\n");
 
 	if(dbs_rx_a != NULL)
 		delete dbs_rx_a;
@@ -612,14 +628,15 @@ void *fifo_thread(void *arg)
 	char *pbuff;
 	lcv = 0;
 
-	printf("FIFO thread start\n");
+	if(_opt->verbose)
+		printf("FIFO thread start\n");
 
 	/* Everything set, now create a disk thread & pipe, and do some recording! */
 	fifo = mkfifo("/tmp/GPSPIPE", 0666);
 	if ((fifo == -1) && (errno != EEXIST))
         printf("Error creating the named pipe");
-    else
-    	printf("Named pipe created\n");
+//    else
+//    	printf("Named pipe created\n");
 
 	printf("Waiting for client\n");
 	npipe = -1;
@@ -745,7 +762,8 @@ void *fifo_thread(void *arg)
 
 	close(npipe);
 
-	printf("FIFO thread stop\n");
+	if(_opt->verbose)
+		printf("FIFO thread stop\n");
 
 	pthread_exit(0);
 
@@ -758,9 +776,11 @@ void *fifo_thread(void *arg)
 void *key_thread(void *_arg)
 {
 
+	options *_opt = (options *)_arg;
 	int key;
 
-	printf("Key thread start\n");
+	if(_opt->verbose)
+		printf("Key thread start\n");
 
 	while(grun)
 	{
@@ -772,7 +792,8 @@ void *key_thread(void *_arg)
 		sleep(1);
 	}
 
-	printf("Key thread stop\n");
+	if(_opt->verbose)
+		printf("Key thread stop\n");
 
 	pthread_exit(0);
 
