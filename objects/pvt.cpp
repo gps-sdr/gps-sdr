@@ -266,15 +266,14 @@ void PVT::Navigate()
 	{
 		/* Copy over master_nav to temp_nav */
 		memcpy(&temp_nav, &master_nav, sizeof(Nav_Solution_S));
-		temp_nav.x = 0;
-		temp_nav.y = 0;
-		temp_nav.z = 0;
-		temp_nav.vx = 0;
-		temp_nav.vy = 0;
-		temp_nav.vz = 0;
 
+		/* This can be edited out to have PVT iterate from last sltn */
+		temp_nav.x = 0; temp_nav.y = 0; temp_nav.z = 0;
+		temp_nav.vx = 0; temp_nav.vy = 0; temp_nav.vz = 0;
 
 		/* Ummm Yeah, you need to do the point solution */
+		FormModel();
+		PVT_Estimation();
 		FormModel();
 		PVT_Estimation();
 		FormModel();
@@ -1064,10 +1063,18 @@ bool PVT::PostErrorCheck()
 		master_nav.vz = temp_nav.vz;
 		master_nav.clock_rate = temp_nav.clock_rate;
 
+		/* Kill the receiver */
+	//	if(master_nav.altitude > 18000.0)	/* Altitude check */
+	//		grun = false;
+	//	if(rv > 500.0)						/* Velocity check */
+	//		grun = false;
+
 		return(true);
 	}
 	else
 		return(false);
+
+
 
 }
 /*----------------------------------------------------------------------------------------------*/

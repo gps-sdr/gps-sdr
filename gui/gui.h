@@ -1,5 +1,5 @@
-/*! \file Includes.h
-	Default includes for each source file in the project.
+/*! \file GUI.h
+	Define the wxWidgets GUI App and object
 */
 /************************************************************************************************
 Copyright 2008 Gregory W Heckler
@@ -20,14 +20,6 @@ write to the:
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
 
-
-#ifdef GLOBALS_HERE
-	#define EXTERN /**/
-#else
-	#define EXTERN extern
-#endif
-
-
 /* Include standard headers, OS stuff */
 /*----------------------------------------------------------------------------------------------*/
 #include <stdlib.h>
@@ -46,39 +38,93 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include <sys/time.h>
 #include <fcntl.h>
 #include <sched.h>
-#include <curses.h>
 #include <limits.h>
 /*----------------------------------------------------------------------------------------------*/
 
-/*Herein Lies Many Important File, note thy order is important!*/
+/* wxWidgets headers */
 /*----------------------------------------------------------------------------------------------*/
-#include "config.h"			//!< Configure receiver
-#include "signaldef.h"			//!< Define attributes of input data
-#include "defines.h"			//!< Defines from IS-GPS-200D and some other things
-#include "macros.h"			//!< Macros
-#include "structs.h"			//!< Structs used for interprocess communication
-#include "protos.h"			//!< Functions & thread prototypes
-#include "simd.h"				//!< Include the SIMD functionality
-/*----------------------------------------------------------------------------------------------*/
-
-/* Include the "Threaded Objects" */
-/*----------------------------------------------------------------------------------------------*/
-#include "fft.h"				//!< Fixed point FFT object
-#include "fifo.h"				//!< Circular buffer for inporting IF data
-#include "keyboard.h"			//!< Handle user input via keyboard
-#include "correlator.h"			//!< Correlator
-#include "channel.h"			//!< Tracking channels
-#include "acquisition.h"		//!< Acquisition
-#include "pvt.h"				//!< PVT solution
-#include "ephemeris.h"			//!< Ephemeris decode
-#include "telemetry.h"			//!< Ncurses telemetry
-#include "sv_select.h"			//!< Drives acquisition/reacquisition process
-//#include "ocean.h"			//!< Ocean reflection waveforms
-#include "post_process.h"		//!< Run the receiver from a file
+#include "wx/wx.h"
+#include <wx/statusbr.h>
+#include <wx/gdicmn.h>
+#include <wx/font.h>
+#include <wx/colour.h>
+#include <wx/settings.h>
+#include <wx/string.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/icon.h>
+#include <wx/menu.h>
+#include <wx/panel.h>
+#include <wx/notebook.h>
+#include <wx/sizer.h>
+#include <wx/frame.h>
 /*----------------------------------------------------------------------------------------------*/
 
-/* This must go last */
+#define ID_EXIT 1000
+
 /*----------------------------------------------------------------------------------------------*/
-#include "globals.h"			//!< Global variables and objects
+class GUI: public wxFrame
+{
+public:
+
+
+	private:
+
+		int k;
+
+	protected:
+
+		wxStatusBar*	m_statusbar;
+		wxMenuBar* 		m_menubar;
+		wxMenu* 		file;
+		wxNotebook* 	Main;
+		wxPanel* 		Navigation;
+		wxPanel* 		Acquisition;
+		wxPanel* 		Ephemeris;
+		wxPanel* 		Constellation;
+		wxPanel* 		EKF;
+		wxPanel* 		Threads;
+		wxPanel* 		Commands;
+
+		wxStaticText* 	tNavigation;
+
+		int				active_panel; /* Always hold the active panel */
+
+	public:
+
+		GUI(const wxString& title, const wxPoint& pos, const wxSize& size);
+		void onClose(wxCloseEvent& evt);
+		void OnQuit(wxCommandEvent& event);
+		void OnAbout(wxCommandEvent& event);
+	    void paintEvent(wxPaintEvent& evt);
+	    void paintNow();
+	    void render( wxDC& dc );
+
+	    void renderNavigation();
+	    void renderAcquisition();
+	    void renderEphemeris();
+	    void renderConstellation();
+	    void renderEKF();
+	    void renderThreads();
+	    void renderCommands();
+
+    DECLARE_EVENT_TABLE()
+};
 /*----------------------------------------------------------------------------------------------*/
 
+
+/*----------------------------------------------------------------------------------------------*/
+class GUI_App: public wxApp
+{
+
+	GUI *frame;
+    bool render_loop_on;
+    virtual bool OnInit();
+    void onIdle(wxIdleEvent& evt);
+
+public:
+    void activateRenderLoop(bool on);
+    bool getRenderLoop(){return(render_loop_on);}
+
+};
+/*----------------------------------------------------------------------------------------------*/

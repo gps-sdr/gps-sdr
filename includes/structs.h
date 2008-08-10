@@ -659,6 +659,17 @@ typedef struct _SV_Select_2_Telem_S
 	Acq_History_S	sv_history[NUM_CODES];
 
 } SV_Select_2_Telem_S;
+
+/*! \ingroup STRUCTS
+ * Pass data from telemtry to GUI over a named pipe
+ */
+typdef struct _Telem_2_GUI_S
+{
+
+	int32 nothing;
+
+} Telem_2_GUI_S;
+};
 /*----------------------------------------------------------------------------------------------*/
 
 
