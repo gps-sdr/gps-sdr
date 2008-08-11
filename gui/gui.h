@@ -20,25 +20,29 @@ write to the:
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
 
+#ifndef GUI_H
+#define GUI_H
+
 /* Include standard headers, OS stuff */
 /*----------------------------------------------------------------------------------------------*/
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <math.h>
-#include <string.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <signal.h>
-#include <errno.h>
-#include <ctype.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <fcntl.h>
-#include <sched.h>
-#include <limits.h>
+#include "includes.h"
+//#include <stdlib.h>
+//#include <stdio.h>
+//#include <ctype.h>
+//#include <math.h>
+//#include <string.h>
+//#include <pthread.h>
+//#include <unistd.h>
+//#include <signal.h>
+//#include <errno.h>
+//#include <ctype.h>
+//#include <time.h>
+//#include <sys/types.h>
+//#include <sys/stat.h>
+//#include <sys/time.h>
+//#include <fcntl.h>
+//#include <sched.h>
+//#include <limits.h>
 /*----------------------------------------------------------------------------------------------*/
 
 /* wxWidgets headers */
@@ -61,6 +65,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 
 #define ID_EXIT 1000
+
 
 /*----------------------------------------------------------------------------------------------*/
 class GUI: public wxFrame
@@ -88,11 +93,18 @@ public:
 
 		wxStaticText* 	tNavigation;
 
+		Telem_2_GUI_S 	*tGUI;
+
 		int				active_panel; /* Always hold the active panel */
+		int				gpipe;
+		bool			gpipe_open;
 
 	public:
 
 		GUI(const wxString& title, const wxPoint& pos, const wxSize& size);
+		bool openPipe();
+		void readPipe();
+
 		void onClose(wxCloseEvent& evt);
 		void OnQuit(wxCommandEvent& event);
 		void OnAbout(wxCommandEvent& event);
@@ -128,3 +140,5 @@ public:
 
 };
 /*----------------------------------------------------------------------------------------------*/
+
+#endif

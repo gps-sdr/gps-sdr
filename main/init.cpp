@@ -119,6 +119,7 @@ void Parse_Arguments(int32 argc, char* argv[])
 	gopt.log_decimate	= 1;
 	gopt.google_earth	= 0;
 	gopt.ncurses 		= 1;
+	gopt.gui			= 0;
 	gopt.doppler_min 	= -MAX_DOPPLER;
 	gopt.doppler_max 	= MAX_DOPPLER;
 	gopt.corr_sleep 	= 500;
@@ -189,6 +190,11 @@ void Parse_Arguments(int32 argc, char* argv[])
 		else if(strcmp(argv[lcv],"-w") == 0)
 		{
 			gopt.startup = WARM_START;
+		}
+		else if(strcmp(argv[lcv],"-gui") == 0)
+		{
+			gopt.gui = 1;
+			gopt.ncurses = 0;
 		}
 
 		else

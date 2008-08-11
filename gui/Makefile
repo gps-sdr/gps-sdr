@@ -2,12 +2,24 @@ CC	= g++
 ASM = g++
 LINK= g++
 
-CINCPATHFLAGS = 
-VPATH		=   			
+CINCPATHFLAGS = -I../accessories	\
+				-I../acquisition	\
+				-I../includes		\
+				-I../main			\
+				-I../objects		\
+				-I../simd
+				
+VPATH		=   ../accessories:	\
+				../acquisition:	\
+				../includes:	\
+				../main:		\
+				../objects:		\
+				../simd:			
+									
 
 WX_FLAGS = `wx-config --libs` `wx-config --cxxflags`
 LDFLAGS	 = -lpthread -lncurses
-CFLAGS   = $(WX_FLAGS)
+CFLAGS   = $(WX_FLAGS) $(CINCPATHFLAGS) 
 
 HEADERS =   
 OBJS =		gui.o
@@ -21,7 +33,8 @@ All: $(EXE)
 
 gui: gui.cpp
 	 $(CC) $(CFLAGS) gui.cpp -o $@
-
+	mv gui ../gps-gui
+	
 #%.o:%.cpp $(HEADERS)
 #	$(CC) $(CFLAGS) -c $< -o $@ 
 	

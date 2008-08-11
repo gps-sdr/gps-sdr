@@ -121,7 +121,32 @@ GUI::GUI(const wxString& title, const wxPoint& pos, const wxSize& size)
 	this->SetSizer( bSizer1 );
 	this->Layout();
 
+	tGUI = new Telem_2_GUI_S;
+
 	k = 0;
+
+	//gpipe_open = openPipe();
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+bool GUI::openPipe()
+{
+
+	gpipe = open("/tmp/GUIPIPE",O_RDONLY | O_NONBLOCK);
+
+	if(gpipe != -1)
+	{
+		SetStatusText(wxT("GPS pipe open"));
+		return(true);
+	}
+	else
+	{
+		SetStatusText(wxT("Could not open GPS pipe"));
+		return(false);
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -174,18 +199,49 @@ void GUI::paintNow()
 
 
 /*----------------------------------------------------------------------------------------------*/
+void GUI::readPipe()
+{
+
+	char *p;
+	int32 nbytes, bread;
+
+	/* Get data from pipe (1 ms) */
+	nbytes = 0; p = (char *)&tGUI;
+	while(nbytes < sizeof(Telem_2_GUI_S))
+	{
+		//signal(SIGPIPE, kill_program);
+		bread = read(gpipe, &p[nbytes], PIPE_BUF);
+		if(bread >= 0)
+			nbytes += bread;
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void GUI::render(wxDC& dc)
 {
 
-	k++;
+    wxString str;
+
+
 	bool flag;
+
+	/* Open the pipe */
+//	if(!gpipe_open)
+//		gpipe_open = openPipe();
+
+//	readPipe();
+	k++;
 
 	flag = wxGetApp().getRenderLoop();
 
-	if(flag)
-		tNavigation->SetLabel(wxT("Render Loop On"));
-	else
-		tNavigation->SetLabel(wxT("Render Loop Off"));
+	str.Printf(wxT("Pipe Reads %d"),k);
+	//if(flag)
+	tNavigation->SetLabel(str);
+	//else
+		//tNavigation->SetLabel(wxT("Render Loop Off"));
 
 	/* First try to get data from the named pipe */
 

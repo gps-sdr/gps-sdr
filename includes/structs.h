@@ -84,6 +84,7 @@ typedef struct _Options_S
 	int32	doppler_max;				//!< Set maximum Doppler
 	int32	corr_sleep;					//!< How long to correlators should sleep
 	int32	startup;					//!< Startup warm/cold
+	int32	gui;						//!< Run with the external GUI program (disables ncurses)
 	char	filename_direct[1024];		//!< Skyview filename
 	char	filename_reflected[1024];	//!< Reflected filename
 
@@ -663,13 +664,17 @@ typedef struct _SV_Select_2_Telem_S
 /*! \ingroup STRUCTS
  * Pass data from telemtry to GUI over a named pipe
  */
-typdef struct _Telem_2_GUI_S
+typedef struct _Telem_2_GUI_S
 {
 
-	int32 nothing;
+	FIFO_2_Telem_S 		tFIFO;
+	PVT_2_Telem_S 		tNav;
+	Chan_Packet_S 		tChan[MAX_CHANNELS];
+	Acq_Result_S		tAcq;
+	Ephem_2_Telem_S 	tEphem;
+	SV_Select_2_Telem_S tSelect;
 
 } Telem_2_GUI_S;
-};
 /*----------------------------------------------------------------------------------------------*/
 
 

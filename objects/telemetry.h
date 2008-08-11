@@ -33,8 +33,8 @@ typedef class Telemetry
 
 	private:
 
-		int32	  gpipe;	//!< Named pipe to export data to the prop
-		pthread_t thread;	//!< For the thread
+		int32	  			gpipe;	//!< Named pipe to export data to the GUI
+		pthread_t 			thread;	//!< For the thread
 		pthread_mutex_t		mutex;	//!< Protect the following variable
 
 		/* Stuff for ncurses display */
@@ -42,12 +42,13 @@ typedef class Telemetry
 		WINDOW *screen;
 		WINDOW *my_win;
 
-		FIFO_2_Telem_S 	tFIFO;
-		PVT_2_Telem_S 	tNav;
-		Chan_Packet_S 	tChan[MAX_CHANNELS];
-		Acq_Result_S	tAcq;
-		Ephem_2_Telem_S tEphem;
+		FIFO_2_Telem_S 		tFIFO;
+		PVT_2_Telem_S 		tNav;
+		Chan_Packet_S 		tChan[MAX_CHANNELS];
+		Acq_Result_S		tAcq;
+		Ephem_2_Telem_S 	tEphem;
 		SV_Select_2_Telem_S tSelect;
+		Telem_2_GUI_S 		tGUI;
 
 		int32 active[MAX_CHANNELS];
 		int32 line;
@@ -93,6 +94,9 @@ typedef class Telemetry
 		void LogGoogleEarth();
 		void GoogleEarthFooter();
 		void GoogleEarthHeader();
+
+		void OpenGUIPipe();
+		void ExportGUI();
 };
 
 #endif /* Telemetry_H */
