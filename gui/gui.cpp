@@ -30,7 +30,7 @@ IMPLEMENT_APP(GUI_App)
 /*----------------------------------------------------------------------------------------------*/
 bool GUI_App::OnInit()
 {
-	frame = new GUI( wxT("GPS-SDR"), wxPoint(50,50), wxSize(800,600));
+	frame = new GUI( wxT("GPS-SDR"), wxPoint(50,50), wxSize(1024,768));
     frame->Show(TRUE);
     SetTopWindow(frame);
 
@@ -100,36 +100,87 @@ GUI::GUI(const wxString& title, const wxPoint& pos, const wxSize& size)
 
 	Main = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 
-	Navigation = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( Navigation, wxT("Navigation"), true );
+	pNavigation = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pNavigation, wxT("Navigation"), true );
 
-	Acquisition = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( Acquisition, wxT("Acquisition"), false );
+	pAcquisition = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pAcquisition, wxT("Acquisition"), false );
 
-	Ephemeris = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( Ephemeris, wxT("Ephemeris"), false );
+	pEphemeris = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pEphemeris, wxT("Ephemeris"), false );
 
-	Constellation = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( Constellation, wxT("Constellation"), false );
+	pConstellation = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pConstellation, wxT("Constellation"), false );
 
-	EKF = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( EKF, wxT("EKF"), false );
+	pEKF = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pEKF, wxT("EKF"), false );
 
-	Threads = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( Threads, wxT("Threads"), false );
+	pThreads = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pThreads, wxT("Threads"), false );
 
-	Commands = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( Commands, wxT("Commands"), false );
+	pCommands = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pCommands, wxT("Commands"), false );
 
 	bSizer1->Add( Main, 1, wxEXPAND | wxALL, 5 );
 	this->SetSizer( bSizer1 );
 	this->Layout();
+
+	sNavigation = new wxBoxSizer(wxVERTICAL);
+	pNavigation->SetSizer(sNavigation);
+
+	sAcquisition = new wxBoxSizer(wxVERTICAL);
+	pAcquisition->SetSizer(sAcquisition);
+
+	sEphemeris = new wxBoxSizer(wxVERTICAL);
+	pEphemeris->SetSizer(sEphemeris);
+
+	sConstellation = new wxBoxSizer(wxVERTICAL);
+	pConstellation->SetSizer(sConstellation);
+
+	sEKF = new wxBoxSizer(wxVERTICAL);
+	pEKF->SetSizer(sEKF);
+
+	sThreads = new wxBoxSizer(wxVERTICAL);
+	pThreads->SetSizer(sThreads);
+
+	sCommands = new wxBoxSizer(wxVERTICAL);
+	pCommands->SetSizer(sCommands);
+
+	tNavigation = new wxTextCtrl(pNavigation, -1, wxT("Navigation"), sNavigation->GetPosition(), sNavigation->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
+	sNavigation->Add(tNavigation, 1, wxEXPAND | wxALL, 4);
+	tNavigation->SetFont(wxFont(12, wxTELETYPE, wxNORMAL, wxNORMAL));
+
+	tAcquisition = new wxTextCtrl(pAcquisition, -1, wxT("Acquisition"), sAcquisition->GetPosition(), sAcquisition->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
+	sAcquisition->Add(tAcquisition, 1, wxEXPAND | wxALL, 4);
+	tAcquisition->SetFont(wxFont(12, wxTELETYPE, wxNORMAL, wxNORMAL));
+
+	tEphemeris = new wxTextCtrl(pEphemeris, -1, wxT("Ephemeris"), sEphemeris->GetPosition(), sEphemeris->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
+	sEphemeris->Add(tEphemeris, 1, wxEXPAND | wxALL, 4);
+	tEphemeris->SetFont(wxFont(12, wxTELETYPE, wxNORMAL, wxNORMAL));
+
+	tConstellation = new wxTextCtrl(pConstellation, -1, wxT("Constellation"), sConstellation->GetPosition(), sConstellation->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
+	sConstellation->Add(tConstellation, 1, wxEXPAND | wxALL, 4);
+	tConstellation->SetFont(wxFont(12, wxTELETYPE, wxNORMAL, wxNORMAL));
+
+	tEKF = new wxTextCtrl(pEKF, -1, wxT("EKF"), sAcquisition->GetPosition(), sAcquisition->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
+	sEKF->Add(tEKF, 1, wxEXPAND | wxALL, 4);
+	tEKF->SetFont(wxFont(12, wxTELETYPE, wxNORMAL, wxNORMAL));
+
+	tThreads = new wxTextCtrl(pThreads, -1, wxT("Threads"), sThreads->GetPosition(), sThreads->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
+	sThreads->Add(tThreads, 1, wxEXPAND | wxALL, 4);
+	tThreads->SetFont(wxFont(12, wxTELETYPE, wxNORMAL, wxNORMAL));
+
+	tCommands = new wxTextCtrl(pCommands, -1, wxT("Commands"), sCommands->GetPosition(), sCommands->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
+	sCommands->Add(tCommands, 1, wxEXPAND | wxALL, 4);
+	tCommands->SetFont(wxFont(12, wxTELETYPE, wxNORMAL, wxNORMAL));
 
 	k = 0;
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
+/*----------------------------------------------------------------------------------------------*/
 GUI::~GUI()
 {
 
@@ -140,6 +191,8 @@ GUI::~GUI()
 
 
 }
+/*----------------------------------------------------------------------------------------------*/
+
 
 /*----------------------------------------------------------------------------------------------*/
 bool GUI::openPipe()
@@ -276,79 +329,87 @@ void GUI::render(wxDC& dc)
 }
 /*----------------------------------------------------------------------------------------------*/
 
-//FIFO_2_Telem_S 		tFIFO;
-//PVT_2_Telem_S 		tNav;
-//Chan_Packet_S 		tChan[MAX_CHANNELS];
+//FIFO_2_Telem_S 	tFIFO;
+//PVT_2_Telem_S 	tNav;
+//Chan_Packet_S 	tChan[MAX_CHANNELS];
 //Acq_Result_S		tAcq;
 //Ephem_2_Telem_S 	tEphem;
 //SV_Select_2_Telem_S tSelect;
+
 /*----------------------------------------------------------------------------------------------*/
 void GUI::renderNavigation()
 {
-
 	Chan_Packet_S *p;
 	Nav_Solution_S		*pNav		= &tGUI.tNav.master_nav;				/* Navigation Solution */
 	Clock_S				*pClock		= &tGUI.tNav.master_clock;			/* Clock solution */
 
     wxString str;
-    wxStaticText txt;
+    wxString str2;
+	int lcv, lcv2;
+	char buff[1024];
+	float cn0;
 
-//	int32 lcv;
-//	char buff[1024];
-//	float cn0;
+	tNavigation->Clear();
 
+	str.Printf(wxT("FIFO:\t%d\t%d\t%d\t%d\n\n"),(FIFO_DEPTH-(tGUI.tFIFO.head-tGUI.tFIFO.tail)) % FIFO_DEPTH,tGUI.tFIFO.count,
+			tGUI.tFIFO.agc_scale,tGUI.tFIFO.overflw);
+	tNavigation->AppendText(str);
 
 	str.Printf(wxT("Ch#  SV   CL       Faccel          Doppler     CN0   BE       Locks        Power   Active\n"));
-	txt.SetLabel(str);
+	tNavigation->AppendText(str);
+
 	str.Printf(wxT("-----------------------------------------------------------------------------------------\n"));
-	txt.SetLabel(str);
+	tNavigation->AppendText(str);
 
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	{
+		p = &tGUI.tChan[lcv];
+		if(p->count > 3000)
+		{
 
-//	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-//	{
-//		p = &tChan[lcv];
-//		if(active[lcv] && p->count > 3000)
-//		{
-//
-//			strcpy(buff, "---------");
-//
-//			/*Flag buffer*/
-//			((int32)p->fll_lock_ticks > 200)   ? buff[0] = 'p'  : buff[0] = 'f';
-//			((int32)p->bit_lock)   ? buff[1] = 'B'  : buff[1] = '-';
-//			((int32)p->frame_lock) ? buff[2] = 'F'  : buff[2] = '-';
-//			(pNav->nsvs >> lcv) & 0x1 ? buff[3] = 'N'  : buff[3] = '-';
-//
+			//strcpy(buff, "---------");
+
+			str2.Clear();
+
+			/*Flag buffer*/
+			((int32)p->fll_lock_ticks > 200) ?	str2 += 'p' : str2 += 'f';
+			((int32)p->bit_lock) ? 				str2 += 'B' : str2 += '-';
+			((int32)p->frame_lock) ? 			str2 += 'F' : str2 += '-';
+			(pNav->nsvs >> lcv) & 0x1 ? 		str2 += 'N' : str2 += '-';
+
+			for(lcv2 = 1; lcv2 < 6; lcv2++)
+			{
+				if((int32)p->subframe == lcv2)
+					str2 += (char)((int32)p->subframe + 48);
+				else
+					str2 += '-';
+			}
+
 //			if(((int32)p->subframe > 0) &&  ((int32)p->subframe < 6))
-//				buff[(int32)p->subframe+3] = (int32)p->subframe + 48;
-//
-//			buff[9] = '\0';
-//
-//			cn0 = p->CN0 > p->CN0_old ? p->CN0 : p->CN0_old;
-//
-//			mvwprintw(screen,line++,1,"%2d   %2d   %2d   %10.3f   %14.3f   %5.2f   %2d   %9s   %10.0f   %6d",
-//				lcv,
-//				(int32)p->sv+1,
-//				(int32)p->len,
-//				p->w,
-//				p->carrier_nco - IF_FREQUENCY,
-//				cn0,
-//				(int32)p->best_epoch,
-//				buff,
-//				p->P_avg,
-//				(int32)p->count/1000);
-//
-//		}
-//		else
-//		{
-//			mvwprintw(screen,line++,1,"%2d   --   --   ----------   --------------   -----   --   ---------   ----------   ------",lcv);
-//		}
-//	}
+//				str2 += (char)((int32)p->subframe + 48);
 
+			cn0 = p->CN0 > p->CN0_old ? p->CN0 : p->CN0_old;
 
+			str.Printf(wxT("%2d   %2d   %2d   %10.3f   %14.3f   %5.2f   %2d   %s   %10.0f   %6d\n"),
+				lcv,
+				(int32)p->sv+1,
+				(int32)p->len,
+				p->w,
+				p->carrier_nco - IF_FREQUENCY,
+				cn0,
+				(int32)p->best_epoch,
+				str2.c_str(),
+				p->P_avg,
+				(int32)p->count/1000);
 
-
-
-
+			tNavigation->AppendText(str);
+		}
+		else
+		{
+			str.Printf(wxT("%2d   --   --   ----------   --------------   -----   --   ---------   ----------   ------\n"),lcv);
+			tNavigation->AppendText(str);
+		}
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -357,11 +418,12 @@ void GUI::renderNavigation()
 /*----------------------------------------------------------------------------------------------*/
 void GUI::renderAcquisition()
 {
+	//wxTextCtrl *textLog;
+//	textLog = new wxTextCtrl(Acquisition, wxID_ANY, _T("Log\n"), wxPoint(0, 250), wxSize(100, 50), wxTE_MULTILINE, wxDefaultValidator, _T("Crap"));
+//	mysizer->Add(textLog, 1, wxEXPAND | wxALL, 5);
 
 
-
-
-
+	//sAcquisition->
 
 
 

@@ -896,19 +896,19 @@ void Channel::Error()
 
 	/* Monitor DLL */
 	if((P_avg < 2e4) && (count > 2000))
-			active = false;
+		Stop();
 
 	/* Monitor CN0 for false PLL lock */
 	if(count > 10000 && mcn0 < 17.0)
-		active = false;
+		Stop();
 
 	/* If 30 seconds have passed and channel has not converged dump it */
 	if(count > 30000 && converged == false)
-		active = false;
+		Stop();
 
 	/* The channel should be killed if the nco goes outside the pre generated wipeoff table */
 	if(fabs(carrier_nco-IF_FREQUENCY) > CARRIER_BINS*CARRIER_SPACING)
-		active = false;
+		Stop();
 
 	/* Adjust integration length based on CN0 */
 	if(count > 5000)

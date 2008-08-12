@@ -180,7 +180,7 @@ void FIFO::Inport()
 	nbytes = 0; p = (char *)&if_buff[0];
 	while((nbytes < bytes_per_read) && grun)
 	{
-		signal(SIGPIPE, kill_program);
+		//signal(SIGPIPE, kill_program); /* This only matters for a pipe WRITER */
 		bread = read(npipe, &p[nbytes], PIPE_BUF);
 		if(bread >= 0)
 			nbytes += bread;

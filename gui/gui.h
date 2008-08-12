@@ -83,13 +83,27 @@ public:
 		wxMenuBar* 		m_menubar;
 		wxMenu* 		file;
 		wxNotebook* 	Main;
-		wxPanel* 		Navigation;
-		wxPanel* 		Acquisition;
-		wxPanel* 		Ephemeris;
-		wxPanel* 		Constellation;
-		wxPanel* 		EKF;
-		wxPanel* 		Threads;
-		wxPanel* 		Commands;
+		wxPanel* 		pNavigation;
+		wxPanel* 		pAcquisition;
+		wxPanel* 		pEphemeris;
+		wxPanel* 		pConstellation;
+		wxPanel* 		pEKF;
+		wxPanel* 		pThreads;
+		wxPanel* 		pCommands;
+		wxSizer*		sNavigation;
+		wxSizer*		sAcquisition;
+		wxSizer*		sEphemeris;
+		wxSizer*		sConstellation;
+		wxSizer*		sEKF;
+		wxSizer*		sThreads;
+		wxSizer*		sCommands;
+		wxTextCtrl*		tNavigation;
+		wxTextCtrl*		tAcquisition;
+		wxTextCtrl*		tEphemeris;
+		wxTextCtrl*		tConstellation;
+		wxTextCtrl*		tEKF;
+		wxTextCtrl*		tThreads;
+		wxTextCtrl*		tCommands;
 
 		Telem_2_GUI_S 	tGUI;
 

@@ -194,7 +194,10 @@ void Telemetry::Inport()
 			active[lcv] = 1;
 		}
 		else
+		{
+			tChan[lcv].count = 0;
 			active[lcv] = 0;
+		}
 	}
 
 	/* Unlock correlator status */
@@ -280,19 +283,22 @@ void Telemetry::ExportGUI()
 	memcpy(&tGUI.tSelect, 	&tSelect, 	sizeof(SV_Select_2_Telem_S));
 	memcpy(&tGUI.tChan, 	&tChan, 	MAX_CHANNELS*sizeof(Chan_Packet_S));
 
-	//signal(SIGPIPE, lost_gui_pipe);
-	//bwrote = write(gpipe, &tGUI, sizeof(Telem_2_GUI_S));
+	signal(SIGPIPE, lost_gui_pipe);
+
+	/* Only write if the client is connected */
+	if(gpipe_open)
+		bwrote = write(gpipe, &tGUI, sizeof(Telem_2_GUI_S));
 
 	/* Dump to the pipe */
-	nbytes = 0; pbuff = (char *)&tGUI;
-	while((nbytes < sizeof(tGUI)) && grun)
-	{
-		signal(SIGPIPE, lost_gui_pipe);
-		bwrote = write(gpipe, &pbuff[nbytes], PIPE_BUF);
-
-		if(bwrote > 0)
-			nbytes += bwrote;
-	}
+//	nbytes = 0; pbuff = (char *)&tGUI;
+//	while((nbytes < sizeof(tGUI)) && grun)
+//	{
+//		//signal(SIGPIPE, lost_gui_pipe);
+//		bwrote = write(gpipe, &pbuff[nbytes], PIPE_BUF);
+//
+//		if(bwrote > 0)
+//			nbytes += bwrote;
+//	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -306,7 +312,10 @@ void Telemetry::OpenGUIPipe()
 	gpipe = open("/tmp/GUIPIPE", O_WRONLY | O_NONBLOCK);
 
 	if(gpipe != -1)
+	{
 		gpipe_open = true;
+		printf("GUI connected\n");
+	}
 	else
 		gpipe_open = false;
 
