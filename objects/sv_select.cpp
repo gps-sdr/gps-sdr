@@ -75,6 +75,7 @@ void SV_Select::Start()
 /*----------------------------------------------------------------------------------------------*/
 void SV_Select::Stop()
 {
+	pthread_cancel(thread);
 	pthread_join(thread, NULL);
 
 	if(gopt.verbose)

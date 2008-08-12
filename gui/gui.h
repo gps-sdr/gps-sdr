@@ -91,9 +91,7 @@ public:
 		wxPanel* 		Threads;
 		wxPanel* 		Commands;
 
-		wxStaticText* 	tNavigation;
-
-		Telem_2_GUI_S 	*tGUI;
+		Telem_2_GUI_S 	tGUI;
 
 		int				active_panel; /* Always hold the active panel */
 		int				gpipe;
@@ -102,6 +100,7 @@ public:
 	public:
 
 		GUI(const wxString& title, const wxPoint& pos, const wxSize& size);
+		~GUI();
 		bool openPipe();
 		void readPipe();
 
@@ -135,6 +134,7 @@ class GUI_App: public wxApp
     void onIdle(wxIdleEvent& evt);
 
 public:
+
     void activateRenderLoop(bool on);
     bool getRenderLoop(){return(render_loop_on);}
 

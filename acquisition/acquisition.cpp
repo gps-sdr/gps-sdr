@@ -74,6 +74,7 @@ void Acquisition::Start()
 /*----------------------------------------------------------------------------------------------*/
 void Acquisition::Stop()
 {
+	pthread_cancel(thread);
 	pthread_join(thread, NULL);
 
 	if(gopt.verbose)

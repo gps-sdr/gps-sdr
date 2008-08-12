@@ -112,7 +112,6 @@ void Keyboard::Stop()
 	pthread_cancel(thread);
 	pthread_join(thread, NULL);
 
-
 }
 /*----------------------------------------------------------------------------------------------*/
 

@@ -33,7 +33,7 @@ All: $(EXE)
 
 gui: gui.cpp
 	 $(CC) $(CFLAGS) gui.cpp -o $@
-	mv gui ../gps-gui
+	#mv gui ../gps-gui
 	
 #%.o:%.cpp $(HEADERS)
 #	$(CC) $(CFLAGS) -c $< -o $@ 

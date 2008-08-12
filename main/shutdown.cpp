@@ -33,19 +33,12 @@ void Thread_Shutdown(void)
 	pKeyboard->Stop();
 
 	/* Stop the telemetry */
-	write(FIFO_2_Telem_P[WRITE], &buff, sizeof(FIFO_2_Telem_S));
-	write(PVT_2_Telem_P[WRITE], &buff, sizeof(PVT_2_Telem_S));
-	write(SV_Select_2_Telem_P[WRITE], &buff, sizeof(SV_Select_2_Telem_S));
-	write(PVT_2_SV_Select_P[WRITE], &buff, sizeof(PVT_2_SV_Select_S));
 	pTelemetry->Stop();
 
 	/* Stop the FIFO */
 	pFIFO->Stop();
 
 	/* Uh-oh */
-	write(FIFO_2_PVT_P[WRITE], &buff, sizeof(FIFO_2_Telem_S));
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-		write(Corr_2_PVT_P[lcv][WRITE], &buff, sizeof(Measurement_S));
 	pPVT->Stop();
 
 	/* Start up the correlators */
@@ -53,15 +46,12 @@ void Thread_Shutdown(void)
 		pCorrelators[lcv]->Stop();
 
 	/* Stop the acquistion */
-	write(Trak_2_Acq_P[WRITE], &buff, sizeof(Acq_Request_S));
 	pAcquisition->Stop();
 
 	/* Stop the ephemeris */
-	write(Chan_2_Ephem_P[WRITE], &buff, sizeof(Chan_2_Ephem_S));
 	pEphemeris->Stop();
 
 	/* Stop the tracking */
-	write(Trak_2_Acq_P[WRITE], &buff, sizeof(Acq_Request_S));
 	pSV_Select->Stop();
 
 	/* Stop spoofing my named pipe yo */

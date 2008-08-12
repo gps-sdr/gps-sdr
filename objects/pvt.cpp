@@ -80,6 +80,7 @@ void PVT::Stop()
 
 	WritePVT();
 
+	pthread_cancel(thread);
 	pthread_join(thread, NULL);
 
 	if(gopt.verbose)

@@ -78,11 +78,11 @@ void Correlator::Start()
 /*----------------------------------------------------------------------------------------------*/
 void Correlator::Stop()
 {
+	pthread_cancel(thread);
 	pthread_join(thread, NULL);
 
 	if(gopt.verbose)
 		printf("Stopped correlator %d\n",chan);
-
 }
 /*----------------------------------------------------------------------------------------------*/
 

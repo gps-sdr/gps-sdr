@@ -73,6 +73,7 @@ void Ephemeris::Start()
 /*----------------------------------------------------------------------------------------------*/
 void Ephemeris::Stop()
 {
+	pthread_cancel(thread);
 	pthread_join(thread, NULL);
 
 	if(gopt.verbose)

@@ -33,9 +33,11 @@ typedef class Telemetry
 
 	private:
 
-		int32	  			gpipe;	//!< Named pipe to export data to the GUI
-		pthread_t 			thread;	//!< For the thread
-		pthread_mutex_t		mutex;	//!< Protect the following variable
+		int32 				fifo;
+		int32	  			gpipe;		//!< Named pipe to export data to the GUI
+		int32				gpipe_open;	//!< Is this named pipe connected?
+		pthread_t 			thread;		//!< For the thread
+		pthread_mutex_t		mutex;		//!< Protect the following variable
 
 		/* Stuff for ncurses display */
 		WINDOW *mainwnd;
@@ -96,7 +98,9 @@ typedef class Telemetry
 		void GoogleEarthHeader();
 
 		void OpenGUIPipe();
+		void SetGUIPipe(bool _status);
 		void ExportGUI();
+
 };
 
 #endif /* Telemetry_H */

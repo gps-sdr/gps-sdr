@@ -74,6 +74,7 @@ void Telemetry::Start()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::Stop()
 {
+	pthread_cancel(thread);
 	pthread_join(thread, NULL);
 
 	if(gopt.verbose)
@@ -108,6 +109,11 @@ Telemetry::Telemetry(int32 _ncurses_on)
 
 	if(gopt.gui)
 	{
+		/* Everything set, now create a disk thread & pipe, and do some recording! */
+		fifo = mkfifo("/tmp/GUIPIPE", 0666);
+		if ((fifo == -1) && (errno != EEXIST))
+			printf("Error creating the named pipe");
+
 		OpenGUIPipe();
 	}
 
@@ -235,7 +241,10 @@ void Telemetry::Export()
 
 	if(gopt.gui)
 	{
-		ExportGUI();
+		if(gpipe_open)
+			ExportGUI();
+		else
+			OpenGUIPipe();
 	}
 
 }
@@ -243,10 +252,17 @@ void Telemetry::Export()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void kill_program_telem(int _sig)
+void lost_gui_pipe(int _sig)
 {
-	grun = false;
-	printf("Lost GPS-GUI!\n");
+	pTelemetry->SetGUIPipe(false);
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Telemetry::SetGUIPipe(bool _status)
+{
+	gpipe_open = _status;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -264,11 +280,14 @@ void Telemetry::ExportGUI()
 	memcpy(&tGUI.tSelect, 	&tSelect, 	sizeof(SV_Select_2_Telem_S));
 	memcpy(&tGUI.tChan, 	&tChan, 	MAX_CHANNELS*sizeof(Chan_Packet_S));
 
+	//signal(SIGPIPE, lost_gui_pipe);
+	//bwrote = write(gpipe, &tGUI, sizeof(Telem_2_GUI_S));
+
 	/* Dump to the pipe */
 	nbytes = 0; pbuff = (char *)&tGUI;
 	while((nbytes < sizeof(tGUI)) && grun)
 	{
-		signal(SIGPIPE, kill_program_telem);
+		signal(SIGPIPE, lost_gui_pipe);
 		bwrote = write(gpipe, &pbuff[nbytes], PIPE_BUF);
 
 		if(bwrote > 0)
@@ -283,30 +302,13 @@ void Telemetry::ExportGUI()
 void Telemetry::OpenGUIPipe()
 {
 
-	int32 fifo;
-
-	/* Everything set, now create a disk thread & pipe, and do some recording! */
-	fifo = mkfifo("/tmp/GUIPIPE", 0666);
-	if ((fifo == -1) && (errno != EEXIST))
-		printf("Error creating the named pipe");
-//    else
-//    	printf("Named pipe created\n");
-
-	printf("Waiting for GUI\n");
 	gpipe = -1;
-	while((gpipe == -1) && grun)
-	{
-		gpipe = open("/tmp/GUIPIPE", O_WRONLY | O_NONBLOCK);
-		usleep(1000000);
-	}
+	gpipe = open("/tmp/GUIPIPE", O_WRONLY | O_NONBLOCK);
 
 	if(gpipe != -1)
-		printf("GUI connected\n");
-//	else
-//	{
-//		printf("Killed before GUI connected\n");
-//		//pthread_exit(0);
-//	}
+		gpipe_open = true;
+	else
+		gpipe_open = false;
 
 }
 /*----------------------------------------------------------------------------------------------*/

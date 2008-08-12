@@ -587,13 +587,40 @@ void *record_thread(void *opt)
 }
 /*----------------------------------------------------------------------------------------------*/
 
+/* This is global so it can be handled by the signal handler */
+int fifo_pipe;
+
+
+/*----------------------------------------------------------------------------------------------*/
+void wait_for_client()
+{
+
+	printf("Waiting for client\n");
+	fifo_pipe = -1;
+	while((fifo_pipe == -1) && grun)
+	{
+		fifo_pipe = open("/tmp/GPSPIPE", O_WRONLY | O_NONBLOCK);
+		usleep(1000000);
+	}
+
+	if(fifo_pipe != -1)
+		printf("Client connected\n");
+	else
+	{
+		printf("Killed before client connected\n");
+		pthread_exit(0);
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
 
 /*----------------------------------------------------------------------------------------------*/
 void *fifo_thread(void *arg)
 {
 
 	options *_opt = (options *)arg;
-	int fifo, npipe, lcv, bwrite, filled, empty;
+	int fifo, lcv, bwrite, filled, empty;
 	FILE *fp_out = NULL;
 
 	CPX buff[16384]; //Base buffer
@@ -644,24 +671,9 @@ void *fifo_thread(void *arg)
 	fifo = mkfifo("/tmp/GPSPIPE", 0666);
 	if ((fifo == -1) && (errno != EEXIST))
         printf("Error creating the named pipe");
-//    else
-//    	printf("Named pipe created\n");
 
-	printf("Waiting for client\n");
-	npipe = -1;
-	while((npipe == -1) && grun)
-	{
-		npipe = open("/tmp/GPSPIPE", O_WRONLY | O_NONBLOCK);
-		usleep(1000000);
-	}
-
-	if(npipe != -1)
-		printf("Client connected\n");
-	else
-	{
-		printf("Killed before client connected\n");
-		pthread_exit(0);
-	}
+	/* Wait for the gps-sdr */
+	wait_for_client();
 
 	/* Important set this to zero! */
 	leftover = 0;
@@ -695,7 +707,7 @@ void *fifo_thread(void *arg)
 		{
 			case 0:
 				resample(buff, buff_out, _opt);
-				write_pipe(buff_out, npipe, bwrite);
+				write_pipe(buff_out, fifo_pipe, bwrite);
 
 				if(_opt->record)
 					fwrite(buff_out, 0x1, bwrite, fp_out);
@@ -707,7 +719,7 @@ void *fifo_thread(void *arg)
 				if(leftover == 0)
 				{
 					resample(buff, buff_out, _opt);
-					write_pipe(buff_out, npipe, bwrite);
+					write_pipe(buff_out, fifo_pipe, bwrite);
 
 					if(_opt->record)
 						fwrite(buff_out, 0x1, bwrite, fp_out);
@@ -717,7 +729,7 @@ void *fifo_thread(void *arg)
 
 				leftover += 96;
 				resample(buff, buff_out, _opt);
-				write_pipe(buff_out, npipe, bwrite);
+				write_pipe(buff_out, fifo_pipe, bwrite);
 
 				if(_opt->record)
 					fwrite(buff_out, 0x1, bwrite, fp_out);
@@ -729,7 +741,7 @@ void *fifo_thread(void *arg)
 				if(leftover > 4000)
 				{
 					resample(buff, buff_out, _opt);
-					write_pipe(buff_out, npipe, bwrite);
+					write_pipe(buff_out, fifo_pipe, bwrite);
 
 					if(_opt->record)
 						fwrite(buff_out, 0x1, bwrite, fp_out);
@@ -744,7 +756,7 @@ void *fifo_thread(void *arg)
 
 				leftover += 192;
 				resample(buff, buff_out, _opt);
-				write_pipe(buff_out, npipe, bwrite);
+				write_pipe(buff_out, fifo_pipe, bwrite);
 
 				if(_opt->record)
 					fwrite(buff_out, 0x1, bwrite, fp_out);
@@ -757,7 +769,7 @@ void *fifo_thread(void *arg)
 				{
 
 					resample(buff, buff_out, _opt);
-					write_pipe(buff_out, npipe, bwrite);
+					write_pipe(buff_out, fifo_pipe, bwrite);
 
 					if(_opt->record)
 						fwrite(buff_out, 0x1, bwrite, fp_out);
@@ -785,9 +797,7 @@ void *fifo_thread(void *arg)
 
 	}
 
-
-
-	close(npipe);
+	close(fifo_pipe);
 
 	if(_opt->record)
 		fclose(fp_out);
@@ -834,8 +844,9 @@ void *key_thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void kill_program(int _sig)
 {
-	grun = false;
+	//grun = false;
 	printf("Lost GPS-SDR!\n");
+	wait_for_client();
 }
 /*----------------------------------------------------------------------------------------------*/
 
