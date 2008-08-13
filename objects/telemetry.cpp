@@ -458,11 +458,11 @@ void Telemetry::PrintChan()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::PrintSV()
 {
-	SV_Position_S *pPos;
-	Pseudorange_S *pPseudo;
-	Chan_Packet_S *pChan;
-	Nav_Solution_S		*pNav		= &tNav.master_nav;				/* Navigation Solution */
-	Clock_S				*pClock		= &tNav.master_clock;			/* Clock solution */
+	SV_Position_S 	*pPos;
+	Pseudorange_S 	*pPseudo;
+	Chan_Packet_S 	*pChan;
+	Nav_Solution_S	*pNav	= &tNav.master_nav;				/* Navigation Solution */
+	Clock_S			*pClock	= &tNav.master_clock;			/* Clock solution */
 
 	int32 lcv;
 

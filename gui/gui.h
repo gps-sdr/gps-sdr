@@ -133,6 +133,14 @@ public:
 	    void renderThreads();
 	    void renderCommands();
 
+		void PrintChan(wxTextCtrl* _text);
+		void PrintNav(wxTextCtrl* _text);
+		void PrintSV(wxTextCtrl* _text);
+		void PrintEphem(wxTextCtrl* _text);
+		void PrintAlmanac(wxTextCtrl* _text);
+		void PrintHistory(wxTextCtrl* _text);
+
+
     DECLARE_EVENT_TABLE()
 };
 /*----------------------------------------------------------------------------------------------*/
