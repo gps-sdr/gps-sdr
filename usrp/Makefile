@@ -25,7 +25,6 @@ all: $(EXE)
 
 usrp-gps: usrp-gps.o $(OBJS)
 	 $(LINK) $(LDFLAGS) -o $@ usrp-gps.o $(OBJS)
-	mv usrp-gps ../usrp-gps
 
 %.o:%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@ 
