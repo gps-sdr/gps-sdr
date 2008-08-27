@@ -41,6 +41,7 @@ void usage(int32 argc, char* argv[])
 	fprintf(stderr, "[-v] be verbose \n");
 	fprintf(stderr, "[-n] ncurses OFF \n");
 	fprintf(stderr, "[-w] start receiver in warm start, using almanac and last good position\n");
+	fprintf(stderr, "[-u] run receiver with usrp-gps as child process\n");
 	fprintf(stderr, "\n");
 
 	exit(1);
@@ -124,6 +125,7 @@ void Parse_Arguments(int32 argc, char* argv[])
 	gopt.doppler_max 	= MAX_DOPPLER;
 	gopt.corr_sleep 	= 500;
 	gopt.startup		= COLD_START;
+	gopt.usrp_internal	= 0;
 	strcpy(gopt.filename_direct, "data.bda");
 	strcpy(gopt.filename_reflected, "rdata.bda");
 
@@ -196,7 +198,10 @@ void Parse_Arguments(int32 argc, char* argv[])
 			gopt.gui = 1;
 			gopt.ncurses = 0;
 		}
-
+		else if(strcmp(argv[lcv],"-u") == 0)
+		{
+			gopt.usrp_internal = 1;
+		}
 		else
 			usage(argc, argv);
 	}

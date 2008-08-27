@@ -85,11 +85,17 @@ acq-test: acq-test.o $(OBJS)
 %.o:%.s
 	$(ASM) $(CFLAGS) -c $< -o $@
 
+gps-gui:
+	make --directory=./gui
+	
+usrp-gps:
+	make --directory=./usrp
+	
 clean: minclean exclean cleandoxy
 	
 minclean:
 	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -o -name "*.out" -o -name "*.m~"  -o -name "*.tlm" \) -print`
-	@rm -rvf `find . \( -name "*.klm" -o -name "fft_test" -o -name "acq_test" -o -name "current.*" -o -name "usrp_sdr" \) -print`	
+	@rm -rvf `find . \( -name "*.klm" -o -name "fft_test" -o -name "acq_test" -o -name "current.*" -o -name "usrp-gps" \) -print`	
 	@rm -rvf $(EXE)
 	
 exclean:	

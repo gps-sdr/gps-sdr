@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -25,13 +25,17 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "includes.h"
 
 /*----------------------------------------------------------------------------------------------*/
-int main(int32 argc, char* argv[])
+int main(int argc, char* argv[])
 {
-
-	int32 success;
+	FILE* fp;
+	int success;
+	int state;
+	int fin[2];
+	int fout[2];
+	pid_t pid;
 
 	Parse_Arguments(argc, argv);
-	
+
 	success = Hardware_Init();
 	if(success == false)
 	{
@@ -51,7 +55,7 @@ int main(int32 argc, char* argv[])
 		printf("Pipes_Init() failed, aborting.\n");
 		return(-1);
 	}
-			
+
 	if(success)
 	{
 		success = Object_Init();
@@ -64,7 +68,7 @@ int main(int32 argc, char* argv[])
 		printf("Object_Init() failed, aborting.\n");
 		return(-1);
 	}
-		
+
 	if(success)
 	{
 		success = Thread_Init();
@@ -79,20 +83,66 @@ int main(int32 argc, char* argv[])
 		return(-1);
 	}
 
-
-	while(grun)
+	/* If the command line indicates that the usrp should be called
+	 * do that stuff here
+	 */
+	if(gopt.usrp_internal)
 	{
-		usleep(10000);
+
+		pipe(fin);
+		pipe(fout);
+
+		pid = fork();
+		if(pid == 0)
+		{
+		    close(fin[1]);
+		    dup2(fin[0], STDIN_FILENO);		/* Connect the read end of the pipe to standard input.  */
+		    close(STDOUT_FILENO);			/* Kill the stdout so not to screw up the ncurses display */
+
+		    /* Replace the child process with the "sort" program.  */
+			execl("usrp-gps", NULL, NULL);
+		}
+		else
+		{
+			while(grun)
+			{
+				usleep(10000);
+			}
+
+			Thread_Shutdown();
+
+			Pipes_Shutdown();
+
+			Object_Shutdown();
+
+			Hardware_Shutdown();
+
+			/* Kill the usrp-gps child */
+			close(fin[0]);
+		    fp = fdopen(fin[1], "w");
+		    fprintf(fp, "Q\n");
+		    fflush(fp);
+		    close(fin[1]);
+			pid = waitpid(-1, &state, 0);
+		}
 	}
+	else
+	{
 
+		while(grun)
+		{
+			usleep(10000);
+		}
 
-	Thread_Shutdown();
-	
-	Pipes_Shutdown();
+		Thread_Shutdown();
 
-	Object_Shutdown();
+		Pipes_Shutdown();
 
-	Hardware_Shutdown();
+		Object_Shutdown();
+
+		Hardware_Shutdown();
+
+	}
 
 	return(1);
 

@@ -85,6 +85,7 @@ typedef struct _Options_S
 	int32	corr_sleep;					//!< How long to correlators should sleep
 	int32	startup;					//!< Startup warm/cold
 	int32	gui;						//!< Run with the external GUI program (disables ncurses)
+	int32	usrp_internal;				//!< Run usrp-gps as a child process of receiver
 	char	filename_direct[1024];		//!< Skyview filename
 	char	filename_reflected[1024];	//!< Reflected filename
 

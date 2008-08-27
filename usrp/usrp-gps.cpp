@@ -197,8 +197,6 @@ int echo_options(options *_opt)
 	fprintf(stdout, "USRP Decimation:\t% 15d\n",_opt->decimate);
 	fprintf(stdout, "DBSRX LO A:\t\t% 15.2f\n",_opt->f_lo_a);
 	fprintf(stdout, "DBSRX LO B:\t\t% 15.2f\n",_opt->f_lo_b);
-//	fprintf(stdout, "DDC Frequency A:\t%f\n",_opt->f_ddc_a);
-//	fprintf(stdout, "DDC Frequency B:\t%f\n",_opt->f_ddc_b);
 	fprintf(stdout, "RF Gain:\t\t% 15.2f\n",_opt->gr);
 	fprintf(stdout, "IF Gain:\t\t% 15.2f\n",_opt->gi);
 	fprintf(stdout, "DBSRX Bandwidth:\t% 15.2f\n",_opt->bandwidth);
@@ -229,7 +227,7 @@ int main(int argc, char **argv)
 	record_options.f_ddc_b = 	0;		//!< no DDC correction
 	record_options.bandwidth =	16.0e6; //!< DBS-RX is set to 10 MHz wide
 	record_options.f_sample = 	64.0e6;	//!< Nominal sample rate
-	record_options.verbose = 	0;		//!< Output extra debugging info
+	record_options.verbose = 	1;		//!< Output extra debugging info
 	record_options.record = 	0;		//!< Record data to disk
 
 	for(lcv = 1; lcv < argc; lcv++)
@@ -402,7 +400,8 @@ void *record_thread(void *opt)
 	usrp_standard_rx *urx = usrp_standard_rx::make(0, _opt->decimate, 1, -1, 0, 0, 0);
 	if(urx == NULL)
 	{
-		printf("usrp_standard_rx::make FAILED\n");
+		if(_opt->verbose)
+			printf("usrp_standard_rx::make FAILED\n");
 		pthread_exit(0);
 	}
 
@@ -548,7 +547,7 @@ void *record_thread(void *opt)
 		/* Added a filled node */
 		sem_post(&mFILLED);
 
-		if(overrun)
+		if(overrun && _opt->verbose)
 		{
 			time(&rawtime);
 			timeinfo = localtime (&rawtime);
@@ -589,7 +588,6 @@ void *record_thread(void *opt)
 
 /* This is global so it can be handled by the signal handler */
 int fifo_pipe;
-
 
 /*----------------------------------------------------------------------------------------------*/
 void wait_for_client()
@@ -817,19 +815,20 @@ void *key_thread(void *_arg)
 {
 
 	options *_opt = (options *)_arg;
-	int key;
+	char key;
 
 	if(_opt->verbose)
 		printf("Key thread start\n");
 
 	while(grun)
 	{
-		key = getchar();
+
+		fread(&key, 1, 1, stdin);
 
 		if((char)key == 'Q')
 			grun = false;
 
-		sleep(1);
+		usleep(1000);
 	}
 
 	if(_opt->verbose)

@@ -1,2 +1,0 @@
-./usrp-gps &
-./gps-sdr
