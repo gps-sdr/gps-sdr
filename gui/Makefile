@@ -31,7 +31,7 @@ All: $(EXE)
 #gui: $(OBJS) $(DIS) $(HEADERS)
 #	 $(LINK) $(LDFLAGS) -o $@ gui.o $(OBJS)
 
-gui: gui.cpp
+gui: gui.cpp gui.h
 	 $(CC) $(CFLAGS) gui.cpp -o gps-gui
 	mv gps-gui ../gps-gui
 	

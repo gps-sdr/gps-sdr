@@ -26,23 +26,6 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /* Include standard headers, OS stuff */
 /*----------------------------------------------------------------------------------------------*/
 #include "includes.h"
-//#include <stdlib.h>
-//#include <stdio.h>
-//#include <ctype.h>
-//#include <math.h>
-//#include <string.h>
-//#include <pthread.h>
-//#include <unistd.h>
-//#include <signal.h>
-//#include <errno.h>
-//#include <ctype.h>
-//#include <time.h>
-//#include <sys/types.h>
-//#include <sys/stat.h>
-//#include <sys/time.h>
-//#include <fcntl.h>
-//#include <sched.h>
-//#include <limits.h>
 /*----------------------------------------------------------------------------------------------*/
 
 /* wxWidgets headers */
@@ -62,6 +45,9 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include <wx/notebook.h>
 #include <wx/sizer.h>
 #include <wx/frame.h>
+#include <wx/toolbar.h>
+#include <wx/log.h>
+#include <wx/process.h>
 /*----------------------------------------------------------------------------------------------*/
 
 #define ID_EXIT 1000
@@ -75,41 +61,85 @@ public:
 
 	private:
 
-		int k;
-
-	protected:
-
-		wxStatusBar*	m_statusbar;
-		wxMenuBar* 		m_menubar;
-		wxMenu* 		file;
-		wxNotebook* 	Main;
-		wxPanel* 		pNavigation;
-		wxPanel* 		pAcquisition;
-		wxPanel* 		pEphemeris;
-		wxPanel* 		pConstellation;
-		wxPanel* 		pEKF;
-		wxPanel* 		pThreads;
-		wxPanel* 		pCommands;
-		wxSizer*		sNavigation;
-		wxSizer*		sAcquisition;
-		wxSizer*		sEphemeris;
-		wxSizer*		sConstellation;
-		wxSizer*		sEKF;
-		wxSizer*		sThreads;
-		wxSizer*		sCommands;
-		wxTextCtrl*		tNavigation;
-		wxTextCtrl*		tAcquisition;
-		wxTextCtrl*		tEphemeris;
-		wxTextCtrl*		tConstellation;
-		wxTextCtrl*		tEKF;
-		wxTextCtrl*		tThreads;
-		wxTextCtrl*		tCommands;
-
-		Telem_2_GUI_S 	tGUI;
-
+		/* Capture the named pipe */
+		int 			k;
+		int 			last_k;
 		int				active_panel; /* Always hold the active panel */
 		int				gpipe;
 		bool			gpipe_open;
+		wxString		status_str;
+		Telem_2_GUI_S 	tGUI;
+
+		/* GPS-SDR exec variables */
+		wxInputStream* 	gps_in;
+		wxOutputStream* gps_out;
+		wxProcess*		gps_proc;
+		int				gps_pid;
+		int				gps_active;
+
+		/* GPS-USRP exec variables */
+		wxInputStream* 	usrp_in;
+		wxOutputStream* usrp_out;
+		wxProcess*		usrp_proc;
+		int				usrp_pid;
+		int				usrp_active;
+
+	protected:
+
+		wxTimer 		*timer;
+
+		wxStatusBar*	m_statusbar;
+		wxMenuBar* 		m_menubar;
+
+		wxMenu* 		Menu;
+		wxNotebook* 	Main;
+
+		/* Navigation Tab */
+		wxPanel* 		pNavigation;
+		wxSizer* 		sNavigation;
+		wxTextCtrl* 	tNavigation;
+
+		/* Acquisition Tab */
+		wxPanel* 		pAcquisition;
+		wxSizer* 		sAcquisition;
+		wxTextCtrl* 	tAcquisition;
+
+		/* Ephemeris Tab */
+		wxPanel* 		pEphemeris;
+		wxSizer* 		sEphemeris;
+		wxTextCtrl* 	tEphemeris;
+
+		/* Constellation Tab */
+		wxPanel* 		pConstellation;
+		wxSizer* 		sConstellation;
+		wxTextCtrl* 	tConstellation;
+
+		/* EKF Tab */
+		wxPanel* 		pEKF;
+		wxSizer* 		sEKF;
+		wxTextCtrl* 	tEKF;
+
+		/* Threads Tab */
+		wxPanel* 		pThreads;
+		wxSizer* 		sThreads;
+		wxTextCtrl* 	tThreads;
+
+		/* Commands Tab */
+		wxPanel* 		pCommands;
+		wxSizer* 		sCommands;
+		wxTextCtrl* 	tCommands;
+
+		/* Logging Tab */
+		wxPanel* 		pLogging;
+		wxBoxSizer* 	sLogging;
+		wxTextCtrl* 	tLogging;
+		wxCheckListBox *cLogging;
+
+		/* Feedbck Tab */
+		wxPanel* 		pFeedback;
+		wxSizer* 		sFeedback;
+		wxTextCtrl* 	tFeedback;
+
 
 	public:
 
@@ -118,30 +148,53 @@ public:
 		bool openPipe();
 		void readPipe();
 
+		void onTimer(wxTimerEvent& evt);
 		void onClose(wxCloseEvent& evt);
 		void OnQuit(wxCommandEvent& event);
 		void OnAbout(wxCommandEvent& event);
+		void OnStart(wxCommandEvent& event);
+		void OnStop(wxCommandEvent& event);
+		void OnUSRPStart(wxCommandEvent& event);
+		void OnUSRPStop(wxCommandEvent& event);
 	    void paintEvent(wxPaintEvent& evt);
 	    void paintNow();
-	    void render( wxDC& dc );
+	    void render(wxDC& dc);
 
+	    void initNavigation();
 	    void renderNavigation();
+			void PrintChan(wxTextCtrl* _text);
+			void PrintNav(wxTextCtrl* _text);
+			void PrintSV(wxTextCtrl* _text);
+
+		void initAcquisition();
 	    void renderAcquisition();
+			void PrintHistory(wxTextCtrl* _text);
+
+		void initEphemeris();
 	    void renderEphemeris();
+			void PrintEphem(wxTextCtrl* _text);
+			void PrintAlmanac(wxTextCtrl* _text);
+
+		void initConstellation();
 	    void renderConstellation();
+
+	    void initEKF();
 	    void renderEKF();
+
+	    void initThreads();
 	    void renderThreads();
+
+	    void initCommands();
 	    void renderCommands();
 
-		void PrintChan(wxTextCtrl* _text);
-		void PrintNav(wxTextCtrl* _text);
-		void PrintSV(wxTextCtrl* _text);
-		void PrintEphem(wxTextCtrl* _text);
-		void PrintAlmanac(wxTextCtrl* _text);
-		void PrintHistory(wxTextCtrl* _text);
+	    void initLogging();
+	    void renderLogging();
 
+	    void initFeedback();
+	    void renderFeedback();
 
-    DECLARE_EVENT_TABLE()
+	    DECLARE_EVENT_TABLE()
+
 };
 /*----------------------------------------------------------------------------------------------*/
 

@@ -110,7 +110,7 @@ Telemetry::Telemetry(int32 _ncurses_on)
 	if(gopt.gui)
 	{
 		/* Everything set, now create a disk thread & pipe, and do some recording! */
-		fifo = mkfifo("/tmp/GUIPIPE", 0666);
+		fifo = mkfifo("/tmp/GUIPIPE", S_IRWXG | S_IRWXU | S_IRWXO);
 		if ((fifo == -1) && (errno != EEXIST))
 			printf("Error creating the named pipe");
 
@@ -309,7 +309,7 @@ void Telemetry::OpenGUIPipe()
 {
 
 	gpipe = -1;
-	gpipe = open("/tmp/GUIPIPE", O_WRONLY | O_NONBLOCK);
+	gpipe = open("/tmp/GUIPIPE", O_WRONLY | O_NONBLOCK, S_IRWXG | S_IRWXU | S_IRWXO);
 
 	if(gpipe != -1)
 	{

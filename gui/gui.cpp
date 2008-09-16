@@ -23,6 +23,11 @@ enum
 {
     ID_Quit = 1,
     ID_About,
+    ID_Start,
+    ID_Stop,
+    ID_USRP_Start,
+    ID_USRP_Stop,
+    ID_Timer,
 };
 
 IMPLEMENT_APP(GUI_App)
@@ -35,7 +40,9 @@ bool GUI_App::OnInit()
     SetTopWindow(frame);
 
 	/* Start up the render loop */
-    activateRenderLoop(true);
+//    activateRenderLoop(true);
+//    return TRUE;
+
     return TRUE;
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -69,112 +76,277 @@ void GUI_App::onIdle(wxIdleEvent& evt)
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
+/*----------------------------------------------------------------------------------------------*/
 BEGIN_EVENT_TABLE(GUI, wxFrame)
     EVT_MENU(ID_Quit, GUI::OnQuit)
     EVT_MENU(ID_About, GUI::OnAbout)
+    EVT_MENU(ID_Start, GUI::OnStart)
+    EVT_MENU(ID_Stop, GUI::OnStop)
+    EVT_MENU(ID_USRP_Start, GUI::OnUSRPStart)
+    EVT_MENU(ID_USRP_Stop, GUI::OnUSRPStop)
+    EVT_TIMER(ID_Timer, GUI::onTimer)
     EVT_PAINT(GUI::paintEvent)
     EVT_CLOSE(GUI::onClose)
 END_EVENT_TABLE()
+/*----------------------------------------------------------------------------------------------*/
+
 
 /*----------------------------------------------------------------------------------------------*/
 GUI::GUI(const wxString& title, const wxPoint& pos, const wxSize& size)
 : wxFrame((wxFrame *)NULL, -1, title, pos, size)
 {
 
+	wxBoxSizer* sizer;
+
 	/* Create the Menu */
     wxMenu *menuFile = new wxMenu;
-    menuFile->Append( ID_About, wxT("&About...") );
+    menuFile->Append(ID_About, wxT("&About...") );
     menuFile->AppendSeparator();
-    menuFile->Append( ID_Quit, wxT("E&xit") );
+    menuFile->Append(ID_Quit, wxT("E&xit") );
+
+    wxMenu *menuReceiver = new wxMenu;
+    menuReceiver->Append(ID_Start, wxT("&Start") );
+    menuReceiver->Append(ID_Stop, wxT("S&top") );
+
+    wxMenu *menuUSRP = new wxMenu;
+    menuUSRP->Append(ID_USRP_Start, wxT("Sta&rt") );
+    menuUSRP->Append(ID_USRP_Stop, wxT("St&op") );
 
     wxMenuBar *menuBar = new wxMenuBar;
-    menuBar->Append( menuFile, wxT("&File") );
-    SetMenuBar( menuBar );
+    menuBar->Append(menuFile, wxT("&File"));
+    menuBar->Append(menuReceiver, wxT("&Receiver"));
+    menuBar->Append(menuUSRP, wxT("&USRP"));
+    SetMenuBar(menuBar);
 
     /* Create a status bar */
     CreateStatusBar();
-    SetStatusText( wxT("Welcome to the GPS-SDR!") );
-
-	wxBoxSizer* bSizer1;
-	bSizer1 = new wxBoxSizer( wxVERTICAL );
+    SetStatusText(wxT("Welcome to the GPS-SDR!"));
 
 	Main = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+
+	sizer = new wxBoxSizer( wxVERTICAL );
+	sizer->Add(Main, 1, wxEXPAND | wxALL, 5);
+	this->SetSizer(sizer);
+	this->Layout();
+
+	initNavigation();
+	initAcquisition();
+	initEphemeris();
+	initConstellation();
+	initEKF();
+	initThreads();
+	initCommands();
+	initLogging();
+	initFeedback();
+
+	k = 0;
+
+    timer = new wxTimer(this, ID_Timer);
+    timer->Start(50, wxTIMER_CONTINUOUS); //Shoot for 20 fps
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::initNavigation()
+{
 
 	pNavigation = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	Main->AddPage( pNavigation, wxT("Navigation"), true );
 
-	pAcquisition = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( pAcquisition, wxT("Acquisition"), false );
-
-	pEphemeris = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( pEphemeris, wxT("Ephemeris"), false );
-
-	pConstellation = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( pConstellation, wxT("Constellation"), false );
-
-	pEKF = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( pEKF, wxT("EKF"), false );
-
-	pThreads = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( pThreads, wxT("Threads"), false );
-
-	pCommands = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( pCommands, wxT("Commands"), false );
-
-	bSizer1->Add( Main, 1, wxEXPAND | wxALL, 5 );
-	this->SetSizer( bSizer1 );
-	this->Layout();
-
 	sNavigation = new wxBoxSizer(wxVERTICAL);
 	pNavigation->SetSizer(sNavigation);
-
-	sAcquisition = new wxBoxSizer(wxVERTICAL);
-	pAcquisition->SetSizer(sAcquisition);
-
-	sEphemeris = new wxBoxSizer(wxVERTICAL);
-	pEphemeris->SetSizer(sEphemeris);
-
-	sConstellation = new wxBoxSizer(wxVERTICAL);
-	pConstellation->SetSizer(sConstellation);
-
-	sEKF = new wxBoxSizer(wxVERTICAL);
-	pEKF->SetSizer(sEKF);
-
-	sThreads = new wxBoxSizer(wxVERTICAL);
-	pThreads->SetSizer(sThreads);
-
-	sCommands = new wxBoxSizer(wxVERTICAL);
-	pCommands->SetSizer(sCommands);
 
 	tNavigation = new wxTextCtrl(pNavigation, -1, wxT("Navigation"), sNavigation->GetPosition(), sNavigation->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
 	sNavigation->Add(tNavigation, 1, wxEXPAND | wxALL, 4);
 	tNavigation->SetFont(wxFont(10, wxTELETYPE, wxNORMAL, wxNORMAL));
 
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::initAcquisition()
+{
+
+	pAcquisition = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pAcquisition, wxT("Acquisition"), true);
+
+	sAcquisition = new wxBoxSizer(wxVERTICAL);
+	pAcquisition->SetSizer(sAcquisition);
+
 	tAcquisition = new wxTextCtrl(pAcquisition, -1, wxT("Acquisition"), sAcquisition->GetPosition(), sAcquisition->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
 	sAcquisition->Add(tAcquisition, 1, wxEXPAND | wxALL, 4);
 	tAcquisition->SetFont(wxFont(10, wxTELETYPE, wxNORMAL, wxNORMAL));
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::initEphemeris()
+{
+
+	pEphemeris = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pEphemeris, wxT("Ephemeris"), true );
+
+	sEphemeris = new wxBoxSizer(wxVERTICAL);
+	pEphemeris->SetSizer(sEphemeris);
 
 	tEphemeris = new wxTextCtrl(pEphemeris, -1, wxT("Ephemeris"), sEphemeris->GetPosition(), sEphemeris->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
 	sEphemeris->Add(tEphemeris, 1, wxEXPAND | wxALL, 4);
 	tEphemeris->SetFont(wxFont(10, wxTELETYPE, wxNORMAL, wxNORMAL));
 
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::initConstellation()
+{
+
+	pConstellation = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pConstellation, wxT("Constellation"), true );
+
+	sConstellation = new wxBoxSizer(wxVERTICAL);
+	pConstellation->SetSizer(sConstellation);
+
 	tConstellation = new wxTextCtrl(pConstellation, -1, wxT("Constellation"), sConstellation->GetPosition(), sConstellation->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
 	sConstellation->Add(tConstellation, 1, wxEXPAND | wxALL, 4);
 	tConstellation->SetFont(wxFont(10, wxTELETYPE, wxNORMAL, wxNORMAL));
 
-	tEKF = new wxTextCtrl(pEKF, -1, wxT("EKF"), sAcquisition->GetPosition(), sAcquisition->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::initEKF()
+{
+
+	pEKF = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pEKF, wxT("EKF"), true );
+
+	sEKF = new wxBoxSizer(wxVERTICAL);
+	pEKF->SetSizer(sEKF);
+
+	tEKF = new wxTextCtrl(pEKF, -1, wxT("EKF"), sEKF->GetPosition(), sEKF->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
 	sEKF->Add(tEKF, 1, wxEXPAND | wxALL, 4);
 	tEKF->SetFont(wxFont(10, wxTELETYPE, wxNORMAL, wxNORMAL));
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::initThreads()
+{
+
+	pThreads = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pThreads, wxT("Threads"), true );
+
+	sThreads = new wxBoxSizer(wxVERTICAL);
+	pThreads->SetSizer(sThreads);
 
 	tThreads = new wxTextCtrl(pThreads, -1, wxT("Threads"), sThreads->GetPosition(), sThreads->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
 	sThreads->Add(tThreads, 1, wxEXPAND | wxALL, 4);
 	tThreads->SetFont(wxFont(10, wxTELETYPE, wxNORMAL, wxNORMAL));
 
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::initCommands()
+{
+
+	pCommands = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pCommands, wxT("Commands"), true );
+
+	sCommands = new wxBoxSizer(wxVERTICAL);
+	pCommands->SetSizer(sCommands);
+
 	tCommands = new wxTextCtrl(pCommands, -1, wxT("Commands"), sCommands->GetPosition(), sCommands->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
 	sCommands->Add(tCommands, 1, wxEXPAND | wxALL, 4);
 	tCommands->SetFont(wxFont(10, wxTELETYPE, wxNORMAL, wxNORMAL));
 
-	k = 0;
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::initLogging()
+{
+
+	pLogging = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pLogging, wxT("Logging"), true );
+
+	wxStaticBoxSizer *s1;
+	wxStaticBoxSizer *s2;
+	wxBoxSizer *s21;
+	wxBoxSizer *s22;
+	wxBoxSizer *s23;
+
+	sLogging = new wxBoxSizer(wxVERTICAL);
+	s1 = new wxStaticBoxSizer(wxHORIZONTAL, pLogging);
+	s2 = new wxStaticBoxSizer(wxHORIZONTAL, pLogging);
+	s21 = new wxBoxSizer(wxVERTICAL);
+	s22 = new wxBoxSizer(wxVERTICAL);
+
+	s1->Add(new wxButton(pLogging, wxID_ANY, wxT("Start")), 1, wxEXPAND | wxALL, 10);
+	s1->Add(new wxButton(pLogging, wxID_ANY, wxT("Stop")), 1, wxEXPAND | wxALL, 10);
+	s1->Add(new wxButton(pLogging, wxID_ANY, wxT("Clear")), 1, wxEXPAND | wxALL, 10);
+
+	wxArrayString str;
+
+	str.Add(wxT("All"),1);
+	str.Add(wxT("Navigation"),1);
+	str.Add(wxT("Pseudoranges"),1);
+	str.Add(wxT("Satellites"),1);
+	str.Add(wxT("Tracking"),1);
+	str.Add(wxT("Google Earth"),1);
+
+	cLogging = new wxCheckListBox(pLogging, -1, wxDefaultPosition, wxDefaultSize, str, str.GetCount(), wxDefaultValidator);
+	s21->Add(new wxStaticText(pLogging, wxID_ANY, wxT("Choices")), 0, wxALIGN_CENTER | wxALL, 4);
+	s21->Add(cLogging, 1, wxALIGN_CENTER | wxALL, 4);
+
+	s22->Add(new wxStaticText(pLogging, wxID_ANY, wxT("File Path/Name")), 1, wxALIGN_CENTER | wxALL, 4);
+	s22->Add(new wxTextCtrl(pLogging, -1, wxGetCwd(),				wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+	s22->Add(new wxTextCtrl(pLogging, -1, wxT("navigation.tlm"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+	s22->Add(new wxTextCtrl(pLogging, -1, wxT("pseudoranges.tlm"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+	s22->Add(new wxTextCtrl(pLogging, -1, wxT("satellites.tlm"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+	s22->Add(new wxTextCtrl(pLogging, -1, wxT("tracking.tlm"), 		wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+	s22->Add(new wxTextCtrl(pLogging, -1, wxT("navigation.klv"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+
+	s2->Add(s21, 0, wxALIGN_LEFT | wxALL, 4);
+	s2->Add(s22, 1, wxEXPAND | wxALL, 4);
+
+	sLogging->Add(s1, 0, wxEXPAND | wxALL, 4);
+	sLogging->Add(s2, 0, wxEXPAND | wxALL, 4);
+
+	pLogging->SetSizer(sLogging);
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::initFeedback()
+{
+
+	pFeedback = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pFeedback, wxT("Feedback"), true );
+
+	sFeedback = new wxBoxSizer(wxVERTICAL);
+	pFeedback->SetSizer(sFeedback);
+
+	tFeedback = new wxTextCtrl(pFeedback, -1, wxT("Feedback"), sFeedback->GetPosition(), sFeedback->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
+	sFeedback->Add(tFeedback, 1, wxEXPAND | wxALL, 4);
+	tFeedback->SetFont(wxFont(10, wxTELETYPE, wxNORMAL, wxNORMAL));
+
+	tFeedback->Clear();
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -187,9 +359,14 @@ GUI::~GUI()
 	if(gpipe_open)
 		close(gpipe);
 
+}
+/*----------------------------------------------------------------------------------------------*/
 
 
-
+/*----------------------------------------------------------------------------------------------*/
+void GUI::onTimer(wxTimerEvent& evt)
+{
+	paintNow();
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -212,6 +389,15 @@ bool GUI::openPipe()
 /*----------------------------------------------------------------------------------------------*/
 void GUI::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
+
+	wxCommandEvent event;
+
+	if(gps_active == 1)
+		OnStop(event);
+
+	if(usrp_active == 1)
+		OnUSRPStop(event);
+
     Close(TRUE);
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -220,12 +406,172 @@ void GUI::OnQuit(wxCommandEvent& WXUNUSED(event))
 /*----------------------------------------------------------------------------------------------*/
 void GUI::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
+	wxString message;
 
-    wxMessageBox(wxT("Welcome to the GPS-SDR"),
-        wxT("About GPS-SDR"), wxOK | wxICON_INFORMATION, this);
+	message = wxT("GPS-SDR\nCopyright 2008 Gregory W. Heckler\nPath: ");
+	message += wxGetCwd();
+
+	wxMessageBox(message,wxT("About GPS-SDR"), wxOK | wxICON_INFORMATION, this);
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::OnStart(wxCommandEvent& WXUNUSED(event))
+{
+	/* Status at the bottom */
+	wxString cmd;
+
+	cmd = wxGetCwd();
+	cmd += wxT("/gps-sdr");
+
+	/* First try local directory */
+	if(wxFileExists(cmd))
+	{
+		cmd += wxT(" -gui");
+	}
+	else if(wxFileExists(wxT("/usr/local/bin/gps-sdr")))
+	{
+		cmd = wxT("/usr/local/bin/gps-sdr -gui");
+	}
+	else
+	{
+		status_str = wxT("Could not find ");
+		status_str += cmd;
+		return;
+	}
+
+	if(gps_active == 0)
+	{
+		/* Create the process */
+		gps_proc = new wxProcess(wxPROCESS_REDIRECT);
+		gps_pid = wxExecute(cmd, wxEXEC_ASYNC, gps_proc);
+		gps_in = gps_proc->GetInputStream();
+		gps_out = gps_proc->GetOutputStream();
+
+		if((gps_pid == 0) || (gps_pid == -1))
+		{
+			status_str = wxT("Failed to start GPS-SDR");
+		}
+		else
+		{
+			status_str.Printf(wxT("Started GPS-SDR %d"),gps_pid);
+			gps_active = 1;
+		}
+	}
+	else
+	{
+		status_str = wxT("GPS-SDR Already Running!");
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::OnStop(wxCommandEvent& WXUNUSED(event))
+{
+
+	wxString s;
+	s += wxT("Q\n");
+
+	if(gps_active)
+	{
+		if(gps_out != NULL)
+			gps_out->Write(s.c_str(), s.length());
+
+		gps_active = 0;
+		gps_in = 0;
+		gps_out = 0;
+
+		/* Status at the bottom */
+		status_str = wxT("Stopped GPS-SDR");
+	}
+	else
+	{
+		status_str = wxT("GPS-SDR Not Running!");
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::OnUSRPStart(wxCommandEvent& WXUNUSED(event))
+{
+	/* Status at the bottom */
+	wxString cmd;
+
+	cmd = wxGetCwd();
+	cmd += wxT("/gps-usrp");
+
+	/* First try local directory */
+	if(wxFileExists(cmd))
+	{
+		//Do nothing
+	}
+	else if(wxFileExists(wxT("/usr/local/bin/gps-usrp")))
+	{
+		cmd = wxT("/usr/local/bin/gps-usrp");
+	}
+	else
+	{
+		status_str = wxT("Could not find ");
+		status_str += cmd;
+		return;
+	}
+
+	if(usrp_active == 0)
+	{
+		/* Create the process */
+		usrp_proc = new wxProcess(wxPROCESS_REDIRECT);
+		usrp_pid = wxExecute(cmd, wxEXEC_ASYNC, usrp_proc);
+		usrp_in = usrp_proc->GetInputStream();
+		usrp_out = usrp_proc->GetOutputStream();
+
+		if((usrp_pid == 0) || (usrp_pid == -1))
+		{
+			status_str = wxT("Failed to start GPS-USRP");
+		}
+		else
+		{
+			status_str.Printf(wxT("Started GPS-USRP %d"),usrp_pid);
+			usrp_active = 1;
+		}
+	}
+	else
+	{
+		status_str = wxT("GPS-SDR Already Running!");
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::OnUSRPStop(wxCommandEvent& WXUNUSED(event))
+{
+
+	wxString s;
+	s += wxT("Q\n");
+
+	if(usrp_active)
+	{
+		if(usrp_out != NULL)
+			usrp_out->Write(s.c_str(), s.length());
+
+		usrp_active = 0;
+		usrp_in = 0;
+		usrp_out = 0;
+
+		/* Status at the bottom */
+		status_str = wxT("Stopped GPS-USRP");
+	}
+	else
+	{
+		status_str = wxT("GPS-USRP Not Running!");
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------------------------*/
 void GUI::onClose(wxCloseEvent& evt)
@@ -293,9 +639,8 @@ void GUI::readPipe()
 /*----------------------------------------------------------------------------------------------*/
 void GUI::render(wxDC& dc)
 {
-	bool flag;
 	int page;
-    wxString str, str2;
+    wxString str;
 
 	/* Open the pipe */
 	if(!gpipe_open)
@@ -307,40 +652,47 @@ void GUI::render(wxDC& dc)
 
 	/* Render proper page */
 	page = Main->GetSelection();
-	switch(page)
+
+	if(k != last_k)
 	{
-		case 0: renderNavigation(); 	break;
-		case 1: renderAcquisition(); 	break;
-		case 2: renderEphemeris(); 		break;
-		case 3: renderConstellation(); 	break;
-		case 4: renderEKF(); 			break;
-		case 5: renderThreads(); 		break;
-		case 6: renderCommands(); 		break;
-		default: renderNavigation();	break;
+		switch(page)
+		{
+			case 0: renderNavigation(); 	break;
+			case 1: renderAcquisition(); 	break;
+			case 2: renderEphemeris(); 		break;
+			case 3: renderConstellation(); 	break;
+			case 4: renderEKF(); 			break;
+			case 5: renderThreads(); 		break;
+			case 6: renderCommands(); 		break;
+			case 7: renderLogging(); 		break;
+			case 8: renderFeedback(); 		break;
+			default: renderNavigation();	break;
+		}
+		last_k = k;
+	}
+	else
+	{
+		switch(page)
+		{
+			case 5: renderThreads(); 		break;
+			case 6: renderCommands(); 		break;
+			case 7: renderLogging(); 		break;
+			case 8: renderFeedback(); 		break;
+			default: renderNavigation();	break;
+		}
 	}
 
 	/* Status at the bottom */
-	str.Printf(wxT("Pipe Reads %d, Selected Page %d"),k,page);
+	str.Printf(wxT("Pipe Reads %d\tFIFO:\t%d\t%d\t%d\t%d"),
+			page,(FIFO_DEPTH-(tGUI.tFIFO.head-tGUI.tFIFO.tail)) % FIFO_DEPTH,tGUI.tFIFO.count,tGUI.tFIFO.agc_scale,tGUI.tFIFO.overflw);
 
-	str2.Printf(wxT("\tFIFO:\t%d\t%d\t%d\t%d"),(FIFO_DEPTH-(tGUI.tFIFO.head-tGUI.tFIFO.tail)) % FIFO_DEPTH,tGUI.tFIFO.count,
-			tGUI.tFIFO.agc_scale,tGUI.tFIFO.overflw);
-
-	str += str2;
+	str += status_str;
 
 	SetStatusText(str);
 
-	flag = wxGetApp().getRenderLoop();
-
-	usleep(10000);
 }
 /*----------------------------------------------------------------------------------------------*/
 
-//FIFO_2_Telem_S 	tFIFO;
-//PVT_2_Telem_S 	tNav;
-//Chan_Packet_S 	tChan[MAX_CHANNELS];
-//Acq_Result_S		tAcq;
-//Ephem_2_Telem_S 	tEphem;
-//SV_Select_2_Telem_S tSelect;
 
 /*----------------------------------------------------------------------------------------------*/
 void GUI::renderNavigation()
@@ -350,14 +702,7 @@ void GUI::renderNavigation()
 	/* Clear navigation panel */
 	tNavigation->Clear();
 
-	tNavigation->AppendText(str);
-
 	PrintChan(tNavigation);
-
-//	str.Printf(wxT("\n"));
-//	tNavigation->AppendText(str);
-//
-//	PrintSV(tNavigation);
 
 	str.Printf(wxT("\n"));
 	tNavigation->AppendText(str);
@@ -404,14 +749,6 @@ void GUI::renderConstellation()
 	tConstellation->AppendText(str);
 
 	PrintEphem(tConstellation);
-
-
-
-
-
-
-
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -419,15 +756,6 @@ void GUI::renderConstellation()
 /*----------------------------------------------------------------------------------------------*/
 void GUI::renderEKF()
 {
-
-
-
-
-
-
-
-
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -435,15 +763,6 @@ void GUI::renderEKF()
 /*----------------------------------------------------------------------------------------------*/
 void GUI::renderThreads()
 {
-
-
-
-
-
-
-
-
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -451,18 +770,49 @@ void GUI::renderThreads()
 /*----------------------------------------------------------------------------------------------*/
 void GUI::renderCommands()
 {
+}
+/*----------------------------------------------------------------------------------------------*/
 
 
-
-
-
-
-
-
+/*----------------------------------------------------------------------------------------------*/
+void GUI::renderLogging()
+{
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI::renderFeedback()
+{
+
+	wxString str;
+
+	if(gps_in)
+		if(gps_in->CanRead())
+		{
+			if(usrp_in->TellI() != -1)
+			{
+				str.Printf(wxT("GPS bytes %d"), gps_in->TellI());
+				str += '\n';
+				tFeedback->AppendText(str);
+			}
+		}
+
+
+	if(usrp_in)
+		if(usrp_in->CanRead())
+		{
+			if(usrp_in->TellI() != -1)
+			{
+				str.Printf(wxT("USRP bytes %d"), usrp_in->TellI());
+				str += '\n';
+				tFeedback->AppendText(str);
+			}
+		}
+
+}
+/*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/

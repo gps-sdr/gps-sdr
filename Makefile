@@ -47,8 +47,6 @@ OBJS =		init.o			\
 			pvt.o			\
 			post_process.o
 			
-			
-			
 #Uncomment these to look at the disassembly
 #DIS = 		x86.dis		\
 #			sse.dis		\
@@ -56,13 +54,19 @@ OBJS =		init.o			\
 #			acquisition.dis \
 #			acq_test.dis 
 
-EXE =		gps-sdr			\
-			simd-test		
-#			fft-test		\
-#			acq-test		
+EXE =	gps-sdr		\
+		simd-test
 			
+EXTRAS= gps-gui		\
+		gps-usrp
+		
+TEST =	simd-test	\
+		fft-test	\
+		acq-test
+		
+all: $(EXE)
 
-All: $(EXE)
+extras: $(EXE) $(EXTRAS) $(TEST)
 
 gps-sdr: main.o $(OBJS) $(DIS) $(HEADERS)
 	 $(LINK) $(LDFLAGS) -o $@ main.o $(OBJS)
@@ -85,17 +89,20 @@ acq-test: acq-test.o $(OBJS)
 %.o:%.s
 	$(ASM) $(CFLAGS) -c $< -o $@
 
-gps-gui:
+gps-gui: ./gui/gui.cpp ./gui/gui.h
 	make --directory=./gui
 	
-usrp-gps:
+gps-usrp:
 	make --directory=./usrp
 	
 clean: minclean exclean cleandoxy
 	
+clean_o:
+	@rm -rvf `find . \( -name "*.o" \) -print` 	
+	
 minclean:
 	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -o -name "*.out" -o -name "*.m~"  -o -name "*.tlm" \) -print`
-	@rm -rvf `find . \( -name "*.klm" -o -name "fft_test" -o -name "acq_test" -o -name "current.*" -o -name "usrp-gps" \) -print`	
+	@rm -rvf `find . \( -name "*.klm" -o -name "fft-test" -o -name "acq-test" -o -name "current.*" -o -name "usrp-gps" -o -name "gps-gui" -o -name "gps-usrp" \) -print`	
 	@rm -rvf $(EXE)
 	
 exclean:	
@@ -109,4 +116,7 @@ cleanobj:
 
 cleandoxy:
 	rm -rvf ./documentation/html
-	
+
+install:
+	- cp $(EXE) $(EXTRAS) /usr/local/bin/
+

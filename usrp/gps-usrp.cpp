@@ -666,7 +666,7 @@ void *fifo_thread(void *arg)
 		printf("FIFO thread start\n");
 
 	/* Everything set, now create a disk thread & pipe, and do some recording! */
-	fifo = mkfifo("/tmp/GPSPIPE", 0666);
+	fifo = mkfifo("/tmp/GPSPIPE", S_IRWXG | S_IRWXU | S_IRWXO);
 	if ((fifo == -1) && (errno != EEXIST))
         printf("Error creating the named pipe");
 

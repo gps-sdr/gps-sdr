@@ -99,8 +99,8 @@ int main(int argc, char* argv[])
 		    dup2(fin[0], STDIN_FILENO);		/* Connect the read end of the pipe to standard input.  */
 		    close(STDOUT_FILENO);			/* Kill the stdout so not to screw up the ncurses display */
 
-		    /* Replace the child process with the "sort" program.  */
-			execl("usrp-gps", NULL, NULL);
+		    /* Replace the child process with the gps-usrp client */
+			execl("gps-usrp", NULL, NULL);
 		}
 		else
 		{

@@ -72,6 +72,7 @@ void FIFO::Start()
 /*----------------------------------------------------------------------------------------------*/
 void FIFO::Stop()
 {
+	pthread_cancel(thread);
 	pthread_join(thread, NULL);
 
 	if(gopt.verbose)
@@ -314,7 +315,7 @@ void FIFO::Open()
 	if(gopt.verbose)
 		printf("Opening GPS pipe.\n");
 
-	npipe = open("/tmp/GPSPIPE",O_RDONLY);
+	npipe = open("/tmp/GPSPIPE", O_RDONLY);
 
 	if(gopt.verbose)
 		printf("GPS pipe open.\n");
