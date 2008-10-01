@@ -137,13 +137,14 @@ GUI::GUI(const wxString& title, const wxPoint& pos, const wxSize& size)
 	initEKF();
 	initThreads();
 	initCommands();
-	initLogging();
-	initFeedback();
+	initConfig();
+
+	Main->SetSelection(0);
 
 	k = 0;
 
     timer = new wxTimer(this, ID_Timer);
-    timer->Start(50, wxTIMER_CONTINUOUS); //Shoot for 20 fps
+    timer->Start(66, wxTIMER_CONTINUOUS); //Shoot for 15 fps
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -154,14 +155,28 @@ void GUI::initNavigation()
 {
 
 	pNavigation = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( pNavigation, wxT("Navigation"), true );
+	Main->AddPage(pNavigation, wxT("Navigation"), true );
 
 	sNavigation = new wxBoxSizer(wxVERTICAL);
-	pNavigation->SetSizer(sNavigation);
 
-	tNavigation = new wxTextCtrl(pNavigation, -1, wxT("Navigation"), sNavigation->GetPosition(), sNavigation->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
-	sNavigation->Add(tNavigation, 1, wxEXPAND | wxALL, 4);
+	wxStaticBoxSizer *s11;
+	wxStaticBoxSizer *s12;
+
+	s11 = new wxStaticBoxSizer(wxHORIZONTAL, pNavigation, wxT("Tracking"));
+	s12 = new wxStaticBoxSizer(wxHORIZONTAL, pNavigation, wxT("Navigation"));
+
+	sNavigation->Add(s11, 3, wxEXPAND | wxALL, 4);
+	sNavigation->Add(s12, 2, wxEXPAND | wxALL, 4);
+
+	tTracking = new wxTextCtrl(pNavigation, -1, wxT("Tracking"), s11->GetPosition(), s11->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
+	tTracking->SetFont(wxFont(10, wxTELETYPE, wxNORMAL, wxNORMAL));
+	s11->Add(tTracking, 1, wxEXPAND | wxALL, 4);
+
+	tNavigation = new wxTextCtrl(pNavigation, -1, wxT("Navigation"), s12->GetPosition(), s12->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
 	tNavigation->SetFont(wxFont(10, wxTELETYPE, wxNORMAL, wxNORMAL));
+	s12->Add(tNavigation, 1, wxEXPAND | wxALL, 4);
+
+	pNavigation->SetSizer(sNavigation);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -277,27 +292,27 @@ void GUI::initCommands()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void GUI::initLogging()
+void GUI::initConfig()
 {
 
-	pLogging = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( pLogging, wxT("Logging"), true );
+	pConfig = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	Main->AddPage( pConfig, wxT("Config"), true );
 
 	wxStaticBoxSizer *s1;
-	wxStaticBoxSizer *s2;
-	wxBoxSizer *s21;
-	wxBoxSizer *s22;
-	wxBoxSizer *s23;
 
-	sLogging = new wxBoxSizer(wxVERTICAL);
-	s1 = new wxStaticBoxSizer(wxHORIZONTAL, pLogging);
-	s2 = new wxStaticBoxSizer(wxHORIZONTAL, pLogging);
-	s21 = new wxBoxSizer(wxVERTICAL);
-	s22 = new wxBoxSizer(wxVERTICAL);
+	wxStaticBoxSizer *s11;
+	wxStaticBoxSizer *s12;
 
-	s1->Add(new wxButton(pLogging, wxID_ANY, wxT("Start")), 1, wxEXPAND | wxALL, 10);
-	s1->Add(new wxButton(pLogging, wxID_ANY, wxT("Stop")), 1, wxEXPAND | wxALL, 10);
-	s1->Add(new wxButton(pLogging, wxID_ANY, wxT("Clear")), 1, wxEXPAND | wxALL, 10);
+	wxBoxSizer *s121;
+	wxBoxSizer *s122;
+
+	sConfig = new wxBoxSizer(wxHORIZONTAL);
+
+	s11 = new wxStaticBoxSizer(wxHORIZONTAL, pConfig, wxT("USRP Config"));
+	s12 = new wxStaticBoxSizer(wxHORIZONTAL, pConfig, wxT("File Names"));
+
+	s121 = new wxBoxSizer(wxVERTICAL);
+	s122 = new wxBoxSizer(wxVERTICAL);
 
 	wxArrayString str;
 
@@ -308,45 +323,32 @@ void GUI::initLogging()
 	str.Add(wxT("Tracking"),1);
 	str.Add(wxT("Google Earth"),1);
 
-	cLogging = new wxCheckListBox(pLogging, -1, wxDefaultPosition, wxDefaultSize, str, str.GetCount(), wxDefaultValidator);
-	s21->Add(new wxStaticText(pLogging, wxID_ANY, wxT("Choices")), 0, wxALIGN_CENTER | wxALL, 4);
-	s21->Add(cLogging, 1, wxALIGN_CENTER | wxALL, 4);
+	cConfig = new wxCheckListBox(pConfig, -1, wxDefaultPosition, wxDefaultSize, str, str.GetCount(), wxDefaultValidator);
+	s121->Add(new wxStaticText(pConfig, wxID_ANY, wxT("Choices")), 0, wxALIGN_CENTER | wxALL, 4);
+	s121->Add(cConfig, 1, wxALIGN_CENTER | wxALL, 4);
 
-	s22->Add(new wxStaticText(pLogging, wxID_ANY, wxT("File Path/Name")), 1, wxALIGN_CENTER | wxALL, 4);
-	s22->Add(new wxTextCtrl(pLogging, -1, wxGetCwd(),				wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
-	s22->Add(new wxTextCtrl(pLogging, -1, wxT("navigation.tlm"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
-	s22->Add(new wxTextCtrl(pLogging, -1, wxT("pseudoranges.tlm"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
-	s22->Add(new wxTextCtrl(pLogging, -1, wxT("satellites.tlm"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
-	s22->Add(new wxTextCtrl(pLogging, -1, wxT("tracking.tlm"), 		wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
-	s22->Add(new wxTextCtrl(pLogging, -1, wxT("navigation.klv"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+	s122->Add(new wxStaticText(pConfig, wxID_ANY, wxT("File Path/Name")), 1, wxALIGN_CENTER | wxALL, 4);
+	s122->Add(new wxTextCtrl(pConfig, -1, wxGetCwd(),				wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+	s122->Add(new wxTextCtrl(pConfig, -1, wxT("navigation.tlm"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+	s122->Add(new wxTextCtrl(pConfig, -1, wxT("pseudoranges.tlm"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+	s122->Add(new wxTextCtrl(pConfig, -1, wxT("satellites.tlm"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+	s122->Add(new wxTextCtrl(pConfig, -1, wxT("tracking.tlm"), 		wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
+	s122->Add(new wxTextCtrl(pConfig, -1, wxT("navigation.klv"), 	wxDefaultPosition, wxDefaultSize), 1, wxEXPAND);
 
-	s2->Add(s21, 0, wxALIGN_LEFT | wxALL, 4);
-	s2->Add(s22, 1, wxEXPAND | wxALL, 4);
+	str.Clear();
+	str.Add(wxT("L1 Mode"),1);
+	str.Add(wxT("L1-L1 Mode"),1);
+	str.Add(wxT("L1-L2C Mode"),1);
 
-	sLogging->Add(s1, 0, wxEXPAND | wxALL, 4);
-	sLogging->Add(s2, 0, wxEXPAND | wxALL, 4);
+	s11->Add(new wxRadioBox(pConfig, -1, wxT(""), wxDefaultPosition, wxDefaultSize, str, 3, wxRA_SPECIFY_ROWS), wxEXPAND);
 
-	pLogging->SetSizer(sLogging);
+	s12->Add(s121, 0, wxALL, 4);
+	s12->Add(s122, 1, wxALL, 4);
 
-}
-/*----------------------------------------------------------------------------------------------*/
+	sConfig->Add(s11, 0, wxALL, 4);
+	sConfig->Add(s12, 1, wxALL, 4);
 
-
-/*----------------------------------------------------------------------------------------------*/
-void GUI::initFeedback()
-{
-
-	pFeedback = new wxPanel( Main, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	Main->AddPage( pFeedback, wxT("Feedback"), true );
-
-	sFeedback = new wxBoxSizer(wxVERTICAL);
-	pFeedback->SetSizer(sFeedback);
-
-	tFeedback = new wxTextCtrl(pFeedback, -1, wxT("Feedback"), sFeedback->GetPosition(), sFeedback->GetSize(), wxTE_MULTILINE | wxTE_READONLY);
-	sFeedback->Add(tFeedback, 1, wxEXPAND | wxALL, 4);
-	tFeedback->SetFont(wxFont(10, wxTELETYPE, wxNORMAL, wxNORMAL));
-
-	tFeedback->Clear();
+	pConfig->SetSizer(sConfig);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -664,8 +666,7 @@ void GUI::render(wxDC& dc)
 			case 4: renderEKF(); 			break;
 			case 5: renderThreads(); 		break;
 			case 6: renderCommands(); 		break;
-			case 7: renderLogging(); 		break;
-			case 8: renderFeedback(); 		break;
+			case 7: renderConfig(); 		break;
 			default: renderNavigation();	break;
 		}
 		last_k = k;
@@ -676,8 +677,7 @@ void GUI::render(wxDC& dc)
 		{
 			case 5: renderThreads(); 		break;
 			case 6: renderCommands(); 		break;
-			case 7: renderLogging(); 		break;
-			case 8: renderFeedback(); 		break;
+			case 7: renderConfig(); 		break;
 			default: renderNavigation();	break;
 		}
 	}
@@ -686,6 +686,7 @@ void GUI::render(wxDC& dc)
 	str.Printf(wxT("Pipe Reads %d\tFIFO:\t%d\t%d\t%d\t%d"),
 			page,(FIFO_DEPTH-(tGUI.tFIFO.head-tGUI.tFIFO.tail)) % FIFO_DEPTH,tGUI.tFIFO.count,tGUI.tFIFO.agc_scale,tGUI.tFIFO.overflw);
 
+	str += '\t';
 	str += status_str;
 
 	SetStatusText(str);
@@ -697,16 +698,11 @@ void GUI::render(wxDC& dc)
 /*----------------------------------------------------------------------------------------------*/
 void GUI::renderNavigation()
 {
-	 wxString str;
-
 	/* Clear navigation panel */
+	tTracking->Clear();
 	tNavigation->Clear();
 
-	PrintChan(tNavigation);
-
-	str.Printf(wxT("\n"));
-	tNavigation->AppendText(str);
-
+	PrintChan(tTracking);
 	PrintNav(tNavigation);
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -775,41 +771,8 @@ void GUI::renderCommands()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void GUI::renderLogging()
+void GUI::renderConfig()
 {
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void GUI::renderFeedback()
-{
-
-	wxString str;
-
-	if(gps_in)
-		if(gps_in->CanRead())
-		{
-			if(usrp_in->TellI() != -1)
-			{
-				str.Printf(wxT("GPS bytes %d"), gps_in->TellI());
-				str += '\n';
-				tFeedback->AppendText(str);
-			}
-		}
-
-
-	if(usrp_in)
-		if(usrp_in->CanRead())
-		{
-			if(usrp_in->TellI() != -1)
-			{
-				str.Printf(wxT("USRP bytes %d"), usrp_in->TellI());
-				str += '\n';
-				tFeedback->AppendText(str);
-			}
-		}
 
 }
 /*----------------------------------------------------------------------------------------------*/

@@ -266,34 +266,20 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 
 	p = (int16 *)&_buff[0];
 
-	/* First do the scaling */
-	lscale = scale[0];
-	for(lcv = 0; lcv < 2*_samps; lcv++)
-	{
-		val = p[lcv];
+	/* Get rid of the divide, replace with a multiply to scale to 2^15, then right shift to get
+	 * back into AGC_BITS of magnitude */
 
-		val <<= AGC_BITS;
-		if(val < 0)
-			val -= lscale;
+	lscale = (1 << 14) / scale[0];
 
-		val /= lscale;
-
-		p[lcv] = val;
-	}
-
-	/* Count the number of "overflows" in buffer */
 	max = 1 << bits; num = 0;
 	for(lcv = 0; lcv < 2*_samps; lcv++)
 	{
-		if(p[lcv] > max)
+		val = p[lcv];
+		val *= lscale;
+		val >>= (14 - bits);
+		if(val > max)
 			num++;
-	}
-
-	max = -max;
-	for(lcv = 0; lcv < 2*_samps; lcv++)
-	{
-		if(p[lcv] < max)
-			num++;
+		p[lcv] = val;
 	}
 
 	/* Figure out the shift value */
@@ -331,14 +317,7 @@ void init_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 			max = p[lcv];
 	}
 
-	if(max < (1 << AGC_BITS))
-		max = 1 << AGC_BITS;
-
-	if(max > (1 << (8+AGC_BITS)))
-		max = (1 << (8+AGC_BITS));
-
-	if(max > scale[0])
-		scale[0] = max;
+	scale[0] = (1 << 14) / max;
 
 }
 /*----------------------------------------------------------------------------------------------*/

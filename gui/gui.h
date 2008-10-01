@@ -96,7 +96,8 @@ public:
 
 		/* Navigation Tab */
 		wxPanel* 		pNavigation;
-		wxSizer* 		sNavigation;
+		wxBoxSizer* 	sNavigation;
+		wxTextCtrl* 	tTracking;
 		wxTextCtrl* 	tNavigation;
 
 		/* Acquisition Tab */
@@ -130,15 +131,10 @@ public:
 		wxTextCtrl* 	tCommands;
 
 		/* Logging Tab */
-		wxPanel* 		pLogging;
-		wxBoxSizer* 	sLogging;
-		wxTextCtrl* 	tLogging;
-		wxCheckListBox *cLogging;
-
-		/* Feedbck Tab */
-		wxPanel* 		pFeedback;
-		wxSizer* 		sFeedback;
-		wxTextCtrl* 	tFeedback;
+		wxPanel* 		pConfig;
+		wxBoxSizer* 	sConfig;
+		wxTextCtrl* 	tConfig;
+		wxCheckListBox *cConfig;
 
 
 	public:
@@ -187,11 +183,8 @@ public:
 	    void initCommands();
 	    void renderCommands();
 
-	    void initLogging();
-	    void renderLogging();
-
-	    void initFeedback();
-	    void renderFeedback();
+	    void initConfig();
+	    void renderConfig();
 
 	    DECLARE_EVENT_TABLE()
 

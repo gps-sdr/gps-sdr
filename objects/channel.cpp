@@ -249,7 +249,7 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	else
 		_feedback->set_z_count = false;
 
-	if((P[1] > 1.5e4) && converged)
+	if((P[1] > 1.0e4) && converged)
 		_feedback->navigate = navigate;
 	else
 		_feedback->navigate = false;
@@ -914,13 +914,13 @@ void Channel::Error()
 	if(count > 5000)
 	{
 
-		if((mcn0 > 38.0) && (len != 1))
+		if((mcn0 > 39.0) && (len != 1))
 		{
 			len = 1;
 			PLL_W(30.0);
 		}
 
-		if((mcn0 < 36.0) && (len != 20))
+		if((mcn0 < 37.0) && (len != 20))
 		{
 			len = 20;
 			PLL_W(15.0);
