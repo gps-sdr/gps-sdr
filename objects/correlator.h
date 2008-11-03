@@ -35,7 +35,12 @@ class Correlator
 
 		FILE *crap;
 
-		pthread_t 			thread;	 					//!< For the thread
+		/* Default object variables */
+		uint32 				execution_tic;				//!< Execution counter
+		uint32 				start_tic;					//!< OS tic at start of function
+		uint32 				stop_tic;					//!< OS tic at end of function
+		pthread_t 			thread;						//!< For the thread
+		pthread_mutex_t		mutex;						//!< Protect the following variable
 
 		int32				packet_count;				//!< Count 1ms packets
 		ms_packet			packet;						//!< 1ms of data
@@ -67,20 +72,26 @@ class Correlator
 
 		Correlator(int32 _chan);
 		~Correlator();
-		void Inport();												//!< Get IF data, NCO commands, and acq results
-		void Correlate();											//!< Run the actual correlation
-		void Export();												//!< Dump results to channels and Navigation
-		void Start();												//!< Start the thread
-		void Stop();												//!< Stop the thread
-		void TakeMeasurement();									//!< Take some measurements
-		void SamplePRN();											//!< Sample all 32 PRN codes and put it into the code table
-		void GetPRN(int32 _sv);									//!< Get row pointers to specific PRN
-		void InitCorrelator();									//!< Initialize a correlator/channel with an acquisition result
-		void DumpAccum(Correlation_S *c);							//!< Dump accumulation to channel for processing
-		void UpdateState(int32 samps);							//!< Update correlator state
-		void ProcessFeedback(NCO_Command_S *f);
-		void Accum(Correlation_S *c, CPX *data, int32 samps);		//!< Do the actual accumulation
-		void SineGen(int32 samps);									//!< Dynamic wipeoff generation
+		void Import();									//!< Get IF data, NCO commands, and acq results
+		void Export();									//!< Dump results to channels and Navigation
+		void Start();									//!< Start the thread
+		void Stop();									//!< Stop the thread
+		void Lock();									//!< Lock critical data
+		void Unlock();									//!< Unlock critical data
+		uint32 GetExecTic(){return(execution_tic);};	//!< Get the execution counter
+		uint32 GetStartTic(){return(start_tic);};		//!< Get the Nucleus tic at start of function
+		uint32 GetStopTic(){return(execution_tic);};	//!< Get the Nucleus tic at end of function
+
+		void Correlate();									//!< Run the actual correlation
+		void TakeMeasurement();								//!< Take some measurements
+		void SamplePRN();									//!< Sample all 32 PRN codes and put it into the code table
+		void GetPRN(int32 _sv);								//!< Get row pointers to specific PRN
+		void InitCorrelator();								//!< Initialize a correlator/channel with an acquisition result
+		void DumpAccum(Correlation_S *c);					//!< Dump accumulation to channel for processing
+		void UpdateState(int32 samps);						//!< Update correlator state
+		void ProcessFeedback(NCO_Command_S *f);				//!< Process the feedback
+		void Accum(Correlation_S *c, CPX *data, int32 samps);	//!< Do the actual accumulation
+		void SineGen(int32 samps);								//!< Dynamic wipeoff generation
 };
 
 #endif /* Correlator_H */

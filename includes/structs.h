@@ -215,32 +215,6 @@ typedef struct _Correlator_State_S
 
 
 /*! \ingroup STRUCTS
- * The measurement dumped to the PVT object
- */
-typedef struct _Measurement_S
-{
-
-	double	code_time;					//!< The code time
-	double 	code_phase; 				//!< Code phase (chips)
-	double 	carrier_phase;				//!< Carrier phase (cycles)
-	double 	carrier_phase_prev;			//!< Carrier phase prev (cycles)
-	double 	carrier_phase_prev_prev;	//!< Carrier phase prev prev (cycles)
-	double 	code_phase_mod;				//!< Code phase (chips), mod 1023
-	double 	carrier_phase_mod;			//!< Carrier phase (cycles), mod 1
-	double 	code_nco;					//!< Code NCO
-	double 	carrier_nco;				//!< Carrier NCO
-	int32  	_1ms_epoch;					//!< _1ms_epoch
-	int32  	_20ms_epoch;				//!< _20ms_epoch
-	int32	_z_count;					//!< The z count
-	int32 	navigate;					//!< This has been tagged as a good measurement
-	int32	sv;							//!< For this sv
-	int32	chan;						//!< For this channel
-	int32 	count;						//!< Corresponds to this tic
-
-} Measurement_S;
-
-
-/*! \ingroup STRUCTS
  * State of phase lock loop
  */
 typedef struct _Phase_lock_loop {
@@ -284,38 +258,7 @@ typedef struct _Delay_lock_loop
 } Delay_lock_loop;
 
 
-/*! \ingroup STRUCTS
- * Packet dumped to telemetry and to disk to keep track of each channel
- */
-typedef struct _Chan_Packet_S
-{
 
-	float header;				//!< Header flag
-	float chan;					//!< Channel number
-	float sv;					//!< SV number
-	float bit_lock;				//!< Bit lock flag
-	float frame_lock;			//!< Frame lock flag
-	float subframe;				//!< Current subframe
-	float best_epoch;			//!< Data bit position
-	float count;				//!< Number of ms this channel has been active
-	float len;					//!< Correlation length (ms)
-	float I[3];					//!< Inphase correlations
-	float Q[3];					//!< Quadrature correlations
-	float I_avg;				//!< I average
-	float Q_var;				//!< Q variance
-	float P_avg;				//!< Power average
-	float CN0;					//!< New CN0 estimate
-	float CN0_old;				//!< Old school CN0 estimate
-	float code_nco;				//!< Code NCO state
-	float carrier_nco;			//!< Carrier NCO state
-	float fll_lock;				//!< fll_lock value
-	float pll_lock;				//!< pll_lock value
-	float fll_lock_ticks;		//!< Number of continuous fll locks
-	float w;					//!< acceleration accumulator state
-	float x;					//!< velocity accumulator state
-	float z;					//!< proportional feedback to NCO
-
-} Chan_Packet_S;
 
 
 /*! \ingroup STRUCTS
@@ -332,76 +275,7 @@ typedef struct _Chan_2_Ephem_S {
 
 
 /*----------------------------------------------------------------------------------------------*/
-/*! \ingroup STRUCTS
-	Decoded ephemeris struct
-*/
-typedef struct _Ephemeris_S
-{
 
-	int32	valid;					//!< 0=No valid data.
-	int32	tofxmission;			//!< Time of subframe 1 transmission, sec of week.
-	int32	tow;					//!< Truncated TOW count
-	int32	subframe_1_health;      //!< Subframe 1 health code.
-	int32	code_on_L2;             //!< Code on L2 flag.
-	int32	week_number;			//!< GPS week at time of subframe 1 reception.
-	int32	L2pdata;                //!< L2 P data flag.
-	int32	ura;                    //!< Satellite's URA code.
-	int32	iodc;                   //!< Issue of data, clock.
-	double	tgd;                    //!< Group delay parameter.
-	int32	tocwk;					//!< GPS week corresponding to toc.
-	double	toc;					//!< Reference time of clock data parameter set.
-	double	af0;					//!< Clock correction polynomial coefficient.
-	double	af1;					//!< Clock correction polynomial coefficient.
-	double	af2;					//!< Clock correction polynomial coefficient.
-	int32	iode;                   //!< Issue of data, ephemeris.
-	double	crs;					//!< Sine harmonic correction to orbital radius.
-	double	deltan;					//!< Mean motion delta from computed value.
-	double	m0;                     //!< Mean anomaly at TOE.
-	double	cuc;					//!< Cosine harmonic correction to orbital radius.
-	double	ecc;                    //!< Eccentricity.
-	double	cus;					//!< Sine harmonic corr to argument of latitude.
-	double	sqrta;                  //!< Square root of semimajor axis.
-	int32	toewk;                  //!< GPS week corresponding to toe.
-	double	toe;					//!< Reference time of ephemeris data set.
-	int32	fti;                    //!< Fit interval.
-	double	cic;					//!< Cosine harmonic corr to inclination.
-	double	om0;                    //!< Right ascension at TOE.
-	double	cis;					//!< Sine harmonic corr to inclination.
-	double	in0;                    //!< Inclination at TOE.
-	double	crc;					//!< Cosine harmonic correction to orbital radius.
-	double	argp;                   //!< Argument of perigee at TOE.
-	double	omd;                    //!< Rate of right ascension.
-	double	idot;                   //!< Rate of inclination.
-	double	a;						//!< Derived qty: a = sqrta**2.
-	double	n0;						//!< Derived qty: n0 = sqrt(GravConstant/(a*a*a)).
-	double	relativistic;			//!< Relativistic correction
-	int32	zcount;
-	int32	sv;
-
-} Ephemeris_S;
-
-
-/*! \ingroup STRUCTS
-	Decoded almanac struct
-*/
-typedef struct _Almanac_S
-{
-
-	uint32	decoded;				//!< Has this been decoded yet
-	int32	health;					//!< Health code
-	double	ecc;					//!< Eccentricity
-	double	toa;					//!< Time of Almanac
-	double	in0;					//!< Inclination
-	double	omd;					//!< Rate of right ascention
-	double	sqrta;					//!< Sqrt of Semi-Major Axis
-	double	om0;					//!< Longitude of Ascending Node
-	double	argp;					//!< Argument of perigee
-	double	m0;						//!< Mean Anomaly
-	double	af0;					//!< Clock parameter 0
-	double	af1;					//!< Clock parameter 1
-	int32	week;					//!< Week number
-
-} Almanac_S;
 
 /*! \ingroup STRUCTS
 	Raw ephemeris struct
@@ -433,104 +307,13 @@ typedef struct _Almanac_Data_S
 
 /* PVT Structs */
 /*----------------------------------------------------------------------------------------------*/
-/*! \ingroup STRUCTS
-	Raw PVT Navigation Solution
-*/
-typedef struct _Nav_Solution_S
- {
-
-	double x;			//!< x in meters
-	double y;			//!< y in meters
-	double z;			//!< z in meters
-
-	double vx;			//!< vx in meters/sec
-	double vy;			//!< vy in meters/sec
-	double vz;			//!< vz in meters/sec
-
-	double time;		//!< time in seconds
-	double clock_bias;	//!< clock bias in seconds
-	double clock_rate;  //!< clock rate in meters/second
-	double latitude;	//!< latitude in decimal radians
-	double longitude;	//!< longitude in decimal radians
-	double altitude;	//!< height in meters
-
-	double gdop;		//!< geometric dilution of precision
-	double pdop;		//!< position dilution of precision
-	double tdop;		//!< time dilution of precision
-	double hdop;		//!< hdop diultion of precision
-	double vdop;		//!< vertical dilution of precision
-
-	int32 nsvs;			//!< This is a mask, not a number
-	int32 converged;	//!< declare convergence
-	int32 tic;			//!< global_tic associated with this solution
-
-	int32 stale_ticks;			//!< count the number of tics since the last good sltn
-	int32 converged_ticks;		//!< count number of converged tics
-	int32 nav_channels;			//!< count number of SVs used in last PVT estimation
-	int32 initial_convergence;	//!< Flag set ONCE if the first convergence has occured
-
-	int32 chanmap[MAX_CHANNELS];
-
-} Nav_Solution_S;
-
-/*! \ingroup STRUCTS
-	Pseudorango structure, holds both time and meters
-*/
-typedef struct _Pseudorange_S
-{
-
-	double time;			//!< pseudorange in seconds
-	double time_rate;		//!< pseudorange rate in sec/sec
-	double meters;			//!< pseudorange in meters
-	double meters_rate;		//!< pseudorange rate in meters/sec
-	double residual;		//!< residual in meters
-	double rate_residual;	//!< rate residual (m/s)
-	double time_uncorrected;//!< raw pseudorange measurements
-	double previous;		//!< from previous step, used for err check
-
-} Pseudorange_S;
-
-/*! \ingroup STRUCTS
-	Contains the SV position used for the PVT solution
-*/
-typedef struct _SV_Position_S
-{
-
-	double x;				//!< ECEF x coordinate (meters)
-	double y;				//!< ECEF y coordinate (meters)
-	double z;				//!< ECEF z coordinate (meters)
-	double vx;				//!< ECEF x velocity (meters/sec)
-	double vy;				//!< ECEF x velocity (meters/sec)
-	double vz;				//!< ECEF x velocity (meters/sec)
-	double elev;			//!< Satellite elevation (radians)
-	double azim;			//!< Satellite azimuth (radians)
-	double clock_bias;		//!< SV clock bias
-	double frequency_bias;	//!< SV clock rate bias
-	double transit_time;	//!< Time of flight from SV to receiver
-	double time;			//!< Time used in SV position calculation
-	double latitude;		//!< Latitude using WGS-84 ellipsoid in decimal radians
-	double longitude;		//!< Longitude using WGS-84 ellipsoid in decimal radians
-	double altitude;		//!< height in meters
-
-} SV_Position_S;
 
 
-/*! \ingroup STRUCTS
-	Contains the clock state
-*/
-typedef struct _Clock_S
-{
 
-	double receiver_time;		//!< Elapsed receiver time
-	double rate;	 			//!< Clock rate
-	double bias; 				//!< Clock bias
-	double time0;				//!< Guess of gps second at initialization
-	double time;				//!< Best estimate of GPStime
-	double time_raw;			//!< Uncorrected time
-	double week;				//!< GPS week
-	uint32 state;				//!< Clock state
 
-} Clock_S;
+
+
+
 /*----------------------------------------------------------------------------------------------*/
 
 

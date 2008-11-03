@@ -33,11 +33,16 @@ typedef class Telemetry
 
 	private:
 
+		/* Default object variables */
+		uint32 				execution_tic;	//!< Execution counter
+		uint32 				start_tic;		//!< OS tic at start of function
+		uint32 				stop_tic;		//!< OS tic at end of function
+		pthread_t 			thread;			//!< For the thread
+		pthread_mutex_t		mutex;			//!< Protect the following variable
+
 		int32 				fifo;
-		int32	  			gpipe;		//!< Named pipe to export data to the GUI
-		int32				gpipe_open;	//!< Is this named pipe connected?
-		pthread_t 			thread;		//!< For the thread
-		pthread_mutex_t		mutex;		//!< Protect the following variable
+		int32	  			gpipe;			//!< Named pipe to export data to the GUI
+		int32				gpipe_open;		//!< Is this named pipe connected?
 
 		/* Stuff for ncurses display */
 		WINDOW *mainwnd;
@@ -70,13 +75,18 @@ typedef class Telemetry
 
 		Telemetry(int32 _ncurses);
 		~Telemetry();
-		void Lock();
-		void Unlock();
+		void Start();								//!< Start the thread
+		void Stop();								//!< Stop the thread
+		void Import();								//!< Get data into the thread
+		void Export();								//!< Get data out of the thread
+		void Lock();								//!< Lock the object's mutex
+		void Unlock();								//!< Unlock the object's mutex
+		uint32 GetExecTic(){return(execution_tic);};//!< Get the execution counter
+		uint32 GetStartTic(){return(start_tic);};	//!< Get the Nucleus tic at start of function
+		uint32 GetStopTic(){return(execution_tic);};//!< Get the Nucleus tic at end of function
+
+
 		void SetDisplay(int32 _type){display = _type;}
-		void Inport();
-		void Export();
-		void Start();
-		void Stop();
 
 		void Init();
 		void InitScreen();
@@ -100,6 +110,25 @@ typedef class Telemetry
 		void OpenGUIPipe();
 		void SetGUIPipe(bool _status);
 		void ExportGUI();
+
+		/* Object specific methods */
+		void FormCCSDSPacketHeader(uint32 _apid, uint32 _sf, uint32 _pl); 	//!< Form the CCSDS packet header
+		void EmitCCSDSPacket(void *_buff, uint32 _len);						//!< Emit a CCSDS packet
+		void FormCCSDSCommandHeader();										//!< Form the CCSDS command header
+
+		/* Types of output messages */
+		void SendBoardHealth();						//!< Emit hardware health values
+		void SendTaskHealth();						//!< Emit task health values
+		void SendChannelHealth();					//!< Emit channel health
+		void SendSPS();								//!< Emit a PVT
+		void SendClock();							//!< Emit a Clock state
+		void SendSVPosition();						//!< Send the SV Position
+		void SendEKF();								//!< Emit a GEONS solution
+		void SendMeasurement();						//!< Emit a raw measurement
+		void SendPseudorange();						//!< Emit a Pseudorange
+		void SendEphemeris();						//!< Emit a decoded ephemeris
+		void SendAlamanac();						//!< Emit a decoded almanac
+		void SendCommandAck();						//!< Send a command acknowledge
 
 };
 

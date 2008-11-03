@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -26,14 +26,20 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "includes.h"
 
 /*! \ingroup CLASSES
- * 
+ *
  */
 typedef class Post_Process
 {
 
 	private:
 
-		pthread_t	thread;	//!< For the thread
+		/* Default object variables */
+		uint32 				execution_tic;	//!< Execution counter
+		uint32 				start_tic;		//!< OS tic at start of function
+		uint32 				stop_tic;		//!< OS tic at end of function
+		pthread_t 			thread;			//!< For the thread
+		pthread_mutex_t		mutex;			//!< Protect the following variable
+
 		FILE 		*fp;	//!< file pointer to source GPS data
 		int32 		npipe;	//!< spoof the FIFO's named pipe
 		int32		fifo;
@@ -46,12 +52,15 @@ typedef class Post_Process
 
 		Post_Process(char *);
 		~Post_Process();
-		void Open();
-		void Inport();
-		void Parse();
-		void Export();
-		void Start();
-		void Stop();
+		void Start();								//!< Start the thread
+		void Stop();								//!< Stop the thread
+		void Import();								//!< Get data into the thread
+		void Export();								//!< Get data out of the thread
+		void Lock();								//!< Lock the object's mutex
+		void Unlock();								//!< Unlock the object's mutex
+		uint32 GetExecTic(){return(execution_tic);};//!< Get the execution counter
+		uint32 GetStartTic(){return(start_tic);};	//!< Get the OS tic at start of function
+		uint32 GetStopTic(){return(execution_tic);};//!< Get the OS tic at end of function
 
 };
 
