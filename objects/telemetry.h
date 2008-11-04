@@ -20,15 +20,29 @@ write to the:
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
 
-#ifndef Telemetry_H
-#define Telemetry_H
+#ifndef TELEMETRY_H
+#define TELEMETRY_H
 
 #include "includes.h"
+
+/*! \ingroup STRUCTS
+ * Information sent from PVT to telemetry
+ */
+typedef struct _PVT_2_Telem_S
+{
+
+	SPS_M 			master_nav;
+	Clock_M 		master_clock;
+	SV_Position_M	sv_positions[MAX_CHANNELS];
+	Pseudorange_M	pseudoranges[MAX_CHANNELS];
+	Measurement_M	measurements[MAX_CHANNELS];
+
+} PVT_2_Telem_S;
 
 /*! \ingroup CLASSES
  *
  */
-typedef class Telemetry
+class Telemetry
 {
 
 	private:
@@ -40,22 +54,17 @@ typedef class Telemetry
 		pthread_t 			thread;			//!< For the thread
 		pthread_mutex_t		mutex;			//!< Protect the following variable
 
-		int32 				fifo;
-		int32	  			gpipe;			//!< Named pipe to export data to the GUI
-		int32				gpipe_open;		//!< Is this named pipe connected?
-
 		/* Stuff for ncurses display */
 		WINDOW *mainwnd;
 		WINDOW *screen;
 		WINDOW *my_win;
 
-		FIFO_2_Telem_S 		tFIFO;
+		FIFO_M 		tFIFO;
 		PVT_2_Telem_S 		tNav;
-		Chan_Packet_S 		tChan[MAX_CHANNELS];
+		Channel_Health_M 	tChan[MAX_CHANNELS];
 		Acq_Result_S		tAcq;
-		Ephem_2_Telem_S 	tEphem;
+		Ephemeris_Status_M 	tEphem;
 		SV_Select_2_Telem_S tSelect;
-		Telem_2_GUI_S 		tGUI;
 
 		int32 active[MAX_CHANNELS];
 		int32 line;
@@ -73,7 +82,7 @@ typedef class Telemetry
 
 	public:
 
-		Telemetry(int32 _ncurses);
+		Telemetry();
 		~Telemetry();
 		void Start();								//!< Start the thread
 		void Stop();								//!< Stop the thread
@@ -84,7 +93,6 @@ typedef class Telemetry
 		uint32 GetExecTic(){return(execution_tic);};//!< Get the execution counter
 		uint32 GetStartTic(){return(start_tic);};	//!< Get the Nucleus tic at start of function
 		uint32 GetStopTic(){return(execution_tic);};//!< Get the Nucleus tic at end of function
-
 
 		void SetDisplay(int32 _type){display = _type;}
 
@@ -107,29 +115,6 @@ typedef class Telemetry
 		void GoogleEarthFooter();
 		void GoogleEarthHeader();
 
-		void OpenGUIPipe();
-		void SetGUIPipe(bool _status);
-		void ExportGUI();
-
-		/* Object specific methods */
-		void FormCCSDSPacketHeader(uint32 _apid, uint32 _sf, uint32 _pl); 	//!< Form the CCSDS packet header
-		void EmitCCSDSPacket(void *_buff, uint32 _len);						//!< Emit a CCSDS packet
-		void FormCCSDSCommandHeader();										//!< Form the CCSDS command header
-
-		/* Types of output messages */
-		void SendBoardHealth();						//!< Emit hardware health values
-		void SendTaskHealth();						//!< Emit task health values
-		void SendChannelHealth();					//!< Emit channel health
-		void SendSPS();								//!< Emit a PVT
-		void SendClock();							//!< Emit a Clock state
-		void SendSVPosition();						//!< Send the SV Position
-		void SendEKF();								//!< Emit a GEONS solution
-		void SendMeasurement();						//!< Emit a raw measurement
-		void SendPseudorange();						//!< Emit a Pseudorange
-		void SendEphemeris();						//!< Emit a decoded ephemeris
-		void SendAlamanac();						//!< Emit a decoded almanac
-		void SendCommandAck();						//!< Send a command acknowledge
-
 };
 
-#endif /* Telemetry_H */
+#endif /* TELEMETRY_H */

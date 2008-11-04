@@ -31,6 +31,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define CPU_CORES				(2)							//!< 1 for a single core, 2 for a dual core system, etc
 #define CORR_PER_CPU			(MAX_CHANNELS/CPU_CORES)	//!< Distribute them up evenly (this should be an INTEGER!)
 #define MAX_ANTENNAS			(1)							//!< The number of antennas
+#define MAX_TASKS				(32)						//!< Maximum number of threads
 /*----------------------------------------------------------------------------------------------*/
 
 

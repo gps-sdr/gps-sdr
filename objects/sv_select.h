@@ -32,7 +32,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*! \ingroup CLASSES
  *
  */
-typedef class SV_Select
+class SV_Select
 {
 
 	private:
@@ -44,13 +44,14 @@ typedef class SV_Select
 		pthread_t 			thread;			//!< For the thread
 		pthread_mutex_t		mutex;			//!< Protect the following variable
 
-		PVT_2_SV_Select_S	input_s;						//!< Get nav state from PVT
+		SPS_M 				master_nav;
+		Clock_M 			master_clock;
 		Acq_Result_S		result;							//!< Acquisition result
 		Acq_Request_S		request;						//!< Acquisition request
-		Nav_Solution_S 		*pnav;							//!< Pointer to nav sltn
-		Clock_S 			*pclock;						//!< Point to clock sltn
-		Almanac_S			almanacs[NUM_CODES];			//!< The decoded almanacs
-		SV_Position_S		sv_positions[NUM_CODES];		//!< The GPS positions calculated from the almanac
+		SPS_M		 		*pnav;							//!< Pointer to nav sltn
+		Clock_M 			*pclock;						//!< Point to clock sltn
+		Almanac_M			almanacs[NUM_CODES];			//!< The decoded almanacs
+		SV_Position_M		sv_positions[NUM_CODES];		//!< The GPS positions calculated from the almanac
 		Acq_Predicted_S 	sv_prediction[NUM_CODES];		//!< Predicated delay/doppler visibility, etc
 		Acq_History_S		sv_history[NUM_CODES];			//!< Keep track of acquisition attempts for each SV
 		SV_Select_2_Telem_S	output_s;						//!< Send predicted states to telemetry

@@ -304,7 +304,7 @@ void Ephemeris::Import()
 /*----------------------------------------------------------------------------------------------*/
 void Ephemeris::Export()
 {
-	write(Ephem_2_Telem_P[WRITE], &output_s, sizeof(Ephem_2_Telem_S));
+	write(Ephem_2_Telem_P[WRITE], &output_s, sizeof(Ephemeris_Status_M));
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -329,7 +329,7 @@ void Ephemeris::Unlock()
 void Ephemeris::ClearSV(int32 _sv)
 {
 	iode_master[_sv] = 9999; //some non possible IODE value
-	memset(&ephemerides[_sv], 0x0, sizeof(Ephemeris_S));
+	memset(&ephemerides[_sv], 0x0, sizeof(Ephemeris_M));
 	memset(&ephem_data[_sv], 0x0, sizeof(Ephem_Data_S));
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -376,7 +376,7 @@ void Ephemeris::WriteEphemeris()
 
 	if(fp != NULL)
 	{
-		fwrite(&ephemerides[0], sizeof(Ephemeris_S), NUM_CODES, fp);
+		fwrite(&ephemerides[0], sizeof(Ephemeris_M), NUM_CODES, fp);
 		fclose(fp);
 	}
 }
@@ -394,7 +394,7 @@ void Ephemeris::ReadEphemeris()
 
 	if(fp != NULL)
 	{
-		fread(&ephemerides[0], sizeof(Ephemeris_S), NUM_CODES, fp);
+		fread(&ephemerides[0], sizeof(Ephemeris_M), NUM_CODES, fp);
 		fclose(fp);
 
 		for(lcv = 0; lcv < NUM_CODES; lcv++)
@@ -414,7 +414,7 @@ void Ephemeris::ReadEphemeris()
 void Ephemeris::WriteAlmanac()
 {
 	int32 lcv;
-	Almanac_S *p;
+	Almanac_M *p;
 	FILE *fp;
 
 	fp = fopen("current.alm","wt");
@@ -457,7 +457,7 @@ void Ephemeris::ReadAlmanac()
 {
 
 	int32 prn, week;
-	Almanac_S *p;
+	Almanac_M *p;
 	FILE *fp;
 
 	fp = fopen("current.alm","rt");

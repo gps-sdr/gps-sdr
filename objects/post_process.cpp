@@ -32,7 +32,7 @@ void *Post_Process_Thread(void *_arg)
 
 	while(grun)
 	{
-		aPost_Process->Inport();
+		aPost_Process->Import();
 		aPost_Process->Export();
 	}
 
@@ -164,20 +164,12 @@ Post_Process::~Post_Process()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Post_Process::Inport()
+void Post_Process::Import()
 {
 
 	fread(&buff[0], sizeof(CPX), IF_SAMPS_MS, fp);
 	if(feof(fp))
 		grun = false;
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Post_Process::Parse()
-{
 
 }
 /*----------------------------------------------------------------------------------------------*/

@@ -36,7 +36,7 @@ void *Correlator_Thread(void *_arg)
 
 	while(grun)
 	{
-		aCorrelator->Inport();
+		aCorrelator->Import();
 		aCorrelator->Correlate();
 	}
 
@@ -149,7 +149,7 @@ Correlator::~Correlator()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Correlator::Inport()
+void Correlator::Import()
 {
 	int32 bread;
 	int32 lcv;
@@ -292,12 +292,12 @@ void Correlator::TakeMeasurement()
 
 	int32 lcv, tic;
 	int32 n_dp, n_p, n_c;
-	Measurement_S *pmeas;
+	Measurement_M *pmeas;
 
 	tic = packet.measurement;
 
 	/* Step 1, copy in measurement from ICP_TICS ago */
-	memcpy(&meas, &meas_buff[(tic - ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND], sizeof(Measurement_S));
+	memcpy(&meas, &meas_buff[(tic - ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND], sizeof(Measurement_M));
 
 	/* Get carrier phase prev from 2*ICP_TICKS ago */
 	meas.carrier_phase_prev = meas_buff[(tic - 2*ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND].carrier_phase;
@@ -329,7 +329,7 @@ void Correlator::TakeMeasurement()
 	meas.navigate = n_dp && n_p && n_c;
 
 	/* Write over measurement */
-	write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_S));
+	write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_M));
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -533,8 +533,8 @@ void Correlator::ProcessFeedback(NCO_Command_S *f)
 	{
 		/* Clear out some buffers */
 		memset(&state, 		0x0, sizeof(Correlator_State_S));
-		memset(&meas, 		0x0, sizeof(Measurement_S));
-		memset(&meas_buff, 	0x0, TICS_PER_SECOND*sizeof(Measurement_S));
+		memset(&meas, 		0x0, sizeof(Measurement_M));
+		memset(&meas_buff, 	0x0, TICS_PER_SECOND*sizeof(Measurement_M));
 
 		/* Set correlator status to inactive */
 		pthread_mutex_lock(&mInterrupt);

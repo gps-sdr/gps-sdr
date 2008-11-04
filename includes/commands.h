@@ -42,46 +42,46 @@ enum CCSDS_COMMAND_IDS
 typedef struct Reset_PVT_C
 {
 	int32 flag;		//!< Flag for no reason
-};
+} Reset_PVT_C;
 
 typedef struct Reset_EKF_C
 {
 	int32 flag;		//!< Flag for no reason
-};
+} Reset_EKF_C;
 
 typedef struct Reset_Channel_C
 {
 	int32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
-};
+} Reset_Channel_C;
 
 typedef struct Reset_Ephemeris_C
 {
 	int32 sv;		//!< SV #, or all if sv > NUM_CODES
-};
+} Reset_Ephemeris_C;
 
 typedef struct Reset_Almanac_C
 {
 	int32 sv;		//!< SV #, or all if sv > NUM_CODES
-};
+} Reset_Almanac_C;
 
 typedef struct Get_Measurement_C
 {
 	int32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
-};
+} Get_Measurement_C;
 
 typedef struct Get_Pseudorange_C
 {
 	int32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
-};
+} Get_Pseudorange_C;
 
 typedef struct Get_Ephemeris_C
 {
 	int32 sv;		//!< SV #, or all if sv > NUM_CODES
-};
+} Get_Ephemeris_C;
 
 typedef struct Get_Almanac_C
 {
 	int32 sv;		//!< SV #, or all if sv > NUM_CODES
-};
+} Get_Almanac_C;
 
 #endif /* COMMANDS_H_ */

@@ -32,7 +32,7 @@ void *FIFO_Thread(void *_arg)
 
 	while(grun)
 	{
-		aFIFO->Inport();
+		aFIFO->Import();
 	}
 
 	pthread_exit(0);
@@ -169,7 +169,7 @@ void kill_program(int _sig)
 
 
 /*----------------------------------------------------------------------------------------------*/
-void FIFO::Inport()
+void FIFO::Import()
 {
 	int32 lcv;
 	char *p;
@@ -291,8 +291,8 @@ void FIFO::Dequeue(int32 _resource, ms_packet *p)
 			telem.agc_scale = agc_scale;
 			telem.overflw = overflw;
 
-			write(FIFO_2_Telem_P[WRITE], &telem, sizeof(FIFO_2_Telem_S));
-			write(FIFO_2_PVT_P[WRITE], &telem, sizeof(FIFO_2_Telem_S));
+			write(FIFO_2_Telem_P[WRITE], &telem, sizeof(FIFO_M));
+			write(FIFO_2_PVT_P[WRITE], &telem, sizeof(FIFO_M));
 
 			tail->measurement = 0;
 		}

@@ -83,7 +83,7 @@ class Acquisition
 		Acq_Result_S doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax); 					//!< Look for this sv in this doppler range using a 10 ms correlation and 15 incoherent integrations (_buff must be 310 ms long)
 		void doPrepIF(int32 _type, CPX *_buff);												//!< Prep the IF (done once if detecting multiple SVs in same data set)
 		void doDFT(CPX *in);
-		void Inport();																		//!< Get a chuck of data to operate on
+		void Import();																		//!< Get a chuck of data to operate on
 		void Export(char *_fname);																		//!< Dump results
 		void Acquire();																		//!< Acquire with respect to current state
 		void Start();																		//!< Start up the thread

@@ -28,7 +28,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*! \ingroup CLASSES
  *
  */
-typedef class Post_Process
+class Post_Process
 {
 
 	private:
@@ -52,6 +52,7 @@ typedef class Post_Process
 
 		Post_Process(char *);
 		~Post_Process();
+		void Open();
 		void Start();								//!< Start the thread
 		void Stop();								//!< Stop the thread
 		void Import();								//!< Get data into the thread

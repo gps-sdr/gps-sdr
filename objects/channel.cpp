@@ -164,7 +164,7 @@ void Channel::Start(int32 _sv, Acq_Result_S result, int32 _corr_len)
 
 
 /*----------------------------------------------------------------------------------------------*/
-Chan_Packet_S Channel::getPacket()
+Channel_Health_M Channel::getPacket()
 {
 	return(packet);
 }
@@ -947,38 +947,27 @@ void Channel::Export()
 
 	int32 bwrote;
 
-	packet.header 		= (float)CHAN_HEADER;
 	packet.chan 		= (float)chan;
-	packet.len 			= (float)len;
+	packet.state		= (float)state;
 	packet.sv 			= (float)sv;
-	packet.subframe 	= (float)subframe;
-	packet.bit_lock 	= (float)bit_lock;
-	packet.frame_lock 	= (float)frame_lock;
-	packet.best_epoch 	= (float)best_epoch;
-	packet.count 		= (float)count;
-	packet.I[0] 		= (float)I[0];
-	packet.I[1] 		= (float)I[1];
-	packet.I[2] 		= (float)I[2];
-	packet.Q[0] 		= (float)Q[0];
-	packet.Q[1] 		= (float)Q[1];
-	packet.Q[2]			= (float)Q[2];
-	packet.CN0 			= (float)CN0;
-	packet.CN0_old		= (float)CN0_old;
-	packet.I_avg		= (float)I_avg;
-	packet.Q_var 		= (float)Q_var;
-	packet.P_avg 		= (float)P_avg;
-	packet.code_nco 	= (float)code_nco;
-	packet.carrier_nco 	= (float)carrier_nco;
-	packet.fll_lock		= (float)aPLL.fll_lock;
-	packet.pll_lock		= (float)aPLL.pll_lock;
-	packet.fll_lock_ticks = (float)aPLL.fll_lock_ticks;
-	packet.w			= (float)aPLL.w/(float)len;
+	packet.antenna		= (float)antenna;
+	packet.len 			= (float)len;
+	packet.w			= (float)aPLL.w;
 	packet.x 			= (float)aPLL.x;
 	packet.z 			= (float)aPLL.z;
+	packet.CN0 			= (float)CN0;
+	packet.p_avg 		= (float)P_avg;
+	packet.bit_lock 	= (float)bit_lock;
+	packet.frame_lock 	= (float)frame_lock;
+	packet.navigate		= (float)navigate;
+	packet.count		= (float)count;
+	packet.subframe 	= (float)subframe;
+	packet.best_epoch 	= (float)best_epoch;
+	packet.code_nco 	= (float)code_nco;
+	packet.carrier_nco 	= (float)carrier_nco;
 
 	if(gopt.log_channel && (fp != NULL))
-		fwrite(&packet, sizeof(Chan_Packet_S), 1,  fp);
+		fwrite(&packet, sizeof(Channel_Health_M), 1,  fp);
 }
 /*----------------------------------------------------------------------------------------------*/
-
 

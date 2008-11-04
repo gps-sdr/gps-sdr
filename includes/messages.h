@@ -23,7 +23,6 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
-
 #define CCSDS_APID_BASE	(0x0)	//!< The CCSDS APID Base number for our receiver
 
 /* Enum the packet ID #s */
@@ -40,6 +39,8 @@ enum CCSDS_PACKET_IDS
 	PSEUDORANGE_M_ID,
 	EPHEMERIS_M_ID,
 	ALMANAC_M_ID,
+	EPHEMERIS_VALID_M_ID,
+	FIFO_M_ID,
 	COMMAND_ACQ_M_ID
 };
 
@@ -52,7 +53,7 @@ typedef struct CCSDS_PH
 	uint16 psc;	//!< Packet sequence control
 	uint16 pdl; //!< Packet data length
 
-};
+} CCSDS_PH;
 
 
 /* CCSDS Command Header */
@@ -63,7 +64,7 @@ typedef struct CCSDS_CH
 	uint16 psc;	//!< Packet sequence control
 	uint16 pdl; //!< Packet data length
 
-};
+} CCSDS_CH;
 
 
 typedef struct Board_Health_M
@@ -101,17 +102,17 @@ typedef struct Board_Health_M
 	uint32 software_minor;	//!< Minor version
 	uint32 software_postfix;//!< Alpha, beta, or gold
 
-};
+} Board_Health_M;
 
 
-typedef struct_Task_Health_M
+typedef struct Task_Health_M
 {
 
 	uint32 execution_tic[MAX_TASKS];	//!< Execution counters
 	uint32 start_tic[MAX_TASKS];		//!< Nucleus tic at function entry
 	uint32 stop_tic[MAX_TASKS];			//!< Nucleus tic at function exit
 
-};
+} Task_Health_M;
 
 
 /*! \ingroup MESSAGES
@@ -120,26 +121,26 @@ typedef struct_Task_Health_M
 typedef struct Channel_Health_M
 {
 
-	uint32	chan;			//!< The channel number
-	uint32	state;			//!< channel's state
-	uint32	svnum;			//!< SV/PRN number the channel is tracking
-	uint32	antenna;		//!< Antenna channel is tracking off of
-	uint32	accum_len;		//!< acummulation length (1 or 20 ms)
+	float chan;			//!< The channel number
+	float state;		//!< channel's state
+	float sv;			//!< SV/PRN number the channel is tracking
+	float antenna;		//!< Antenna channel is tracking off of
+	float len;			//!< acummulation length (1 or 20 ms)
+	float w;			//!< 3rd order PLL state
+	float x;			//!< 3rd order PLL state
+	float z;			//!< 3rd order PLL state
+	float code_nco;		//!< State of code_nco
+	float carrier_nco;	//!< State of carrier_nco
+	float CN0;			//!< CN0 estimate
+	float p_avg;		//!< Filtered version of I^2+Q^2
+	float bit_lock;		//!< Bit lock?
+	float frame_lock;	//!< Frame lock?
+	float navigate;		//!< Navigate on this channel flag
+	float count;		//!< Number of accumulations that have been processed
+	float subframe;		//!< Current subframe number
+	float best_epoch;	//!< Best estimate of bit edge position
 
-	float	w;				//!< 3rd order PLL state
-	float	x;				//!< 3rd order PLL state
-	float	f;				//!< 3rd order PLL state
-	uint32	CN0;			//!< CN0 estimate
-	int32	pp_fltr;		//!< Filtered version of I^2+Q^2
-
-	uint32	bit_lock;		//!< Bit lock?
-	uint32	frame_lock;		//!< Frame lock?
-	uint32	navigate;		//!< Navigate on this channel flag
-	uint32	active_count;	//!< Number of accumulations that have been processed
-	uint32 	subframe;		//!< Current subframe number
-	uint32  bit_epoch;		//!< Best estimate of bit edge position
-
-};
+} Channel_Health_M;
 
 
 /*! \ingroup MESSAGES
@@ -182,7 +183,7 @@ typedef struct SPS_M
 
 	int32 chanmap[MAX_CHANNELS];
 
-};
+} SPS_M;
 
 
 /*! \ingroup MESSAGES
@@ -200,7 +201,7 @@ typedef struct Clock_M
 	double week;				//!< GPS week
 	uint32 state;				//!< Clock state
 
-};
+} Clock_M;
 
 
 /*! \ingroup MESSAGES
@@ -228,7 +229,7 @@ typedef struct SV_Position_M
 	double longitude;		//!< Longitude using WGS-84 ellipsoid in decimal radians
 	double altitude;		//!< height in meters
 
-};
+} SV_Position_M;
 
 
 /*! \ingroup MESSAGES
@@ -271,13 +272,13 @@ typedef struct EKF_M
 
 	int32 chanmap[MAX_CHANNELS];
 
-};
+} EKF_M;
 
 
 /*! \ingroup STRUCTS
  * The measurement dumped to the PVT object
  */
-typedef struct Pseudorange_M
+typedef struct Measurement_M
 {
 
 	double	code_time;					//!< The code time
@@ -297,7 +298,7 @@ typedef struct Pseudorange_M
 	int32	chan;						//!< For this channel
 	int32 	count;						//!< Corresponds to this tic
 
-};
+} Measurement_M;
 
 
 /*! \ingroup MESSAGES
@@ -316,7 +317,7 @@ typedef struct Pseudorange_M
 	double time_uncorrected;//!< raw pseudorange measurements
 	double previous;		//!< from previous step, used for err check
 
-};
+} Pseudorange_M;
 
 
 /*! \ingroup MESSAGES
@@ -365,7 +366,7 @@ typedef struct Ephemeris_M
 	int32	zcount;
 	int32	sv;
 
-};
+} Ephemeris_M;
 
 
 /*! \ingroup MESSAGES
@@ -388,8 +389,37 @@ typedef struct Almanac_M
 	double	af1;					//!< Clock parameter 1
 	int32	week;					//!< Week number
 
-};
+} Almanac_M;
 
+
+/*! \ingroup MESSAGES
+ *
+ */
+typedef struct Ephemeris_Status_M
+{
+
+	int32 valid[NUM_CODES];		//!< Valid ephemeris
+	int32 iode[NUM_CODES];		//!< Corresponding IODE
+	int32 avalid[NUM_CODES];	//!< Valid almanac
+
+} Ephemeris_Status_M;
+
+
+/*! \ingroup MESSAGES
+ * Data from the FIFO to the Telemetry
+ */
+typedef struct FIFO_M
+{
+
+	int32 tic;
+	int32 count;		//!< Number of 1 ms packets processed
+	int32 head;			//!< Head pointer number
+	int32 tail;			//!< Tail pointer number
+	int32 agc_scale;	//!< Value used for AGC scale
+	int32 overflw;		//!< Overflows in last ms
+	int32 nactive;		//!< Number of channels to process the measurment packet
+
+} FIFO_M;
 
 /*! \ingroup MESSAGES
 	Acknowledge processing of command
@@ -400,7 +430,7 @@ typedef struct Command_Ack_M
 	uint32 command_id;
 	uint32 command_count;
 
-};
+} Command_Ack_M;
 
 #endif /* MESSAGES_H */
 

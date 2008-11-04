@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -26,7 +26,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "includes.h"
 
 #ifdef GLOBALS_HERE
-	#define EXTERN 
+	#define EXTERN
 #else
 	#define EXTERN extern
 #endif
@@ -42,8 +42,9 @@ EXTERN class Acquisition	*pAcquisition;					//!< Perform acquisitions
 EXTERN class Correlator		*pCorrelators[MAX_CHANNELS];	//!< Bank of correlators
 EXTERN class Channel		*pChannels[MAX_CHANNELS];		//!< Channels (uses correlations to close the loops)
 EXTERN class SV_Select		*pSV_Select;					//!< Contains the channels and drives the channel objects
-EXTERN class Telemetry		*pTelemetry;					//!< Gather all relevant receiver data and pipe it to the seperate GUI app
+EXTERN class Telemetry		*pTelemetry;					//!< Simple ncurses interface
 EXTERN class Post_Process	*pPost_Process;					//!< Drive the receiver from a recorded file
+EXTERN class Serial_Telemetry *pSerial_Telemetry;			//!< Dump data to GUI over named pipe or serial
 /*----------------------------------------------------------------------------------------------*/
 
 

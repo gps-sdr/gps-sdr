@@ -30,7 +30,7 @@ void *SV_Select_Thread(void *_arg)
 
 	while(grun)
 	{
-		aSV_Select->Inport();
+		aSV_Select->Import();
 		aSV_Select->Acquire();
 		aSV_Select->Export();
 		usleep(100000);
@@ -91,8 +91,8 @@ SV_Select::SV_Select()
 	mode = WARM_START;
 	mask_angle = PI/2;
 
-	pnav = &input_s.master_nav;
-	pclock = &input_s.master_clock;
+	pnav = &master_nav;
+	pclock = &master_clock;
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -109,15 +109,14 @@ SV_Select::~SV_Select()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void SV_Select::Inport()
+void SV_Select::Import()
 {
 
 	int32 bread;
 
 	/* Pend on PVT sltn */
-	bread = sizeof(PVT_2_SV_Select_S);
-	while(bread == sizeof(PVT_2_SV_Select_S))
-		bread = read(PVT_2_SV_Select_P[READ], &input_s, sizeof(PVT_2_SV_Select_S));
+	read(PVT_2_SV_Select_P[WRITE], &master_nav,   sizeof(SPS_M));
+	read(PVT_2_SV_Select_P[WRITE], &master_clock, sizeof(Clock_M));
 
 	/* If the PVT is less than 1 minutes old, still use it */
 	if((pnav->stale_ticks < (60*TICS_PER_SECOND)) && pnav->initial_convergence)
@@ -386,8 +385,8 @@ void SV_Select::SV_Position(int32 _sv)
 	double Edot, Pdot, Rdot, Idot, Xpdot, Ypdot, Ldot, sPdot, cPdot;
 	double tk;
 
-	Almanac_S *alm;
-	SV_Position_S *psv;
+	Almanac_M *alm;
+	SV_Position_M *psv;
 
 	if(almanacs[_sv].decoded)
 	{
@@ -504,7 +503,7 @@ void SV_Select::SV_Predict(int32 _sv)
 	double relvel;
 	double a, b;
 
-	SV_Position_S *psv;
+	SV_Position_M *psv;
 	Acq_Predicted_S *ppred;
 
 	if(almanacs[_sv].decoded)
@@ -589,7 +588,7 @@ void SV_Select::SV_LatLong(int32 _sv)
 	float longitude;
 	float altitude;
 
-	SV_Position_S *psv;
+	SV_Position_M *psv;
 
 	if(almanacs[_sv].decoded)
 	{

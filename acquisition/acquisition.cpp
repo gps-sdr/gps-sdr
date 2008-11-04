@@ -30,7 +30,7 @@ void *Acquisition_Thread(void *_arg)
 
 	while(grun)
 	{
-		aAcquisition->Inport();
+		aAcquisition->Import();
 		aAcquisition->Acquire();
 		aAcquisition->Export(NULL);
 	}
@@ -648,9 +648,9 @@ void Acquisition::Acquire()
 
 /*----------------------------------------------------------------------------------------------*/
 /*!
- * Inport:
+ * Import:
  * */
-void Acquisition::Inport()
+void Acquisition::Import()
 {
 	int32 last;
 	int32 bread;

@@ -84,7 +84,8 @@ typedef struct _Options_S
 	int32	doppler_max;				//!< Set maximum Doppler
 	int32	corr_sleep;					//!< How long to correlators should sleep
 	int32	startup;					//!< Startup warm/cold
-	int32	gui;						//!< Run with the external GUI program (disables ncurses)
+	int32	gui;						//!< Run with the GUI program (disables ncurses)
+	int32	serial;						//!< Output telemetry over the serial port (disables ncurses)
 	int32	usrp_internal;				//!< Run usrp-gps as a child process of receiver
 	char	filename_direct[1024];		//!< Skyview filename
 	char	filename_reflected[1024];	//!< Reflected filename
@@ -108,47 +109,6 @@ typedef struct ms_packet {
 } ms_packet;
 /*----------------------------------------------------------------------------------------------*/
 
-
-//!< Acquisition results
-/*----------------------------------------------------------------------------------------------*/
-/*! \ingroup STRUCTS
- * Get the result of an acquisition
- */
-typedef struct _Acq_Result_S
-{
-
-	int32 count;		//!< packet tag
-	int32 chan;			//!< The channel this SV will be assigned to
-	int32 sv;			//!< SV number
-	int32 type;			//!< Strong, medium, or weak
-	int32 success;		//!< Did we declare detection?
-	int32 antenna;		//!< antenna number
-	float delay;		//!< Delay in chips
-	float doppler;		//!< Doppler in Hz
-	float magnitude;	//!< Magnitude
-	float nf;			//!< Noise floor
-	float snr;			//!< SNR in dB
-
-} Acq_Result_S;
-
-
-/*! \ingroup STRUCTS
- * Informs the acquisition in what mode to perform the next acquisition
- */
-typedef struct _Acq_Request_S
-{
-
-	int32 corr;			//!< which correlator
-	int32 count;		//!< packet tag
-	int32 state;		//!< request started, IF data collected, request complete
-	int32 sv;			//!< look for this SV
-	int32 mindopp;		//!< minimum Doppler
-	int32 maxdopp;		//!< maximum Doppler
-	int32 type;			//!< type (STRONG/MEDIUM/WEAK)
-	int32 antenna;		//!< antenna number
-
-} Acq_Request_S;
-/*----------------------------------------------------------------------------------------------*/
 
 //!< Correlator and channel structs
 /*----------------------------------------------------------------------------------------------*/
@@ -250,14 +210,12 @@ typedef struct _Delay_lock_loop
 	float DLLBW;				//!< Bandwidth
 	float x;					//!< Velocity accumulator
 	float z;					//!< Proportional feedback
-	float a;
-	float w0;
-	float w02;
+	float a;					//!< Acceleration accumulator
+	float w0;					//!< w0
+	float w02;					//!< w0^2
 	float t;					//!< Integration length
 
 } Delay_lock_loop;
-
-
 
 
 
@@ -305,20 +263,48 @@ typedef struct _Almanac_Data_S
 } 	Almanac_Data_S;
 /*----------------------------------------------------------------------------------------------*/
 
-/* PVT Structs */
+
+/* Structs associated with SV_Select and Acquisition object */
 /*----------------------------------------------------------------------------------------------*/
+/*! \ingroup STRUCTS
+ * Get the result of an acquisition
+ */
+typedef struct _Acq_Result_S
+{
+
+	int32 count;		//!< Packet tag
+	int32 chan;			//!< The channel this SV will be assigned to
+	int32 sv;			//!< SV number
+	int32 type;			//!< Strong, medium, or weak
+	int32 success;		//!< Did we declare detection?
+	int32 antenna;		//!< antenna number
+	float delay;		//!< Delay in chips
+	float doppler;		//!< Doppler in Hz
+	float magnitude;	//!< Magnitude
+	float nf;			//!< Noise floor
+	float snr;			//!< SNR in dB
+
+} Acq_Result_S;
 
 
+/*! \ingroup STRUCTS
+ * Informs the acquisition in what mode to perform the next acquisition
+ */
+typedef struct _Acq_Request_S
+{
+
+	int32 corr;			//!< which correlator
+	int32 count;		//!< packet tag
+	int32 state;		//!< request started, IF data collected, request complete
+	int32 sv;			//!< look for this SV
+	int32 mindopp;		//!< minimum Doppler
+	int32 maxdopp;		//!< maximum Doppler
+	int32 type;			//!< type (STRONG/MEDIUM/WEAK)
+	int32 antenna;		//!< antenna number
+
+} Acq_Request_S;
 
 
-
-
-
-/*----------------------------------------------------------------------------------------------*/
-
-
-/* Structs associated with sv_select object */
-/*----------------------------------------------------------------------------------------------*/
 /*! \ingroup STRUCTS
  * The predicted state of an SV via the almanac
  */
@@ -331,9 +317,10 @@ typedef struct _Acq_Predicted_S
 	float elev;					//!< Predicted elev (degrees)
 	float azim;					//!< Predicted azim (degrees)
 	float v_elev;				//!< Elevation of vehicle relative to SV
-	float v_azim;				//!< Azimuth of vehice relative to SV
+	float v_azim;				//!< Azimuth of vehicle relative to SV
 	float delay;				//!< Predicted delay (seconds)
-	float doppler;				//!< Predicated doppler (Hz)
+	float doppler;				//!< Predicted Doppler (Hz)
+	float doppler_rate;			//!< Predicted Doppler rate (Hz/sec)
 
 } Acq_Predicted_S;
 
@@ -363,61 +350,15 @@ typedef struct _Acq_History_S
 /* Structs associated with the telemetry object */
 /*----------------------------------------------------------------------------------------------*/
 /*! \ingroup STRUCTS
- * Data from the FIFO to the Telemetry
+ *
  */
-typedef struct _FIFO_2_Telem_S
-{
-
-	int32 tic;
-	int32 count;		//!< Number of 1 ms packets processed
-	int32 head;			//!< Head pointer number
-	int32 tail;			//!< Tail pointer number
-	int32 agc_scale;	//!< Value used for AGC scale
-	int32 overflw;		//!< Overflows in last ms
-	int32 nactive;		//!< Number of channels to process the measurment packet
-
-} FIFO_2_Telem_S;
+typedef Acq_Result_S Acq_2_Telem_S;
 
 
 /*! \ingroup STRUCTS
  *
  */
-typedef _Acq_Result_S Acq_2_Telem_S;
-
-
-/*! \ingroup STRUCTS
- *
- */
-typedef _Chan_Packet_S Trak_2_Telem_S;
-
-
-/*! \ingroup STRUCTS
- *
- */
-typedef struct _Ephem_2_Telem_S
-{
-
-	int32 valid[NUM_CODES];		//!< Valid ephemeris
-	int32 iode[NUM_CODES];		//!< Corresponding IODE
-	int32 avalid[NUM_CODES];	//!< Valid almanac
-
-} Ephem_2_Telem_S;
-
-
-/*! \ingroup STRUCTS
- * Information sent from PVT to telemetry
- */
-typedef struct _PVT_2_Telem_S
-{
-
-	Nav_Solution_S 	master_nav;
-	Clock_S 		master_clock;
-	SV_Position_S	sv_positions[MAX_CHANNELS];
-	Pseudorange_S	pseudoranges[MAX_CHANNELS];
-	Measurement_S	measurements[MAX_CHANNELS];
-
-} PVT_2_Telem_S;
-
+typedef Channel_Health_M Trak_2_Telem_S;
 
 /*! \ingroup STRUCTS
  * Information sent from PVT to SV_Select to drive warm and hot starts
@@ -425,8 +366,8 @@ typedef struct _PVT_2_Telem_S
 typedef struct _PVT_2_SV_Select_S
 {
 
-	Nav_Solution_S 	master_nav;
-	Clock_S 		master_clock;
+	SPS_M 			master_nav;
+	Clock_M 		master_clock;
 
 } PVT_2_SV_Select_S;
 
@@ -444,21 +385,6 @@ typedef struct _SV_Select_2_Telem_S
 	Acq_History_S	sv_history[NUM_CODES];
 
 } SV_Select_2_Telem_S;
-
-/*! \ingroup STRUCTS
- * Pass data from telemtry to GUI over a named pipe
- */
-typedef struct _Telem_2_GUI_S
-{
-
-	FIFO_2_Telem_S 		tFIFO;
-	PVT_2_Telem_S 		tNav;
-	Chan_Packet_S 		tChan[MAX_CHANNELS];
-	Acq_Result_S		tAcq;
-	Ephem_2_Telem_S 	tEphem;
-	SV_Select_2_Telem_S tSelect;
-
-} Telem_2_GUI_S;
 /*----------------------------------------------------------------------------------------------*/
 
 

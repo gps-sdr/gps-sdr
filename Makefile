@@ -45,7 +45,8 @@ OBJS =		init.o			\
 			telemetry.o 	\
 			ephemeris.o 	\
 			pvt.o			\
-			post_process.o
+			post_process.o	\
+			serial_telemetry.o
 			
 #Uncomment these to look at the disassembly
 #DIS = 		x86.dis		\

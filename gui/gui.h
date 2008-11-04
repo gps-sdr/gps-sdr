@@ -66,6 +66,7 @@ public:
 		int 			last_k;
 		int				active_panel; /* Always hold the active panel */
 		int				gpipe;
+		int				gpipe2;
 		bool			gpipe_open;
 		wxString		status_str;
 		Telem_2_GUI_S 	tGUI;

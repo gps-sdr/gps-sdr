@@ -28,7 +28,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*! \ingroup CLASSES
  *
  */
-typedef class PVT
+class PVT
 {
 
 	private:
@@ -40,15 +40,13 @@ typedef class PVT
 		pthread_t 			thread;			//!< For the thread
 		pthread_mutex_t		mutex;			//!< Protect the following variable
 
-		PVT_2_Telem_S output;									//!< Structure to dump to telemetry
-		PVT_2_SV_Select_S sv_select;							//!< Structure to dump to telemetry
-		FIFO_2_Telem_S telem;									//!< Structure to dump to telemetry
+		FIFO_M 		telem;								//!< Structure to dump to telemetry
 
 		/* Satellite related stuff */
-		Ephemeris_S		ephemerides[MAX_CHANNELS];				//!< Decoded ephemerides
-		SV_Position_S	sv_positions[MAX_CHANNELS];				//!< Calculated SV positions
-		Pseudorange_S	pseudoranges[MAX_CHANNELS];				//!< Pseudoranges
-		Measurement_S	measurements[MAX_CHANNELS];				//!< Raw measurements
+		Ephemeris_M		ephemerides[MAX_CHANNELS];				//!< Decoded ephemerides
+		SV_Position_M	sv_positions[MAX_CHANNELS];				//!< Calculated SV positions
+		Pseudorange_M	pseudoranges[MAX_CHANNELS];				//!< Pseudoranges
+		Measurement_M	measurements[MAX_CHANNELS];				//!< Raw measurements
 
 		int32 good_channels[MAX_CHANNELS];						//!< Is this a good channel (used to navigate)
 		int32 master_iode[MAX_CHANNELS];						//!< Keep track of current IODE
@@ -57,9 +55,9 @@ typedef class PVT
 		int32 doppler_suspect[MAX_CHANNELS][MAX_CHANNELS];		//!< For the cross-corr check
 
 		/* Position and clock solutions */
-		Nav_Solution_S	master_nav;								//!< Master nav sltn
-		Nav_Solution_S	temp_nav;								//!< Temp nav sltn
-		Clock_S			master_clock;							//!< Master clock
+		SPS_M			master_nav;								//!< Master nav sltn
+		SPS_M			temp_nav;								//!< Temp nav sltn
+		Clock_M			master_clock;							//!< Master clock
 
 		/* Matrices used in nav solution */
 		double *alpha[MAX_CHANNELS];
@@ -112,8 +110,8 @@ typedef class PVT
 		void WritePVT();						//!< Write the PVT to disk for a later warm start
 		void ReadPVT();							//!< Read  the PVT from disk for a later warm start
 
-		Nav_Solution_S getNav(){return(master_nav);}
-		Clock_S getClock(){return(master_clock);}
+		SPS_M getNav(){return(master_nav);}
+		Clock_M getClock(){return(master_clock);}
 
 		void Reset();							//!< Reset the Navigation solution to naught values
 		void Reset(int32 _chan);				//!< Reset individual channel

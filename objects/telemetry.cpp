@@ -32,7 +32,7 @@ void *Telemetry_Thread(void *_arg)
 
 	while(grun)
 	{
-		aTelemetry->Inport();
+		aTelemetry->Import();
 		aTelemetry->Export();
 	}
 
@@ -84,12 +84,12 @@ void Telemetry::Stop()
 
 
 /*----------------------------------------------------------------------------------------------*/
-Telemetry::Telemetry(int32 _ncurses_on)
+Telemetry::Telemetry()
 {
 
+	execution_tic = start_tic = stop_tic = 0;
 	display = 0;
 	count = 0;
-	ncurses_on = _ncurses_on;
 
 	if(gopt.log_nav)
 	{
@@ -105,16 +105,6 @@ Telemetry::Telemetry(int32 _ncurses_on)
 		fp_ge = fopen("navigation.klm","wt");
 		fp_ge_end = ftell(fp_ge);
 		GoogleEarthHeader();
-	}
-
-	if(gopt.gui)
-	{
-		/* Everything set, now create a disk thread & pipe, and do some recording! */
-		fifo = mkfifo("/tmp/GUIPIPE", S_IRWXG | S_IRWXU | S_IRWXO);
-		if ((fifo == -1) && (errno != EEXIST))
-			printf("Error creating the named pipe");
-
-		OpenGUIPipe();
 	}
 
 	pthread_mutex_init(&mutex, NULL);
@@ -145,10 +135,7 @@ Telemetry::~Telemetry()
 		fclose(fp_ge);
 	}
 
-	if(ncurses_on)
-	{
-		EndScreen();
-	}
+	EndScreen();
 
 	pthread_mutex_destroy(&mutex);
 
@@ -176,12 +163,12 @@ void Telemetry::Unlock()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Telemetry::Inport()
+void Telemetry::Import()
 {
-	Chan_Packet_S temp;
+	Channel_Health_M temp;
 	int32 bread, lcv, num_chans;
 
-	read(FIFO_2_Telem_P[READ], &tFIFO, sizeof(FIFO_2_Telem_S));
+	read(FIFO_2_Telem_P[READ], &tFIFO, sizeof(FIFO_M));
 
 	/* Lock correlator status */
 	pthread_mutex_lock(&mInterrupt);
@@ -209,16 +196,15 @@ void Telemetry::Inport()
 	while(bread == sizeof(Acq_Result_S))
 		bread = read(Acq_2_Telem_P[READ],&tAcq,sizeof(Acq_Result_S));
 
-	bread = sizeof(Ephem_2_Telem_S);
-	while(bread == sizeof(Ephem_2_Telem_S))
-		bread = read(Ephem_2_Telem_P[READ], &tEphem, sizeof(Ephem_2_Telem_S));
+	bread = sizeof(Ephemeris_Status_M);
+	while(bread == sizeof(Ephemeris_Status_M))
+		bread = read(Ephem_2_Telem_P[READ], &tEphem, sizeof(Ephemeris_Status_M));
 
 	bread = sizeof(SV_Select_2_Telem_S);
 	while(bread == sizeof(SV_Select_2_Telem_S))
 		bread = read(SV_Select_2_Telem_P[READ], &tSelect, sizeof(SV_Select_2_Telem_S));
 
-	if(ncurses_on)
-		UpdateScreen();
+	UpdateScreen();
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -242,83 +228,6 @@ void Telemetry::Export()
 		LogGoogleEarth();
 	}
 
-	if(gopt.gui)
-	{
-		if(gpipe_open)
-			ExportGUI();
-		else
-			OpenGUIPipe();
-	}
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void lost_gui_pipe(int _sig)
-{
-	pTelemetry->SetGUIPipe(false);
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Telemetry::SetGUIPipe(bool _status)
-{
-	gpipe_open = _status;
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Telemetry::ExportGUI()
-{
-
-	int32 nbytes, bwrote;
-	char *pbuff;
-
-	memcpy(&tGUI.tFIFO, 	&tFIFO,		sizeof(FIFO_2_Telem_S));
-	memcpy(&tGUI.tNav, 		&tNav, 		sizeof(PVT_2_Telem_S));
-	memcpy(&tGUI.tAcq, 		&tAcq, 		sizeof(Acq_Result_S));
-	memcpy(&tGUI.tSelect, 	&tSelect, 	sizeof(SV_Select_2_Telem_S));
-	memcpy(&tGUI.tChan, 	&tChan, 	MAX_CHANNELS*sizeof(Chan_Packet_S));
-
-	signal(SIGPIPE, lost_gui_pipe);
-
-	/* Only write if the client is connected */
-	if(gpipe_open)
-		bwrote = write(gpipe, &tGUI, sizeof(Telem_2_GUI_S));
-
-	/* Dump to the pipe */
-//	nbytes = 0; pbuff = (char *)&tGUI;
-//	while((nbytes < sizeof(tGUI)) && grun)
-//	{
-//		//signal(SIGPIPE, lost_gui_pipe);
-//		bwrote = write(gpipe, &pbuff[nbytes], PIPE_BUF);
-//
-//		if(bwrote > 0)
-//			nbytes += bwrote;
-//	}
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Telemetry::OpenGUIPipe()
-{
-
-	gpipe = -1;
-	gpipe = open("/tmp/GUIPIPE", O_WRONLY | O_NONBLOCK, S_IRWXG | S_IRWXU | S_IRWXO);
-
-	if(gpipe != -1)
-	{
-		gpipe_open = true;
-		printf("GUI connected\n");
-	}
-	else
-		gpipe_open = false;
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -327,16 +236,14 @@ void Telemetry::OpenGUIPipe()
 void Telemetry::InitScreen()
 {
 
-	if(ncurses_on)
-	{
-		mainwnd = initscr();
-		noecho();
-		cbreak();
-		nodelay(mainwnd, TRUE);
-		refresh();
-		wrefresh(mainwnd);
-		screen = newwin(400, 400, 1, 1);
-	}
+	mainwnd = initscr();
+	noecho();
+	cbreak();
+	nodelay(mainwnd, TRUE);
+	refresh();
+	wrefresh(mainwnd);
+	screen = newwin(400, 400, 1, 1);
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -398,9 +305,9 @@ void Telemetry::EndScreen(void)
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::PrintChan()
 {
-	Chan_Packet_S *p;
-	Nav_Solution_S		*pNav		= &tNav.master_nav;				/* Navigation Solution */
-	Clock_S				*pClock		= &tNav.master_clock;			/* Clock solution */
+	Channel_Health_M *p;
+	SPS_M		*pNav		= &tNav.master_nav;				/* Navigation Solution */
+	Clock_M				*pClock		= &tNav.master_clock;			/* Clock solution */
 
 	int32 lcv;
 	char buff[1024];
@@ -419,7 +326,7 @@ void Telemetry::PrintChan()
 			strcpy(buff, "---------");
 
 			/*Flag buffer*/
-			((int32)p->fll_lock_ticks > 200)   ? buff[0] = 'p'  : buff[0] = 'f';
+			buff[0] = ' ';
 			((int32)p->bit_lock)   ? buff[1] = 'B'  : buff[1] = '-';
 			((int32)p->frame_lock) ? buff[2] = 'F'  : buff[2] = '-';
 			(pNav->nsvs >> lcv) & 0x1 ? buff[3] = 'N'  : buff[3] = '-';
@@ -429,7 +336,7 @@ void Telemetry::PrintChan()
 
 			buff[9] = '\0';
 
-			cn0 = p->CN0 > p->CN0_old ? p->CN0 : p->CN0_old;
+			cn0 = p->CN0;
 
 			mvwprintw(screen,line++,1,"%2d   %2d   %2d   %10.3f   %14.3f   %5.2f   %2d   %9s   %10.0f   %6d",
 				lcv,
@@ -440,7 +347,7 @@ void Telemetry::PrintChan()
 				cn0,
 				(int32)p->best_epoch,
 				buff,
-				p->P_avg,
+				p->p_avg,
 				(int32)p->count/1000);
 
 		}
@@ -458,11 +365,11 @@ void Telemetry::PrintChan()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::PrintSV()
 {
-	SV_Position_S 	*pPos;
-	Pseudorange_S 	*pPseudo;
-	Chan_Packet_S 	*pChan;
-	Nav_Solution_S	*pNav	= &tNav.master_nav;				/* Navigation Solution */
-	Clock_S			*pClock	= &tNav.master_clock;			/* Clock solution */
+	SV_Position_M 	*pPos;
+	Pseudorange_M 	*pPseudo;
+	Channel_Health_M 	*pChan;
+	SPS_M	*pNav	= &tNav.master_nav;				/* Navigation Solution */
+	Clock_M			*pClock	= &tNav.master_clock;			/* Clock solution */
 
 	int32 lcv;
 
@@ -474,9 +381,9 @@ void Telemetry::PrintSV()
 
 	for(lcv	= 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		pPos    = (SV_Position_S *)	&tNav.sv_positions[lcv];
-		pChan   = (Chan_Packet_S *)	&tChan[lcv];
-		pPseudo = (Pseudorange_S *)	&tNav.pseudoranges[lcv];
+		pPos    = (SV_Position_M *)	&tNav.sv_positions[lcv];
+		pChan   = (Channel_Health_M *)	&tChan[lcv];
+		pPseudo = (Pseudorange_M *)	&tNav.pseudoranges[lcv];
 
 
 		if((pNav->nsvs >> lcv) & 0x1)
@@ -506,8 +413,8 @@ void Telemetry::PrintSV()
 void Telemetry::PrintNav()
 {
 
-	Nav_Solution_S		*pNav		= &tNav.master_nav;				/* Navigation Solution */
-	Clock_S				*pClock		= &tNav.master_clock;			/* Clock solution */
+	SPS_M		*pNav		= &tNav.master_nav;				/* Navigation Solution */
+	Clock_M				*pClock		= &tNav.master_clock;			/* Clock solution */
 	char buff[1024];
 	int32 nsvs, lcv;
 	int32 k = 32;
@@ -730,8 +637,8 @@ void Telemetry::LogNav()
 	int32 lcv;
 	int32 nsvs;
 
-	Nav_Solution_S		*pNav		= &tNav.master_nav;				/* Navigation Solution */
-	Clock_S				*pClock		= &tNav.master_clock;			/* Clock solution */
+	SPS_M		*pNav		= &tNav.master_nav;				/* Navigation Solution */
+	Clock_M				*pClock		= &tNav.master_clock;			/* Clock solution */
 
 	nsvs = 0;
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
@@ -767,14 +674,14 @@ void Telemetry::LogNav()
 void Telemetry::LogPseudo()
 {
 	int32 lcv;
-	Pseudorange_S *pPseudo;
-	Measurement_S *pMeas;
+	Pseudorange_M *pPseudo;
+	Measurement_M *pMeas;
 
 	/* Pseudo ranges */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		pPseudo = (Pseudorange_S *)	&tNav.pseudoranges[lcv];
-		pMeas = (Measurement_S *)	&tNav.measurements[lcv];
+		pPseudo = (Pseudorange_M *)	&tNav.pseudoranges[lcv];
+		pMeas = (Measurement_M *)	&tNav.measurements[lcv];
 
 		fprintf(fp_pseudo,"%02d,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n",
 			lcv,
@@ -808,14 +715,14 @@ void Telemetry::LogTracking()
 {
 
 	int32 lcv;
-	Chan_Packet_S *pChan;
+	Channel_Health_M *pChan;
 
 	/* Pseudo ranges */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		pChan = (Chan_Packet_S *) &tChan[lcv];
+		pChan = (Channel_Health_M *) &tChan[lcv];
 
-		fprintf(fp_chan,"%02d,%02d,%08d,%01d,%01d,%01d,%02d,%.16e,%.16e,%.16e,%.16e,%.16e\n",
+		fprintf(fp_chan,"%02d,%02d,%08d,%01d,%01d,%01d,%02d,%.16e,%.16e\n",
 		lcv,
 		(int32)pChan->sv,
 		(int32)pChan->count,
@@ -823,11 +730,8 @@ void Telemetry::LogTracking()
 		(int32)pChan->frame_lock,
 		(int32)pChan->subframe,
 		(int32)pChan->len,
-		pChan->P_avg,
-		pChan->CN0,
-		pChan->fll_lock,
-		pChan->pll_lock,
-		pChan->fll_lock_ticks);
+		pChan->p_avg,
+		pChan->CN0);
 	}
 
 }
@@ -839,14 +743,14 @@ void Telemetry::LogSV()
 {
 
 	int32 lcv;
-	SV_Position_S *pSV;
-	Chan_Packet_S *pChan;
+	SV_Position_M *pSV;
+	Channel_Health_M *pChan;
 
 	/* Pseudo ranges */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		pSV = (SV_Position_S *) &tNav.sv_positions[lcv];
-		pChan = (Chan_Packet_S *) &tChan[lcv];
+		pSV = (SV_Position_M *) &tNav.sv_positions[lcv];
+		pChan = (Channel_Health_M *) &tChan[lcv];
 
 		fprintf(fp_sv,"%02d,%02d,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n",
 		lcv,
@@ -870,7 +774,7 @@ void Telemetry::LogSV()
 void Telemetry::LogGoogleEarth()
 {
 
-	Nav_Solution_S		*pNav		= &tNav.master_nav;				/* Navigation Solution */
+	SPS_M		*pNav		= &tNav.master_nav;				/* Navigation Solution */
 
 	if(fp_ge != NULL)
 	{

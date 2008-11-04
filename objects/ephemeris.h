@@ -36,12 +36,12 @@ class Ephemeris
 		pthread_t 			thread;			//!< For the thread
 		pthread_mutex_t		mutex;			//!< Protect the following variable
 
-		Ephemeris_S			ephemerides[NUM_CODES];			//!< The decoded ephemerides
+		Ephemeris_M			ephemerides[NUM_CODES];			//!< The decoded ephemerides
 		Ephem_Data_S		ephem_data[NUM_CODES];			//!< Raw binary data
-		Almanac_S			almanacs[NUM_CODES];			//!< The decoded almanacs
+		Almanac_M			almanacs[NUM_CODES];			//!< The decoded almanacs
 		Almanac_Data_S		almanac_data[NUM_CODES];		//!< Raw binary data
 		Chan_2_Ephem_S		ephem_packet;
-		Ephem_2_Telem_S		output_s;
+		Ephemeris_Status_M	output_s;
 		int32 				iode_master[NUM_CODES];			//!< IODE flags
 
 	public:
@@ -65,8 +65,8 @@ class Ephemeris
 		void ReadEphemeris();					//!< Read ephemerides from the same txt file
 		void WriteAlmanac();					//!< Write alamanacs to a YUMA file
 		void ReadAlmanac();						//!< Write alamanacs from a YUMA file
-		Ephemeris_S getEphemeris(int32 _sv){return(ephemerides[_sv]);}	//!< Get this SV's ephemeris values
-		Almanac_S getAlmanac(int32 _sv){return(almanacs[_sv]);}			//!< Get this SV's almanac values
+		Ephemeris_M getEphemeris(int32 _sv){return(ephemerides[_sv]);}	//!< Get this SV's ephemeris values
+		Almanac_M getAlmanac(int32 _sv){return(almanacs[_sv]);}			//!< Get this SV's almanac values
 		int32 getIODE(int32 _sv){return(iode_master[_sv]);}				//!< Get the current IODE for this SV
 };
 

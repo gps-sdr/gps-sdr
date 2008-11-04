@@ -57,7 +57,7 @@ class FIFO
 		int32	overflw;
 		int32	tic;		//!< Master receiver tic
 
-		FIFO_2_Telem_S telem; //!< Stuff to dump to the telemetry
+		FIFO_M telem; //!< Stuff to dump to the telemetry
 
 	public:
 

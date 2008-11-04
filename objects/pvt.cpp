@@ -31,7 +31,7 @@ void *PVT_Thread(void *_arg)
 
 	while(grun)
 	{
-		aPVT->Inport();
+		aPVT->Import();
 		aPVT->Lock();
 		aPVT->Navigate();
 		aPVT->Export();
@@ -131,17 +131,17 @@ PVT::~PVT()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void PVT::Inport()
+void PVT::Import()
 {
 	int32 success, lcv, lcv2;
 	int32 num_chans;
 	int32 bytes_read;
 	int32 messagesize;
 	int32 sv, chan, bread;
-	Measurement_S temp;
+	Measurement_M temp;
 
 	/* Get number of channels coming off the pipe */
-	read(FIFO_2_PVT_P[READ], &telem, sizeof(FIFO_2_Telem_S));
+	read(FIFO_2_PVT_P[READ], &telem, sizeof(FIFO_M));
 
 	master_nav.nav_channels = 0;
 
@@ -153,13 +153,13 @@ void PVT::Inport()
 	}
 
 	/* Always clear out this sheit */
-	memset(&measurements[0], 0x0, MAX_CHANNELS*sizeof(Measurement_S));
-	memset(&pseudoranges[0], 0x0, MAX_CHANNELS*sizeof(Pseudorange_S));
+	memset(&measurements[0], 0x0, MAX_CHANNELS*sizeof(Measurement_M));
+	memset(&pseudoranges[0], 0x0, MAX_CHANNELS*sizeof(Pseudorange_M));
 
 	/* Initial set of Nav Channels, gets refined in Error_Check() */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		read(Corr_2_PVT_P[lcv][READ], &temp, sizeof(Measurement_S));
+		read(Corr_2_PVT_P[lcv][READ], &temp, sizeof(Measurement_M));
 
 		if(temp.navigate == true)
 		{
@@ -219,19 +219,15 @@ void PVT::Export()
 	}
 
 	/* Dump to Telemetry */
-	memcpy(&output.master_nav,   &master_nav,   sizeof(Nav_Solution_S));
-	memcpy(&output.master_clock, &master_clock, sizeof(Clock_S));
-	memcpy(&output.sv_positions, &sv_positions, MAX_CHANNELS*sizeof(SV_Position_S));
-	memcpy(&output.pseudoranges, &pseudoranges, MAX_CHANNELS*sizeof(Pseudorange_S));
-	memcpy(&output.measurements, &measurements, MAX_CHANNELS*sizeof(Measurement_S));
-
-	write(PVT_2_Telem_P[WRITE], &output, sizeof(PVT_2_Telem_S));
+	write(PVT_2_Telem_P[WRITE], &master_nav,   sizeof(SPS_M));
+	write(PVT_2_Telem_P[WRITE], &master_clock, sizeof(Clock_M));
+	write(PVT_2_Telem_P[WRITE], &sv_positions, MAX_CHANNELS*sizeof(SV_Position_M));
+	write(PVT_2_Telem_P[WRITE], &pseudoranges, MAX_CHANNELS*sizeof(Pseudorange_M));
+	write(PVT_2_Telem_P[WRITE], &measurements, MAX_CHANNELS*sizeof(Measurement_M));
 
 	/* Dump to SV Select */
-	memcpy(&sv_select.master_nav,   &master_nav,   sizeof(Nav_Solution_S));
-	memcpy(&sv_select.master_clock, &master_clock, sizeof(Clock_S));
-
-	write(PVT_2_SV_Select_P[WRITE], &sv_select, sizeof(PVT_2_SV_Select_S));
+	write(PVT_2_SV_Select_P[WRITE], &master_nav,   sizeof(SPS_M));
+	write(PVT_2_SV_Select_P[WRITE], &master_clock, sizeof(Clock_M));
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -266,7 +262,7 @@ void PVT::Navigate()
 	if(PreErrorCheck())  //If everything looks good then navigate
 	{
 		/* Copy over master_nav to temp_nav */
-		memcpy(&temp_nav, &master_nav, sizeof(Nav_Solution_S));
+		memcpy(&temp_nav, &master_nav, sizeof(SPS_M));
 
 		/* This can be edited out to have PVT iterate from last sltn */
 		temp_nav.x = 0; temp_nav.y = 0; temp_nav.z = 0;
@@ -447,7 +443,7 @@ void PVT::SV_Positions()
 	double whole_sec;
 	double partial_sec;
 
-	Ephemeris_S* ephem;
+	Ephemeris_M* ephem;
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -1257,8 +1253,8 @@ void PVT::Reset()
 	int32 lcv;
 
 	/* Reset to center of the earth	 */
-	memset(&master_clock,0x0,sizeof(Clock_S));
-	memset(&master_nav,0x0,sizeof(Nav_Solution_S));
+	memset(&master_clock,0x0,sizeof(Clock_M));
+	memset(&master_nav,0x0,sizeof(SPS_M));
 
 	/* Reset Each Channel */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
@@ -1282,10 +1278,10 @@ void PVT::Reset(int32 _chan)
 	sv_codes[_chan] = INACTIVE;
 
 	/* Zero out data associated with SV */
-	memset(&measurements[_chan], 0x0, sizeof(Measurement_S));
-	memset(&sv_positions[_chan], 0x0, sizeof(SV_Position_S));
-	memset(&pseudoranges[_chan], 0x0, sizeof(Pseudorange_S));
-	memset(&ephemerides[_chan],  0x0, sizeof(Ephemeris_S));
+	memset(&measurements[_chan], 0x0, sizeof(Measurement_M));
+	memset(&sv_positions[_chan], 0x0, sizeof(SV_Position_M));
+	memset(&pseudoranges[_chan], 0x0, sizeof(Pseudorange_M));
+	memset(&ephemerides[_chan],  0x0, sizeof(Ephemeris_M));
 
 	good_channels[_chan] = false;
 

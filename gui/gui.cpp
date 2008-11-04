@@ -377,7 +377,8 @@ void GUI::onTimer(wxTimerEvent& evt)
 bool GUI::openPipe()
 {
 
-	gpipe = open("/tmp/GUIPIPE",O_RDONLY | O_NONBLOCK);
+	gpipe = open("/tmp/GPS2GUI",O_RDONLY | O_NONBLOCK);
+	gpipe2 = open("/tmp/GUI2GPS",O_WRONLY | O_NONBLOCK);
 
 	if(gpipe != -1)
 		return(true);
@@ -782,8 +783,8 @@ void GUI::renderConfig()
 void GUI::PrintChan(wxTextCtrl* _text)
 {
 
-	Nav_Solution_S	*pNav = &tGUI.tNav.master_nav;				/* Navigation Solution */
-	Chan_Packet_S *p;
+	SPS_M	*pNav = &tGUI.tNav.master_nav;				/* Navigation Solution */
+	Channel_Health_M *p;
 
 
     wxString str, str2;
@@ -805,7 +806,7 @@ void GUI::PrintChan(wxTextCtrl* _text)
 			str2.Clear();
 
 			/*Flag buffer*/
-			((int32)p->fll_lock_ticks > 200) ?	str2 += 'p' : str2 += 'f';
+			str2 += ' ';
 			((int32)p->bit_lock) ? 				str2 += 'B' : str2 += '-';
 			((int32)p->frame_lock) ? 			str2 += 'F' : str2 += '-';
 			(pNav->nsvs >> lcv) & 0x1 ? 		str2 += 'N' : str2 += '-';
@@ -818,7 +819,7 @@ void GUI::PrintChan(wxTextCtrl* _text)
 					str2 += '-';
 			}
 
-			cn0 = p->CN0 > p->CN0_old ? p->CN0 : p->CN0_old;
+			cn0 = p->CN0;
 
 			str.Printf(wxT("%2d   %2d   %2d   %10.3f   %14.3f   %5.2f   %2d   %s   %10.0f   %6d\n"),
 				lcv,
@@ -829,7 +830,7 @@ void GUI::PrintChan(wxTextCtrl* _text)
 				cn0,
 				(int32)p->best_epoch,
 				str2.c_str(),
-				p->P_avg,
+				p->p_avg,
 				(int32)p->count/1000);
 
 			_text->AppendText(str);
@@ -850,10 +851,10 @@ void GUI::PrintChan(wxTextCtrl* _text)
 void GUI::PrintSV(wxTextCtrl* _text)
 {
 
-	Nav_Solution_S	*pNav = &tGUI.tNav.master_nav;				/* Navigation Solution */
-	SV_Position_S 	*pPos;
-	Pseudorange_S 	*pPseudo;
-	Chan_Packet_S 	*pChan;
+	SPS_M	*pNav = &tGUI.tNav.master_nav;				/* Navigation Solution */
+	SV_Position_M 	*pPos;
+	Pseudorange_M 	*pPseudo;
+	Channel_Health_M 	*pChan;
 
 	int32 lcv;
 	wxString str;
@@ -866,9 +867,9 @@ void GUI::PrintSV(wxTextCtrl* _text)
 
 	for(lcv	= 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		pPos    = (SV_Position_S *)	&tGUI.tNav.sv_positions[lcv];
-		pChan   = (Chan_Packet_S *)	&tGUI.tChan[lcv];
-		pPseudo = (Pseudorange_S *)	&tGUI.tNav.pseudoranges[lcv];
+		pPos    = (SV_Position_M *)	&tGUI.tNav.sv_positions[lcv];
+		pChan   = (Channel_Health_M *)	&tGUI.tChan[lcv];
+		pPseudo = (Pseudorange_M *)	&tGUI.tNav.pseudoranges[lcv];
 
 		if((pNav->nsvs >> lcv) & 0x1)
 		{
@@ -899,8 +900,8 @@ void GUI::PrintSV(wxTextCtrl* _text)
 void GUI::PrintNav(wxTextCtrl* _text)
 {
 
-	Nav_Solution_S		*pNav		= &tGUI.tNav.master_nav;				/* Navigation Solution */
-	Clock_S				*pClock		= &tGUI.tNav.master_clock;			/* Clock solution */
+	SPS_M		*pNav		= &tGUI.tNav.master_nav;				/* Navigation Solution */
+	Clock_M				*pClock		= &tGUI.tNav.master_clock;			/* Clock solution */
 
 	int32 nsvs, lcv, k;
 	wxString str, str2;

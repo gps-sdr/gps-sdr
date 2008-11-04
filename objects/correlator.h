@@ -50,8 +50,8 @@ class Correlator
 		NCO_Command_S  		feedback;					//!< NCO feedback commands
 		Correlation_S  		corr;						//!< Resulting correlation
 		Correlator_State_S	state;						//!< Correlator states
-		Measurement_S		meas;						//!< Measurements to dump
-		Measurement_S		meas_buff[TICS_PER_SECOND];	//!< Measurements to dump
+		Measurement_M		meas;						//!< Measurements to dump
+		Measurement_M		meas_buff[TICS_PER_SECOND];	//!< Measurements to dump
 		Channel 			*aChannel;					//!< Get this correlators channel
 
 		/* This  is important, the following array is large and is constant, so it is

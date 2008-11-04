@@ -40,6 +40,8 @@ void usage(int32 argc, char* argv[])
 	fprintf(stderr, "[-g] log google earth data\n");
 	fprintf(stderr, "[-v] be verbose \n");
 	fprintf(stderr, "[-n] ncurses OFF \n");
+	fprintf(stderr, "[-gui] run receiver with the GUI app over a named pipe\n");
+	fprintf(stderr, "[-s] run receiver with the GUI app over a serial port\n");
 	fprintf(stderr, "[-w] start receiver in warm start, using almanac and last good position\n");
 	fprintf(stderr, "[-u] run receiver with usrp-gps as child process\n");
 	fprintf(stderr, "\n");
@@ -95,6 +97,8 @@ void echo_options()
 	fprintf(stderr, "log_decimate:\t\t %d\n",gopt.log_decimate);
 	fprintf(stderr, "google_earth:\t\t %d\n",gopt.google_earth);
 	fprintf(stderr, "ncurses:\t\t %d\n",gopt.ncurses);
+	fprintf(stderr, "gui:\t\t %d\n",gopt.gui);
+	fprintf(stderr, "serial:\t\t %d\n",gopt.serial);
 	fprintf(stderr, "filename_direct:\t %s\n",gopt.filename_direct);
 	fprintf(stderr, "filename_reflected:\t %s\n",gopt.filename_reflected);
 	fprintf(stderr, "\n");
@@ -121,6 +125,7 @@ void Parse_Arguments(int32 argc, char* argv[])
 	gopt.google_earth	= 0;
 	gopt.ncurses 		= 1;
 	gopt.gui			= 0;
+	gopt.serial			= 0;
 	gopt.doppler_min 	= -MAX_DOPPLER;
 	gopt.doppler_max 	= MAX_DOPPLER;
 	gopt.corr_sleep 	= 500;
@@ -196,6 +201,13 @@ void Parse_Arguments(int32 argc, char* argv[])
 		else if(strcmp(argv[lcv],"-gui") == 0)
 		{
 			gopt.gui = 1;
+			gopt.serial = 0;
+			gopt.ncurses = 0;
+		}
+		else if(strcmp(argv[lcv],"-s") == 0)
+		{
+			gopt.serial = 1;
+			gopt.gui = 0;
 			gopt.ncurses = 0;
 		}
 		else if(strcmp(argv[lcv],"-u") == 0)
@@ -297,7 +309,10 @@ int32 Object_Init(void)
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		pCorrelators[lcv] =  new Correlator(lcv);
 
-	pTelemetry = new Telemetry(gopt.ncurses);
+	if(gopt.ncurses)
+		pTelemetry = new Telemetry();
+	else
+		pSerial_Telemetry = new Serial_Telemetry(gopt.serial);
 
 	pPVT = new PVT(gopt.startup);
 
@@ -410,7 +425,10 @@ int32 Thread_Init(void)
 	}
 
 	/* Last thing to do */
-	pTelemetry->Start();
+	if(gopt.ncurses)
+		pTelemetry->Start();
+	else
+		pSerial_Telemetry->Start();
 
 	return(1);
 

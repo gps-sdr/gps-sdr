@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -25,17 +25,17 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 void *OBJECT_Thread(void *_arg)
 {
-	
+
 	OBJECT *aOBJECT = pOBJECT;
 
 	while(grun)
 	{
-		aOBJECT->Inport();
+		aOBJECT->Import();
 		aOBJECT->Export();
 	}
-	
+
 	pthread_exit(0);
-	
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -74,18 +74,12 @@ OBJECT::~OBJECT()
 /*----------------------------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------------------------*/
-void OBJECT::Inport()
+void OBJECT::Import()
 {
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
-/*----------------------------------------------------------------------------------------------*/
-void OBJECT::Parse()
-{
-
-}
-/*----------------------------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------------------------*/
 void OBJECT::Export()
