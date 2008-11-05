@@ -16,8 +16,8 @@ VPATH		=   accessories:	\
 				objects:		\
 				simd:			
 											
-LDFLAGS	 = -O3 -lpthread -lncurses -m32
-CFLAGS   = -O3 -m32 $(CINCPATHFLAGS)
+LDFLAGS	 = -lpthread -lncurses -m32
+CFLAGS   = -O3 -D_FORTIFY_SOURCE=0 -m32 $(CINCPATHFLAGS)
 ASMFLAGS = -masm=intel
 
 HEADERS =   config.h		\
@@ -91,7 +91,7 @@ acq-test: acq-test.o $(OBJS)
 	$(ASM) $(CFLAGS) -c $< -o $@
 
 gps-gui: ./gui/gui.cpp ./gui/gui.h
-	make --directory=./gui
+	make --directory=./newgui
 	
 gps-usrp:
 	make --directory=./usrp

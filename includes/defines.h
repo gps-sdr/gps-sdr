@@ -36,12 +36,14 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 typedef unsigned char		uint8;					//!< Unsigned byte
 typedef unsigned short		uint16;					//!< Unsigned word
-typedef unsigned long		uint32;					//!< Unsigned double word
+//typedef unsigned long		uint32;					//!< Unsigned double word
 typedef unsigned long long	uint64;					//!< Unsigned quadruple word
 typedef signed char			int8;					//!< Signed byte
 typedef signed short		int16;					//!< Signed word
-typedef signed long			int32;					//!< Signed double word
+//typedef signed long		int32;					//!< Signed double word
 typedef signed long long	int64;					//!< Signed quadruple word
+typedef signed int			int32;
+typedef unsigned int		uint32;
 /*----------------------------------------------------------------------------------------------*/
 
 

@@ -28,6 +28,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /* Enum the command #s */
 enum CCSDS_COMMAND_IDS
 {
+	FIRST_C_ID,
 	RESET_PVT_C_ID,
 	RESET_EKF_C_ID,
 	RESET_CHANNEL_C_ID,
@@ -36,7 +37,8 @@ enum CCSDS_COMMAND_IDS
 	GET_MEASUREMENT_C_ID,
 	GET_PSEUDORANGE_C_ID,
 	GET_EPHEMERIS_C_ID,
-	GET_ALMANAC_C_ID
+	GET_ALMANAC_C_ID,
+	LAST_C_ID
 };
 
 typedef struct Reset_PVT_C

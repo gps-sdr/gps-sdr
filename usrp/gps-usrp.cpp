@@ -13,14 +13,14 @@
 #include <sched.h>
 #include <limits.h>
 #include <time.h>
-#include "usrp_prims.h"
-#include "usrp_spi_defs.h"
-#include "usb.h"
-#include "usrp_standard.h"
-#include "usrp_bytesex.h"
-#include "fpga_regs_common.h"
-#include "fpga_regs_standard.h"
-#include "usrp_i2c_addr.h"
+#include <usrp_prims.h>
+#include <usrp_spi_defs.h>
+#include <usb.h>
+#include <usrp_standard.h>
+#include <usrp_bytesex.h>
+#include <fpga_regs_common.h>
+#include <fpga_regs_standard.h>
+#include <usrp_i2c_addr.h>
 #include "db_dbs_rx.h"
 
 using namespace std;

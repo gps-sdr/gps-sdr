@@ -248,10 +248,10 @@ void Serial_Telemetry::ExportGUI()
 
 	/* Now transmit the normal once/pvt stuff */
 	SendBoardHealth();
-	SendTaskHealth();
-	SendChannelHealth();
-	SendSPS();
-	SendClock();
+//	SendTaskHealth();
+//	SendChannelHealth();
+//	SendSPS();
+//	SendClock();
 
 	/* See if there is any new GEONS data */
 

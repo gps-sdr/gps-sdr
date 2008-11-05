@@ -28,6 +28,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /* Enum the packet ID #s */
 enum CCSDS_PACKET_IDS
 {
+	FIRST_M_ID,
 	BOARD_HEALTH_M_ID,
 	TASK_HEALTH_M_ID,
 	CHANNEL_HEALTH_M_ID,
@@ -41,11 +42,14 @@ enum CCSDS_PACKET_IDS
 	ALMANAC_M_ID,
 	EPHEMERIS_VALID_M_ID,
 	FIFO_M_ID,
-	COMMAND_ACQ_M_ID
+	COMMAND_ACQ_M_ID,
+	LAST_M_ID
 };
 
 
-/* CCSDS Packet Header */
+/*! \ingroup MESSAGES
+ * Packet dumped to telemetry and to disk to keep track of each channel
+ */
 typedef struct CCSDS_PH
 {
 
@@ -56,7 +60,9 @@ typedef struct CCSDS_PH
 } CCSDS_PH;
 
 
-/* CCSDS Command Header */
+/*! \ingroup MESSAGES
+ * Packet dumped to telemetry and to disk to keep track of each channel
+ */
 typedef struct CCSDS_CH
 {
 
@@ -67,6 +73,21 @@ typedef struct CCSDS_CH
 } CCSDS_CH;
 
 
+/*! \ingroup MESSAGES
+ * Packet dumped to telemetry and to disk to keep track of each channel
+ */
+typedef struct CCSDS_Header
+{
+	uint32 id;
+	uint32 type;
+	uint32 tic;
+	uint32 length;
+} CCSDS_Header;
+
+
+/*! \ingroup MESSAGES
+ * Packet dumped to telemetry and to disk to keep track of each channel
+ */
 typedef struct Board_Health_M
 {
 
@@ -105,6 +126,9 @@ typedef struct Board_Health_M
 } Board_Health_M;
 
 
+/*! \ingroup MESSAGES
+ * Packet dumped to telemetry and to disk to keep track of each channel
+ */
 typedef struct Task_Health_M
 {
 
@@ -209,7 +233,7 @@ typedef struct Clock_M
 */
 typedef struct SV_Position_M
 {
-
+	uint32 chan;
 	double x;				//!< ECEF x coordinate (meters)
 	double y;				//!< ECEF y coordinate (meters)
 	double z;				//!< ECEF z coordinate (meters)
@@ -306,7 +330,7 @@ typedef struct Measurement_M
 */
 typedef struct Pseudorange_M
 {
-
+	uint32 chan;
 	double gpstime;			//!< Time tag associated with pseudorange
 	double time;			//!< pseudorange in seconds
 	double time_rate;		//!< pseudorange rate in sec/sec
@@ -325,7 +349,7 @@ typedef struct Pseudorange_M
 */
 typedef struct Ephemeris_M
 {
-
+	int32	sv;
 	int32	valid;					//!< 0=No valid data.
 	int32	tofxmission;			//!< Time of subframe 1 transmission, sec of week.
 	int32	tow;					//!< Truncated TOW count
@@ -364,7 +388,6 @@ typedef struct Ephemeris_M
 	double	n0;						//!< Derived qty: n0 = sqrt(GravConstant/(a*a*a)).
 	double	relativistic;			//!< Relativistic correction
 	int32	zcount;
-	int32	sv;
 
 } Ephemeris_M;
 
@@ -375,6 +398,7 @@ typedef struct Ephemeris_M
 typedef struct Almanac_M
 {
 
+	int32	sv;
 	uint32	decoded;				//!< Has this been decoded yet
 	int32	health;					//!< Health code
 	double	ecc;					//!< Eccentricity
@@ -433,6 +457,4 @@ typedef struct Command_Ack_M
 } Command_Ack_M;
 
 #endif /* MESSAGES_H */
-
-
 

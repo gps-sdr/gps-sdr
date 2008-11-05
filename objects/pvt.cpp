@@ -218,6 +218,13 @@ void PVT::Export()
 		master_nav.chanmap[lcv] = ephemerides[lcv].valid;
 	}
 
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	{
+		sv_positions[lcv].chan = lcv;
+		pseudoranges[lcv].chan = lcv;
+		measurements[lcv].chan = lcv;
+	}
+
 	/* Dump to Telemetry */
 	write(PVT_2_Telem_P[WRITE], &master_nav,   sizeof(SPS_M));
 	write(PVT_2_Telem_P[WRITE], &master_clock, sizeof(Clock_M));

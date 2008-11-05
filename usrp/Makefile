@@ -12,7 +12,7 @@ CINCPATHFLAGS = -I$(USRP_INCLUDES) \
 
 LDFLAGS	= -lpthread -L$(USRP_LIB_PATH) -L$(USRP_LIB_PATH2) -lusrp
 
-CFLAGS = -O3 $(CINCPATHFLAGS)
+CFLAGS = -O3 -D_FORTIFY_SOURCE=0 $(CINCPATHFLAGS)
 
 HEADERS =   db_dbs_rx.h
 
@@ -33,4 +33,5 @@ $(EXE): $(EXE).o $(OBJS)
 clean:
 	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -name "gps-usrp" \) -print`
 	@rm -rvf $(EXE)
+
 	
