@@ -97,8 +97,8 @@ void echo_options()
 	fprintf(stderr, "log_decimate:\t\t %d\n",gopt.log_decimate);
 	fprintf(stderr, "google_earth:\t\t %d\n",gopt.google_earth);
 	fprintf(stderr, "ncurses:\t\t %d\n",gopt.ncurses);
-	fprintf(stderr, "gui:\t\t %d\n",gopt.gui);
-	fprintf(stderr, "serial:\t\t %d\n",gopt.serial);
+	fprintf(stderr, "gui:\t\t\t %d\n",gopt.gui);
+	fprintf(stderr, "serial:\t\t\t %d\n",gopt.serial);
 	fprintf(stderr, "filename_direct:\t %s\n",gopt.filename_direct);
 	fprintf(stderr, "filename_reflected:\t %s\n",gopt.filename_reflected);
 	fprintf(stderr, "\n");
@@ -415,7 +415,7 @@ int32 Thread_Init(void)
 	pEphemeris->Start();
 
 	/* Start the SV select thread */
-	if(gopt.realtime)
+	//if(gopt.realtime)
 		pSV_Select->Start();
 
 	//if(gopt.verbose)

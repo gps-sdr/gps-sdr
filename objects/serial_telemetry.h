@@ -110,7 +110,7 @@ class Serial_Telemetry
 		void SendEphemeris();						//!< Emit a decoded ephemeris
 		void SendAlamanac();						//!< Emit a decoded almanac
 		void SendCommandAck();						//!< Send a command acknowledge
-
+		void SendFIFO();							//!< Send the FIFO status
 };
 
 #endif /* Serial_Telemetry_H */

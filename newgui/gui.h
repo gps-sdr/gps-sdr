@@ -50,19 +50,20 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 #include "includes.h"
 #include "gui_classes.h"
+#include "gui_serial.h"
 #include "gui_default.h"
 #include "gui_toplevel.h"
 /*----------------------------------------------------------------------------------------------*/
 
 
-#define ID_EXIT 1000
-#define ID_Timer 9999
+#define ID_EXIT  1000
+#define ID_TIMER 9999
 
 /*----------------------------------------------------------------------------------------------*/
 class GUI_App: public wxApp
 {
 
-	GUI_Toplevel 	*frame;
+	GUI_Toplevel *pMain;
 
     bool render_loop_on;
     virtual bool OnInit();

@@ -31,7 +31,6 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define CPU_CORES				(2)							//!< 1 for a single core, 2 for a dual core system, etc
 #define CORR_PER_CPU			(MAX_CHANNELS/CPU_CORES)	//!< Distribute them up evenly (this should be an INTEGER!)
 #define MAX_ANTENNAS			(1)							//!< The number of antennas
-#define MAX_TASKS				(32)						//!< Maximum number of threads
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -73,7 +72,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define THRESH_STRONG			(1.3e7)		//!< Threshold for strong signal detection
 #define THRESH_MEDIUM			(1.5e7)		//!< Threshold for medium signal detection
 #define THRESH_WEAK				(1.0e7)		//!< Threshold for weak signal detection
-#define MAX_DOPPLER				(15000)		//!< Set the maximum Doppler frequency
+#define MAX_DOPPLER				(45000)		//!< Set the maximum Doppler frequency
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -103,6 +102,26 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define AGC_LOW					(4)			//!< Overflow low
 #define AGC_HIGH				(16)		//!< Overflow high
 #define MEASUREMENT_DELAY		(10)		//!< Number of measurements that have to be marked as navigate to allow PVT
+/*----------------------------------------------------------------------------------------------*/
+
+
+/* Associate each task with a enum */
+/*----------------------------------------------------------------------------------------------*/
+#define	MAX_TASKS				(32)			//!< Max task number (used to allocate arrays)
+enum TASK_IDS
+{
+	TRACKING_ISR_TASK_ID = CPU_CORES,			//!< Bottom tasks are the correlators, which is a variable
+	COMMANDO_TASK_ID,
+	TELEMETRY_TASK_ID,
+	SERIAL_TELEMETRY_TASK_ID,
+	FIFO_TASK_ID,
+	KEYBOARD_TASK_ID,
+	EPHEMERIS_TASK_ID,
+	SV_SELECT_TASK_ID,
+	PVT_TASK_ID,
+	EKF_TASK_ID,
+	LAST_TASK_ID
+};
 /*----------------------------------------------------------------------------------------------*/
 
 

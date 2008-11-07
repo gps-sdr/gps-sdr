@@ -23,7 +23,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include "Includes.h"
+#include "includes.h"
 
 /*! \ingroup CLASSES
  *
@@ -52,8 +52,8 @@ class OBJECT
 		void Stop();								//!< Stop the thread
 		void Import();								//!< Get data into the thread
 		void Export();								//!< Get data out of the thread
-		void Lock();								//!< Lock the object's mutex
-		void Unlock();								//!< Unlock the object's mutex
+		void Lock(){pthread_mutex_lock(&mutex);};	//!< Lock the object's mutex
+		void Unlock(){pthread_mutex_unlock(&mutex);};//!< Unlock the object's mutex
 		uint32 GetExecTic(){return(execution_tic);};//!< Get the execution counter
 		uint32 GetStartTic(){return(start_tic);};	//!< Get the Nucleus tic at start of function
 		uint32 GetStopTic(){return(execution_tic);};//!< Get the Nucleus tic at end of function

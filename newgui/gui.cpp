@@ -24,9 +24,9 @@ IMPLEMENT_APP(GUI_App)
 /*----------------------------------------------------------------------------------------------*/
 bool GUI_App::OnInit()
 {
-	frame = new GUI_Toplevel();
-    frame->Show(TRUE);
-    SetTopWindow(frame);
+	pMain = new GUI_Toplevel();
+	pMain->Show(TRUE);
+    SetTopWindow(pMain);
 
 	/* Start up the render loop */
 //    activateRenderLoop(true);
@@ -55,11 +55,13 @@ void GUI_App::activateRenderLoop(bool on)
 /*----------------------------------------------------------------------------------------------*/
 void GUI_App::onIdle(wxIdleEvent& evt)
 {
+
     if(render_loop_on)
     {
-        frame->paintNow();
+		pMain->paintNow();
         evt.RequestMore(); //render continuously, not only once on idle
     }
+
 }
 /*----------------------------------------------------------------------------------------------*/
 

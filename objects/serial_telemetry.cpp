@@ -126,6 +126,12 @@ Serial_Telemetry::~Serial_Telemetry()
 
 	pthread_mutex_destroy(&mutex);
 
+	if(npipe_open)
+	{
+		close(npipe[READ]);
+		close(npipe[WRITE]);
+	}
+
 	if(gopt.verbose)
 		printf("Destroying Serial_Telemetry\n");
 
@@ -247,9 +253,10 @@ void Serial_Telemetry::ExportGUI()
 	char *pbuff;
 
 	/* Now transmit the normal once/pvt stuff */
+	SendFIFO();
 	SendBoardHealth();
-//	SendTaskHealth();
-//	SendChannelHealth();
+	SendTaskHealth();
+	SendChannelHealth();
 //	SendSPS();
 //	SendClock();
 
@@ -257,7 +264,7 @@ void Serial_Telemetry::ExportGUI()
 
 
 	/* If so write out that message */
-	SendEKF();
+	//SendEKF();
 
 
 	/* Now, get any data from GUI */
@@ -364,6 +371,20 @@ void Serial_Telemetry::SendChannelHealth()
 
 
 /*----------------------------------------------------------------------------------------------*/
+void Serial_Telemetry::SendFIFO()
+{
+
+	/* Form the packet header */
+	FormCCSDSPacketHeader(FIFO_M_ID, 0, sizeof(FIFO_M));
+
+	/* Emit the packet */
+	EmitCCSDSPacket((void *)&fifo_status, sizeof(FIFO_M));
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::SendSPS()
 {
 
@@ -448,7 +469,7 @@ void Serial_Telemetry::FormCCSDSPacketHeader(uint32 _apid, uint32 _sf, uint32 _p
 
 	pheader.pid = (_apid + CCSDS_APID_BASE) & 0x7FF;
 	pheader.psc = (_sf & 0x3) + ((packet_tic & 0x3FFF) << 2);
-	pheader.pdl = _pl & 0xFF;
+	pheader.pdl = _pl & 0xFFFF;
 
 }
 /*----------------------------------------------------------------------------------------------*/

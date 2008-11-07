@@ -117,7 +117,8 @@ FIFO::FIFO()
 
 	tic = overflw = count = 0;
 
-	agc_scale = 1 << AGC_BITS;
+	//agc_scale = 1 << AGC_BITS;
+	agc_scale = 2048;
 
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_unlock(&mutex);
@@ -188,15 +189,15 @@ void FIFO::Import()
 	}
 
 	/* Add to the buff */
-	if(gopt.realtime && count == 0)
-	{
-		init_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
-	}
-	else if(gopt.realtime && count < 1000)
-	{
-		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
-	}
-	else
+//	if(count == 0)
+//	{
+//		init_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
+//	}
+//	else if(count < 1000)
+//	{
+//		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
+//	}
+	//else
 	{
 		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
 		Enqueue();

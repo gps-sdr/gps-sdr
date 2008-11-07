@@ -62,14 +62,9 @@ void Post_Process::Stop()
 /*----------------------------------------------------------------------------------------------*/
 Post_Process::Post_Process(char *_fname)
 {
-	int32 lcv, k, type, agc_scale;
+	int32 bytes;
 
-	buff_in = new CPX[310*IF_SAMPS_MS];
 	buff = new CPX[310*SAMPS_MS];
-	memset(&results[0], 0x0, NUM_CODES*sizeof(Acq_Result_S));
-	Acq_Result_S *p;
-
-	agc_scale = 0;
 
 	/* Create named pipe */
 	fifo = mkfifo("/tmp/GPSPIPE", 0666);
@@ -80,70 +75,11 @@ Post_Process::Post_Process(char *_fname)
 	if(fp == NULL)
 		printf("Could not open %s for reading\n",fname);
 
-	/* First read in several seconds of data */
-	fread(&buff_in[0], sizeof(CPX), 310*IF_SAMPS_MS, fp);
-
-	/* Rewind the data */
-	fseek(fp, 0x0, SEEK_SET);
-
-	/* Downsample to 2048 samps/ms */
-	downsample(buff, buff_in, SAMPLE_FREQUENCY, IF_SAMPLE_FREQUENCY, IF_SAMPS_MS*310);
-
-	/* Init the AGC scale value */
-	init_agc(&buff[0], SAMPS_MS, AGC_BITS, &agc_scale);
-
-	/* Now actually run the AGC */
-	for(lcv = 0; lcv < 310; lcv++)
-		run_agc(&buff[lcv*SAMPS_MS], SAMPS_MS, AGC_BITS, &agc_scale);
-
-	pFIFO->SetScale(agc_scale);
-	printf("AGC Scale: %d\n",agc_scale);
-
-
-	printf("Type   SV        Delay      Doppler             Power    Detected\n");
-	printf("-----------------------------------------------------------------\n");
-
-	/* Now do the acquisition(s) */
-	for(type = 0; type < 1; type++)
-	{
-		pAcquisition->doPrepIF(type, buff);
-
-		for(lcv = 0; lcv < NUM_CODES; lcv++)
-		{
-			if(results[lcv].success == 0)
-			{
-				if(type == 0)
-					results[lcv] = pAcquisition->doAcqStrong(lcv, gopt.doppler_min, gopt.doppler_max);
-				else if(type == 1)
-					results[lcv] = pAcquisition->doAcqMedium(lcv, gopt.doppler_min, gopt.doppler_max);
-				else
-					results[lcv] = pAcquisition->doAcqWeak(lcv, gopt.doppler_min, gopt.doppler_max);
-
-				p = &results[lcv];
-				printf("  %02d,  %02d,  %10.2f,  %10.0f,  %15.0f,          %1d\n",p->type,lcv+1,p->delay,p->doppler,p->magnitude,p->success);
-			}
-
-		}
-	}
-
-	pAcquisition->Export("AcqPP.txt");
-
-	/* For the detected SVs, start up correlators */
-	k = 0;
-	for(lcv = 0; lcv < NUM_CODES; lcv++)
-	{
-		if(results[lcv].success)
-		{
-			/* Map receiver channels to channels on correlator */
-			write(Trak_2_Corr_P[k][WRITE], &results[lcv], sizeof(Acq_Result_S));
-			if(++k >= MAX_CHANNELS)
-				break;
-		}
-	}
+	bytes = -1000*60*IF_SAMPS_MS*sizeof(CPX);
+	fseek(fp, bytes, SEEK_END);
 
 	if(gopt.verbose)
 		printf("Creating Post_Process\n");
-
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -152,6 +88,9 @@ Post_Process::Post_Process(char *_fname)
 /*----------------------------------------------------------------------------------------------*/
 Post_Process::~Post_Process()
 {
+
+	if(fp)
+		fclose(fp);
 
 	close(npipe);
 	delete [] buff;
@@ -167,9 +106,15 @@ Post_Process::~Post_Process()
 void Post_Process::Import()
 {
 
-	fread(&buff[0], sizeof(CPX), IF_SAMPS_MS, fp);
+	int32 bytes;
+
+	bytes = fread(&buff[0], sizeof(CPX), IF_SAMPS_MS, fp);
+
+	bytes = -1000*60*IF_SAMPS_MS*sizeof(CPX);
+
+	/* Reset to loop forever */
 	if(feof(fp))
-		grun = false;
+		fseek(fp, bytes, SEEK_END);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -178,25 +123,8 @@ void Post_Process::Import()
 /*----------------------------------------------------------------------------------------------*/
 void Post_Process::Export()
 {
-//
-//	int32 nbytes, bwrote, bread;;
-//	char *pbuff;
-//
-//	bread = IF_SAMPS_MS*sizeof(CPX);
-//
-//	/* Dump to the pipe */
-//	nbytes = 0; pbuff = (char *)&buff[0];
-//	while((nbytes < bread) && grun)
-//	{
-//		bwrote = write(npipe, buff[nbytes], PIPE_BUF);
-//
-//		signal(SIGPIPE, SIG_IGN);
-//		if(bwrote > 0)
-//			nbytes += bwrote;
-//	}
-//
 	write(npipe, &buff[0], sizeof(CPX)*IF_SAMPS_MS);
-	usleep(250);
+	usleep(1000);
 }
 /*----------------------------------------------------------------------------------------------*/
 

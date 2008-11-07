@@ -23,21 +23,22 @@ CFLAGS   = `wx-config --cxxflags` $(CINCPATHFLAGS)
 
 HEADERS =   
 
-SRC = gui.cpp gui_classes.cpp gui_toplevel.cpp gui_default.cpp
-
+SRC = $(wildcard *.cpp)
 OBJ = $(SRC:.cpp=.o)
+HEADERS = $(wildcard *.h)
 
-all: gui
+EXE = gps-gui
 
-gui: $(OBJ)
-	 $(LINK) $(LDFLAGS) $(WX_FLAGS) $(OBJ) -o gps-gui
-	 mv gps-gui ../gps-gui
+all: $(EXE)
+
+$(EXE): $(OBJ) $(SRC) $(HEADERS)
+	 $(LINK) $(LDFLAGS) $(WX_FLAGS) $(OBJ) -o $(EXE)
+	 cp $(EXE) ../$(EXE)
 	 
-%.o:%.cpp
+%.o:%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
 clean:
-	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -o -name "*.out" -o -name "*.m~"  -o -name "*.tlm" \) -print`
-	@rm -rvf `find . \( -name "*.klm" -o -name "gui" \) -print`	
-	@rm -rvf $(EXE)
+	@rm -rv *.o
+	@rm -rv $(EXE)
 
