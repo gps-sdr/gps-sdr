@@ -34,13 +34,15 @@ class GUI_Serial
 	private:
 
 		/* Default GUI_Serial variables */
-		uint32 				execution_tic;					//!< Execution counter
+		//uint32 				execution_tic;					//!< Execution counter
 		uint32 				start_tic;						//!< OS tic at start of function
 		uint32 				stop_tic;						//!< OS tic at end of function
 		pthread_t 			thread;							//!< For the thread
 		pthread_mutex_t		mutex;							//!< Protect the following variable
 
 	public:
+
+		uint32 				execution_tic;					//!< Execution counter
 
 		/* Nondefault variables */
 		int					message_sync;					//!< Are we synched to the packets
@@ -89,7 +91,7 @@ class GUI_Serial
 
 		/* Nondefault methods */
 		void readPipe();
-		void pipeRead(void *_b, int32 _bytes);
+		int pipeRead(void *_b, int32 _bytes);
 	    void DecodeCCSDSPacketHeader(CCSDS_Header *_h, CCSDS_PH *_p);
 
 };

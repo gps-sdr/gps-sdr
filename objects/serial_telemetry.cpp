@@ -110,6 +110,8 @@ Serial_Telemetry::Serial_Telemetry(int32 _serial)
 	}
 
 
+
+
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_unlock(&mutex);
 
@@ -161,7 +163,8 @@ void Serial_Telemetry::Import()
 	Channel_Health_M temp;
 	int32 bread, lcv, num_chans;
 
-	read(FIFO_2_Telem_P[READ], &fifo_status, sizeof(FIFO_M));
+	/* Pend on this pipe */
+	bread = read(FIFO_2_Telem_P[READ], &fifo_status, sizeof(FIFO_M));
 
 	/* Lock correlator status */
 	pthread_mutex_lock(&mInterrupt);
@@ -184,11 +187,11 @@ void Serial_Telemetry::Import()
 	pthread_mutex_unlock(&mInterrupt);
 
 	/* Read from PVT */
-	read(PVT_2_Telem_P[READ], &sps,   sizeof(SPS_M));
-	read(PVT_2_Telem_P[READ], &clock, sizeof(Clock_M));
-	read(PVT_2_Telem_P[READ], &sv_positions, MAX_CHANNELS*sizeof(SV_Position_M));
-	read(PVT_2_Telem_P[READ], &pseudoranges, MAX_CHANNELS*sizeof(Pseudorange_M));
-	read(PVT_2_Telem_P[READ], &measurements, MAX_CHANNELS*sizeof(Measurement_M));
+	bread = read(PVT_2_Telem_P[READ], &sps,   sizeof(SPS_M));
+	bread = read(PVT_2_Telem_P[READ], &clock, sizeof(Clock_M));
+	bread = read(PVT_2_Telem_P[READ], &sv_positions, MAX_CHANNELS*sizeof(SV_Position_M));
+	bread = read(PVT_2_Telem_P[READ], &pseudoranges, MAX_CHANNELS*sizeof(Pseudorange_M));
+	bread = read(PVT_2_Telem_P[READ], &measurements, MAX_CHANNELS*sizeof(Measurement_M));
 
 //	bread = sizeof(Acq_Result_S);
 //	while(bread == sizeof(Acq_Result_S))
@@ -290,8 +293,8 @@ void Serial_Telemetry::OpenGUIPipe()
 {
 
 	npipe[READ] = npipe[WRITE] = -1;
-	npipe[READ] = open("/tmp/GUI2GPS", O_RDONLY | O_NONBLOCK, S_IRWXG | S_IRWXU | S_IRWXO);
-	npipe[WRITE] = open("/tmp/GPS2GUI", O_WRONLY | O_NONBLOCK, S_IRWXG | S_IRWXU | S_IRWXO);
+	npipe[READ] = open("/tmp/GUI2GPS", O_RDONLY | O_NONBLOCK);
+	npipe[WRITE] = open("/tmp/GPS2GUI", O_WRONLY | O_NONBLOCK);
 
 	if((npipe[READ] != -1) && (npipe[WRITE] != -1))
 	{
@@ -451,7 +454,7 @@ void Serial_Telemetry::EmitCCSDSPacket(void *_buff, uint32 _len)
 		{
 			bwrote = write(npipe[WRITE], &header, 8*sizeof(char));  	//!< Stuff the preamble
 			bwrote = write(npipe[WRITE], &pheader, sizeof(CCSDS_PH)); 	//!< Stuff the CCSDS header
-			bwrote = write(npipe[WRITE], &_buff, _len);					//!< Stuff the body
+			bwrote = write(npipe[WRITE], _buff, _len);					//!< Stuff the body
 		}
 	}
 

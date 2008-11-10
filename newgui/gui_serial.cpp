@@ -24,7 +24,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 /*----------------------------------------------------------------------------------------------*/
 /* This is global so it can be handled by the signal handler */
-int gpipe_open;
+int gpipe_open[2];
 int gpipe[2];
 int grun;
 
@@ -36,22 +36,22 @@ void openPipe()
 	while((gpipe[WRITE] == -1) && grun)
 	{
 		gpipe[WRITE] = open("/tmp/GUI2GPS",O_WRONLY);
-		usleep(100000);
+		usleep(1000000);
 	}
 
 	while((gpipe[READ] == -1) && grun)
 	{
 		gpipe[READ] = open("/tmp/GPS2GUI",O_RDONLY);
-		usleep(100000);
+		usleep(1000000);
 	}
 
-	gpipe_open = true;
+	gpipe_open[READ] = true;
 }
 
 
 void gui_pipe_close(int _sig)
 {
-	gpipe_open = false;
+	gpipe_open[READ] = false;
 	openPipe();
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -96,8 +96,19 @@ void GUI_Serial::Stop()
 GUI_Serial::GUI_Serial()
 {
 
-	//memset(this, 0x0, sizeof(GUI_Serial));
-	grun = true;
+	grun = 1;
+	execution_tic = 0;
+	start_tic = 0;
+	stop_tic = 0;
+	message_sync = 0;
+	pipe_open = 0;
+	byte_count = 0;
+	gpipe_open[READ] = false;
+	gpipe_open[WRITE] = false;
+	packet_count[LAST_M_ID] = 0;
+	ccsds_header.tic = ccsds_header.id = ccsds_header.length = 0;
+	memset(&packet_count[0], 0x0, (LAST_M_ID+1)*sizeof(int));
+	memset(&fifo_status, 0x0, sizeof(FIFO_M));
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -115,10 +126,10 @@ GUI_Serial::~GUI_Serial()
 void GUI_Serial::Import()
 {
 
-	pipe_open = gpipe_open;
+	pipe_open = gpipe_open[READ];
 
 	/* Open the pipe */
-	if(!gpipe_open)
+	if(!gpipe_open[READ])
 		openPipe();
 	else
 		readPipe();
@@ -137,8 +148,9 @@ void GUI_Serial::Export()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void GUI_Serial::pipeRead(void *_b, int32 _bytes)
+int GUI_Serial::pipeRead(void *_b, int32 _bytes)
 {
+
 	int32 nbytes, bread;
 	uint8 *buff;
 
@@ -150,9 +162,9 @@ void GUI_Serial::pipeRead(void *_b, int32 _bytes)
 		bread = read(gpipe[READ], &buff[nbytes], _bytes - nbytes);
 		if(bread > 0)
 			nbytes += bread;
-		else
-			usleep(10);
 	}
+
+	return(nbytes);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -171,8 +183,8 @@ void GUI_Serial::readPipe()
 	{
 
 		/* Check to make sure the first 8 bytes are "AAAAAAAA" */
-		pipeRead(&syncword[0], 8);
-		syncword[9] = '\0';
+		byte_count += pipeRead(&syncword[0], 8);
+		syncword[8] = '\0';
 
 		if(strcmp(syncword, "AAAAAAAA") == 0)
 		{
@@ -181,16 +193,34 @@ void GUI_Serial::readPipe()
 		else
 		{
 			message_sync = 0;
+			packet_count[LAST_M_ID]++;
 			return;
 		}
 
+
 		/* If so get the packet header */
-		pipeRead(&pheader, sizeof(CCSDS_PH));
+		byte_count += pipeRead(&pheader, sizeof(CCSDS_PH));
 		DecodeCCSDSPacketHeader(&ccsds_header, &pheader);
 
+		/* Catch some failures */
+		if(ccsds_header.length < 0 ||  ccsds_header.length > 512)
+		{
+			message_sync = 0;
+			packet_count[LAST_M_ID]++;
+			return;
+		}
+
+		if(ccsds_header.id < FIRST_M_ID ||  ccsds_header.id > LAST_M_ID)
+		{
+			message_sync = 0;
+			packet_count[LAST_M_ID]++;
+			return;
+		}
+
 		/* For the bytes/sec calculation */
-		byte_count += 6;
 		byte_count += ccsds_header.length;
+
+		packet_count[ccsds_header.id]++;
 
 		/* Now copy in the body */
 		switch(ccsds_header.id)
@@ -261,23 +291,23 @@ void GUI_Serial::readPipe()
 	else
 	{
 		v = '0';
-		pipeRead(&v, 1);
+		byte_count += pipeRead(&v, 1);
 
 		memcpy(&q[0], &syncword[0], 7*sizeof(char));
 		syncword[0] = v;
 		memcpy(&syncword[1], &q[0], 7*sizeof(char));
-		syncword[9] = '\0';
+		syncword[8] = '\0';
 
 		if(strcmp(syncword, "AAAAAAAA") == 0)
 		{
 			message_sync = 1;
 
 			/* If so get the packet header */
-			pipeRead(&pheader, sizeof(CCSDS_PH));
+			byte_count += pipeRead(&pheader, sizeof(CCSDS_PH));
 			DecodeCCSDSPacketHeader(&ccsds_header, &pheader);
 
 			/* Get the body */
-			pipeRead(&buff[0], ccsds_header.length);
+			byte_count += pipeRead(&buff[0], ccsds_header.length);
 		}
 	}
 

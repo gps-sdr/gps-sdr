@@ -29,7 +29,7 @@ GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS-SDR"), wxDef
 {
 
     timer = new wxTimer(this, ID_TIMER);
-    timer->Start(50, wxTIMER_CONTINUOUS); //Shoot for 15 fps
+    timer->Start(50, wxTIMER_CONTINUOUS); //Shoot for 20 fps
 
     wDefault = NULL;
 
@@ -259,13 +259,6 @@ void GUI_Toplevel::onClose(wxCloseEvent& evt)
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Toplevel::paintEvent(wxPaintEvent& evt)
 {
-	int val;
-
-	val = gUSRP->GetValue();
-	val = (val + 1) % gUSRP->GetRange();
-	gUSRP->SetValue(val);
-
-
     wxPaintDC dc(this);
     render(dc);
 }
@@ -300,9 +293,11 @@ void GUI_Toplevel::render(wxDC& dc)
 	/* Render Task Panel */
 	renderTask();
 
+	count++;
+
 	str += status_str;
 	str += '\t';
-	str2.Printf(wxT("Count: %d"),count++);
+	str2.Printf(wxT("Count: %d"),pSerial->GetExecTic());
 	str += str2;
 
 	SetStatusText(str);
@@ -311,15 +306,29 @@ void GUI_Toplevel::render(wxDC& dc)
 
 }
 /*----------------------------------------------------------------------------------------------*/
-
+//mvwprintw(screen,line++,1,"FIFO:\t%d\t%d\t%d\t%d",(FIFO_DEPTH-(tFIFO.head-tFIFO.tail)) % FIFO_DEPTH,tFIFO.count,tFIFO.agc_scale,tFIFO.overflw);
 
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Toplevel::renderFIFO()
 {
 	wxString str;
+	float fifo_p;
+	int fifo_i;
+
+	fifo_p = FIFO_DEPTH - (pSerial->fifo_status.head - pSerial->fifo_status.tail) % FIFO_DEPTH;
+	fifo_p = fifo_p / FIFO_DEPTH;
+	fifo_i = 100 - (int)fifo_p;
 
 	tUSRP->Clear();
 
+	gUSRP->SetValue(fifo_i);
+
+	str.Printf(wxT("AGC Scale:\t%d\n"),pSerial->fifo_status.agc_scale);
+	tUSRP->AppendText(str);
+	str.Printf(wxT("AGC Overflws:\t%d\n"),pSerial->fifo_status.overflw);
+	tUSRP->AppendText(str);
+	str.Printf(wxT("FIFO Count:\t%d\n"),pSerial->fifo_status.count);
+	tUSRP->AppendText(str);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -340,7 +349,6 @@ void GUI_Toplevel::renderRS422()
 		str += wxT("open\n");
 	else
 		str += wxT("closed\n");
-
 	tRS422->AppendText(str);
 
 	str.Printf(wxT("Synchronized Count:\t%d\n"),pSerial->message_sync);

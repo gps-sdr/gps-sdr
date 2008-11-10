@@ -33,7 +33,10 @@ void Thread_Shutdown(void)
 	pKeyboard->Stop();
 
 	/* Stop the telemetry */
-	pTelemetry->Stop();
+	if(gopt.ncurses)
+		pTelemetry->Stop();
+	else
+		pSerial_Telemetry->Stop();
 
 	/* Stop the FIFO */
 	pFIFO->Stop();

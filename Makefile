@@ -69,6 +69,8 @@ all: $(EXE)
 
 extras: $(EXE) $(EXTRAS) $(TEST)
 
+gui: gps-gui
+
 gps-sdr: main.o $(OBJS) $(DIS) $(HEADERS)
 	 $(LINK) $(LDFLAGS) -o $@ main.o $(OBJS)
 
@@ -90,7 +92,8 @@ acq-test: acq-test.o $(OBJS)
 %.o:%.s
 	$(ASM) $(CFLAGS) -c $< -o $@
 
-gps-gui: ./gui/gui.cpp ./gui/gui.h
+gps-gui:
+	make --directory=./newgui clean
 	make --directory=./newgui
 	
 gps-usrp:
