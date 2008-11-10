@@ -385,6 +385,20 @@ typedef struct _SV_Select_2_Telem_S
 	Acq_History_S	sv_history[NUM_CODES];
 
 } SV_Select_2_Telem_S;
+
+/*! \ingroup STRUCTS
+ * Information sent from PVT to telemetry
+ */
+typedef struct _PVT_2_Telem_S
+{
+
+	SPS_M 			master_nav;
+	Clock_M 		master_clock;
+	SV_Position_M	sv_positions[MAX_CHANNELS];
+	Pseudorange_M	pseudoranges[MAX_CHANNELS];
+	Measurement_M	measurements[MAX_CHANNELS];
+
+} PVT_2_Telem_S;
 /*----------------------------------------------------------------------------------------------*/
 
 

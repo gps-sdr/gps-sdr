@@ -12,6 +12,7 @@ class GUI_Toplevel: public iGUI_Toplevel
 		/* Add all the "subwindows" here */
 		int count;
 		GUI_Default		*wDefault;
+		GUI_Channel		*wChannel;
 		class GUI_Serial*pSerial;
 
 		wxTimer 		*timer;
@@ -35,6 +36,8 @@ class GUI_Toplevel: public iGUI_Toplevel
 		int				bytes_prev;
 		int				bytes_sec;
 
+		Message_Struct	messages;						//!< Hold all the messages
+
 	public:
 
 		GUI_Toplevel();
@@ -51,7 +54,7 @@ class GUI_Toplevel: public iGUI_Toplevel
 		void onUSRPStop(wxCommandEvent& event);
 
 		void onMain(wxCommandEvent& event);
-
+		void onChannel(wxCommandEvent& event);
 
 	    void paintEvent(wxPaintEvent& evt);
 	    void paintNow();

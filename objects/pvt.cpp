@@ -261,7 +261,6 @@ void PVT::Navigate()
 	SV_Positions();
 	SV_TransitTime();
 	SV_Correct();
-	SV_Elevations();
 
 	/* Pseudoranges */
 	PseudoRange();
@@ -299,6 +298,7 @@ void PVT::Navigate()
 			if(master_nav.initial_convergence == false)
 				master_nav.initial_convergence = true;
 
+			SV_Elevations();
 			ClockUpdate();
 			LatLong();
 			DOP();

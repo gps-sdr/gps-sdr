@@ -1,17 +1,17 @@
 /*
- * gui_default.h
+ * gui_Channel.h
  *
  *  Created on: Nov 4, 2008
  *      Author: gheckler
  */
 
-#ifndef GUI_DEFAULT_H_
-#define GUI_DEFAULT_H_
+#ifndef GUI_CHANNEL_H_
+#define GUI_CHANNEL_H_
 
 #include "gui.h"
 
 /*----------------------------------------------------------------------------------------------*/
-class GUI_Default: public iGUI_Default
+class GUI_Channel: public iGUI_Channel
 {
 
 	private:
@@ -22,17 +22,15 @@ class GUI_Default: public iGUI_Default
 
 	public:
 
-		GUI_Default();
-		~GUI_Default();
+		GUI_Channel();
+		~GUI_Channel();
 
 		void render(wxDC& dc);
 		void paintNow();
-		void renderCN0();
-		void renderSkyPlot();
-		void renderPVT();
+		void renderChannel();
 		void setPointer(Message_Struct *_p);
 
 };
 /*----------------------------------------------------------------------------------------------*/
 
-#endif /* GUI_DEFAULT_H_ */
+#endif /* GUI_Channel_H_ */

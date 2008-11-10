@@ -60,6 +60,9 @@ void OBJECT::Stop()
 OBJECT::OBJECT()
 {
 
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_unlock(&mutex);
+
 	temp = 0;
 
 }
@@ -68,6 +71,8 @@ OBJECT::OBJECT()
 /*----------------------------------------------------------------------------------------------*/
 OBJECT::~OBJECT()
 {
+
+	pthread_mutex_destroy(&mutex);
 
 	printf("Destructing OBJECT\n");
 

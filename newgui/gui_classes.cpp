@@ -91,6 +91,8 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	sUSRP->Add( gUSRP, 0, wxALL|wxEXPAND, 5 );
 	
 	tUSRP = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tUSRP->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	
 	sUSRP->Add( tUSRP, 1, wxALL|wxEXPAND, 5 );
 	
 	sStatus->Add( sUSRP, 1, wxEXPAND, 5 );
@@ -99,6 +101,8 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	sRS422 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("RS422") ), wxVERTICAL );
 	
 	tRS422 = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tRS422->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	
 	sRS422->Add( tRS422, 1, wxALL|wxEXPAND, 5 );
 	
 	sStatus->Add( sRS422, 1, wxEXPAND, 5 );
@@ -107,6 +111,8 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	sTask = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Task") ), wxVERTICAL );
 	
 	tTask = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tTask->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	
 	sTask->Add( tTask, 1, wxALL|wxEXPAND, 5 );
 	
 	sStatus->Add( sTask, 2, wxEXPAND, 5 );
@@ -131,6 +137,78 @@ iGUI_Default::iGUI_Default( wxWindow* parent, wxWindowID id, const wxString& tit
 	
 	wxBoxSizer* bSizer9;
 	bSizer9 = new wxBoxSizer( wxHORIZONTAL );
+	
+	wxStaticBoxSizer* bSizer29;
+	bSizer29 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("CN0") ), wxVERTICAL );
+	
+	pCN0 = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	bSizer29->Add( pCN0, 1, wxEXPAND, 5 );
+	
+	bSizer9->Add( bSizer29, 1, wxALL|wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer18;
+	bSizer18 = new wxBoxSizer( wxVERTICAL );
+	
+	bSizer18->SetMinSize( wxSize( 500,-1 ) ); 
+	wxStaticBoxSizer* sbSizer11;
+	sbSizer11 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Sky Plot") ), wxVERTICAL );
+	
+	pSkyPlot = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer11->Add( pSkyPlot, 1, wxEXPAND, 5 );
+	
+	bSizer18->Add( sbSizer11, 1, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer13;
+	sbSizer13 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("PVT") ), wxVERTICAL );
+	
+	sbSizer13->SetMinSize( wxSize( -1,220 ) ); 
+	tPVT = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tPVT->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	
+	sbSizer13->Add( tPVT, 1, wxEXPAND, 5 );
+	
+	bSizer18->Add( sbSizer13, 0, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5 );
+	
+	bSizer9->Add( bSizer18, 0, wxEXPAND|wxFIXED_MINSIZE, 5 );
+	
+	bSizer8->Add( bSizer9, 1, wxEXPAND, 5 );
+	
+	this->SetSizer( bSizer8 );
+	this->Layout();
+	
+	// Connect Events
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( iGUI_Default::OnClose ) );
+}
+
+iGUI_Default::~iGUI_Default()
+{
+	// Disconnect Events
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( iGUI_Default::OnClose ) );
+}
+
+iGUI_Channel::iGUI_Channel( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxBoxSizer* bSizer9;
+	bSizer9 = new wxBoxSizer( wxVERTICAL );
+	
+	tChannel = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tChannel->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	
+	bSizer9->Add( tChannel, 1, wxALL|wxEXPAND, 5 );
+	
+	this->SetSizer( bSizer9 );
+	this->Layout();
+}
+
+iGUI_Channel::~iGUI_Channel()
+{
+}
+
+MyFrame4::MyFrame4( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
 	wxStaticBoxSizer* sbSizer10;
 	sbSizer10 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("SNR") ), wxVERTICAL );
@@ -184,89 +262,62 @@ iGUI_Default::iGUI_Default( wxWindow* parent, wxWindowID id, const wxString& tit
 	wxBoxSizer* bSizer21;
 	bSizer21 = new wxBoxSizer( wxHORIZONTAL );
 	
-	t1 = new wxStaticText( this, wxID_ANY, wxT("00"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t1 = new wxStaticText( this, wxID_ANY, wxT("00"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t1->Wrap( -1 );
 	t1->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxEmptyString ) );
 	
-	bSizer21->Add( t1, 1, wxEXPAND, 5 );
+	bSizer21->Add( t1, 1, wxALIGN_CENTER|wxEXPAND, 5 );
 	
-	t2 = new wxStaticText( this, wxID_ANY, wxT("01"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t2 = new wxStaticText( this, wxID_ANY, wxT("01"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t2->Wrap( -1 );
 	bSizer21->Add( t2, 1, wxEXPAND, 5 );
 	
-	t3 = new wxStaticText( this, wxID_ANY, wxT("02"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t3 = new wxStaticText( this, wxID_ANY, wxT("02"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t3->Wrap( -1 );
 	bSizer21->Add( t3, 1, wxEXPAND, 5 );
 	
-	t4 = new wxStaticText( this, wxID_ANY, wxT("03"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t4 = new wxStaticText( this, wxID_ANY, wxT("03"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t4->Wrap( -1 );
 	bSizer21->Add( t4, 1, wxEXPAND, 5 );
 	
-	t5 = new wxStaticText( this, wxID_ANY, wxT("04"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t5 = new wxStaticText( this, wxID_ANY, wxT("04"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t5->Wrap( -1 );
 	bSizer21->Add( t5, 1, wxEXPAND, 5 );
 	
-	t6 = new wxStaticText( this, wxID_ANY, wxT("05"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t6 = new wxStaticText( this, wxID_ANY, wxT("05"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t6->Wrap( -1 );
 	bSizer21->Add( t6, 1, wxEXPAND, 5 );
 	
-	t7 = new wxStaticText( this, wxID_ANY, wxT("06"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t7 = new wxStaticText( this, wxID_ANY, wxT("06"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t7->Wrap( -1 );
 	bSizer21->Add( t7, 1, wxEXPAND, 5 );
 	
-	t8 = new wxStaticText( this, wxID_ANY, wxT("07"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t8 = new wxStaticText( this, wxID_ANY, wxT("07"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t8->Wrap( -1 );
 	bSizer21->Add( t8, 1, wxEXPAND, 5 );
 	
-	t9 = new wxStaticText( this, wxID_ANY, wxT("11"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t9 = new wxStaticText( this, wxID_ANY, wxT("08"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t9->Wrap( -1 );
 	bSizer21->Add( t9, 1, wxEXPAND, 5 );
 	
-	t10 = new wxStaticText( this, wxID_ANY, wxT("08"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t10 = new wxStaticText( this, wxID_ANY, wxT("09"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t10->Wrap( -1 );
 	bSizer21->Add( t10, 1, wxEXPAND, 5 );
 	
-	t11 = new wxStaticText( this, wxID_ANY, wxT("09"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t11 = new wxStaticText( this, wxID_ANY, wxT("10"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t11->Wrap( -1 );
 	bSizer21->Add( t11, 1, wxEXPAND, 5 );
 	
-	t12 = new wxStaticText( this, wxID_ANY, wxT("10"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	t12 = new wxStaticText( this, wxID_ANY, wxT("11"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
 	t12->Wrap( -1 );
 	bSizer21->Add( t12, 1, wxEXPAND, 5 );
 	
 	sbSizer10->Add( bSizer21, 1, wxEXPAND, 5 );
 	
-	bSizer9->Add( sbSizer10, 3, wxEXPAND, 5 );
-	
-	wxBoxSizer* bSizer18;
-	bSizer18 = new wxBoxSizer( wxVERTICAL );
-	
-	wxStaticBoxSizer* sbSizer11;
-	sbSizer11 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Sky Plot") ), wxVERTICAL );
-	
-	bSizer18->Add( sbSizer11, 1, wxEXPAND, 5 );
-	
-	wxStaticBoxSizer* sbSizer13;
-	sbSizer13 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("PVT") ), wxVERTICAL );
-	
-	m_textCtrl8 = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT );
-	sbSizer13->Add( m_textCtrl8, 1, wxALL|wxEXPAND, 5 );
-	
-	bSizer18->Add( sbSizer13, 1, wxEXPAND, 5 );
-	
-	bSizer9->Add( bSizer18, 2, wxEXPAND, 5 );
-	
-	bSizer8->Add( bSizer9, 1, wxEXPAND, 5 );
-	
-	this->SetSizer( bSizer8 );
+	this->SetSizer( sbSizer10 );
 	this->Layout();
-	
-	// Connect Events
-	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( iGUI_Default::OnClose ) );
 }
 
-iGUI_Default::~iGUI_Default()
+MyFrame4::~MyFrame4()
 {
-	// Disconnect Events
-	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( iGUI_Default::OnClose ) );
 }

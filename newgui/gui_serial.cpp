@@ -108,7 +108,10 @@ GUI_Serial::GUI_Serial()
 	packet_count[LAST_M_ID] = 0;
 	ccsds_header.tic = ccsds_header.id = ccsds_header.length = 0;
 	memset(&packet_count[0], 0x0, (LAST_M_ID+1)*sizeof(int));
-	memset(&fifo_status, 0x0, sizeof(FIFO_M));
+	memset(&messages.fifo_status, 0x0, sizeof(FIFO_M));
+
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_unlock(&mutex);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -117,6 +120,10 @@ GUI_Serial::GUI_Serial()
 /*----------------------------------------------------------------------------------------------*/
 GUI_Serial::~GUI_Serial()
 {
+
+	close(gpipe[READ]);
+	close(gpipe[WRITE]);
+	pthread_mutex_destroy(&mutex);
 	grun = false;
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -177,7 +184,7 @@ void GUI_Serial::readPipe()
 	char q[9] = "01234567";
 	char v;
 
-	char buff[2048];
+	Message_Struct *m = &messages;
 
 	if(message_sync)
 	{
@@ -222,59 +229,61 @@ void GUI_Serial::readPipe()
 
 		packet_count[ccsds_header.id]++;
 
+		Lock();
+
 		/* Now copy in the body */
 		switch(ccsds_header.id)
 		{
 			case BOARD_HEALTH_M_ID:
-				pipeRead(&board_health, sizeof(Board_Health_M));
+				pipeRead(&m->board_health, sizeof(Board_Health_M));
 				break;
 			case TASK_HEALTH_M_ID:
-				pipeRead(&task_health, sizeof(Task_Health_M));
+				pipeRead(&m->task_health, sizeof(Task_Health_M));
 				break;
 			case CHANNEL_HEALTH_M_ID:
-				pipeRead(&channel_health[MAX_CHANNELS], sizeof(Channel_Health_M));
-				chan = channel_health[MAX_CHANNELS].chan;
-				memcpy(&channel_health[chan], &channel_health[MAX_CHANNELS], sizeof(Channel_Health_M));
+				pipeRead(&m->channel_health[MAX_CHANNELS], sizeof(Channel_Health_M));
+				chan = m->channel_health[MAX_CHANNELS].chan;
+				memcpy(&m->channel_health[chan], &m->channel_health[MAX_CHANNELS], sizeof(Channel_Health_M));
 				break;
 			case SPS_M_ID:
-				pipeRead(&sps, sizeof(SPS_M));
+				pipeRead(&m->sps, sizeof(SPS_M));
 				break;
 			case CLOCK_M_ID:
-				pipeRead(&clock, sizeof(Clock_M));
+				pipeRead(&m->clock, sizeof(Clock_M));
 				break;
 			case SV_POSITION_M_ID:
-				pipeRead(&sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
-				chan = sv_positions[MAX_CHANNELS].chan;
-				memcpy(&sv_positions[chan], &sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
+				pipeRead(&m->sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
+				chan = m->sv_positions[MAX_CHANNELS].chan;
+				memcpy(&m->sv_positions[chan], &m->sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
 				break;
 			case EKF_M_ID:
-				pipeRead(&task_health, sizeof(Task_Health_M));
+				pipeRead(&m->task_health, sizeof(Task_Health_M));
 				break;
 			case MEASUREMENT_M_ID:
-				pipeRead(&measurements[MAX_CHANNELS], sizeof(Measurement_M));
-				chan = measurements[MAX_CHANNELS].chan;
-				memcpy(&measurements[chan], &measurements[MAX_CHANNELS], sizeof(Measurement_M));
+				pipeRead(&m->measurements[MAX_CHANNELS], sizeof(Measurement_M));
+				chan = m->measurements[MAX_CHANNELS].chan;
+				memcpy(&m->measurements[chan], &m->measurements[MAX_CHANNELS], sizeof(Measurement_M));
 				break;
 			case PSEUDORANGE_M_ID:
-				pipeRead(&pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
-				chan = pseudoranges[MAX_CHANNELS].chan;
-				memcpy(&pseudoranges[chan], &pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
+				pipeRead(&m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
+				chan = m->pseudoranges[MAX_CHANNELS].chan;
+				memcpy(&m->pseudoranges[chan], &m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
 				break;
 			case EPHEMERIS_M_ID:
-				pipeRead(&ephemeris[NUM_CODES], sizeof(Ephemeris_M));
-				chan = ephemeris[NUM_CODES].sv;
-				memcpy(&ephemeris[chan], &ephemeris[NUM_CODES], sizeof(Ephemeris_M));
+				pipeRead(&m->ephemeris[NUM_CODES], sizeof(Ephemeris_M));
+				chan = m->ephemeris[NUM_CODES].sv;
+				memcpy(&m->ephemeris[chan], &m->ephemeris[NUM_CODES], sizeof(Ephemeris_M));
 				break;
 			case ALMANAC_M_ID:
-				pipeRead(&almanac[NUM_CODES], sizeof(Almanac_M));
-				chan = almanac[NUM_CODES].sv;
-				memcpy(&almanac[chan], &almanac[NUM_CODES], sizeof(Almanac_M));
+				pipeRead(&m->almanac[NUM_CODES], sizeof(Almanac_M));
+				chan = m->almanac[NUM_CODES].sv;
+				memcpy(&m->almanac[chan], &m->almanac[NUM_CODES], sizeof(Almanac_M));
 				break;
 			case EPHEMERIS_VALID_M_ID:
-				pipeRead(&ephemeris_status, sizeof(Ephemeris_Status_M));
+				pipeRead(&m->ephemeris_status, sizeof(Ephemeris_Status_M));
 				break;
 			case FIFO_M_ID:
-				pipeRead(&fifo_status, sizeof(FIFO_M));
+				pipeRead(&m->fifo_status, sizeof(FIFO_M));
 				break;
 //			case LAST_M_ID:
 //				pipeRead(&buff[0], ccsds_header.length);
@@ -286,6 +295,8 @@ void GUI_Serial::readPipe()
 				pipeRead(&buff[0], ccsds_header.length);
 				break;
 		}
+
+		Unlock();
 
 	}
 	else

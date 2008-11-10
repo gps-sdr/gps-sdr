@@ -56,21 +56,8 @@ class GUI_Serial
 		int 				packet_count[LAST_M_ID+1];		//!< Count the packets
 		int					byte_count;						//!< Count the bytes
 
-		/* Data gets stored here! */
-		Board_Health_M 		board_health;					//!< Board health message
-		Task_Health_M		task_health;					//!< Task health message
-		Channel_Health_M 	channel_health[MAX_CHANNELS+1]; //!< Channel health message, last element is used as a buffer
-
-		SPS_M				sps;							//!< SPS message
-		Clock_M				clock;							//!< Clock message
-		SV_Position_M		sv_positions[MAX_CHANNELS+1];	//!< SV Positions, last element is used as a buffer
-		Pseudorange_M 		pseudoranges[MAX_CHANNELS+1];	//!< Pseudoranges, last element is used as a buffer
-		Measurement_M 		measurements[MAX_CHANNELS+1];	//!< Measurements, last element is used as a buffer
-
-		Ephemeris_M			ephemeris[NUM_CODES+1];			//!< Ephemeris message, last element is used as a buffer
-		Almanac_M			almanac[NUM_CODES+1];			//!< Almanac message, last element is used as a buffer
-		Ephemeris_Status_M	ephemeris_status;				//!< Status of ephemeris
-		FIFO_M				fifo_status;					//!< FIFO status
+		Message_Struct		messages;						//!< Hold all the messages
+		char buff[2048];									//!< Dump wasted data
 
 	public:
 
@@ -88,6 +75,7 @@ class GUI_Serial
 		uint32 GetStopTic(){return(execution_tic);};		//!< Get the Nucleus tic at end of function
 		uint32 GetPipeOpen(){return(pipe_open);};
 		uint32 GetByteCount(){return(byte_count);};
+		Message_Struct *GetMessages(){return(&messages);};	//!< Dump the messages
 
 		/* Nondefault methods */
 		void readPipe();

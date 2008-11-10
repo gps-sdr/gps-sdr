@@ -107,10 +107,10 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 /* Associate each task with a enum */
 /*----------------------------------------------------------------------------------------------*/
-#define	MAX_TASKS				(32)			//!< Max task number (used to allocate arrays)
+#define	MAX_TASKS				(32)		//!< Max task number (used to allocate arrays)
 enum TASK_IDS
 {
-	TRACKING_ISR_TASK_ID = CPU_CORES,			//!< Bottom tasks are the correlators, which is a variable
+	TRACKING_ISR_TASK_ID = CPU_CORES,		//!< Bottom tasks are the correlators, which is a variable
 	COMMANDO_TASK_ID,
 	TELEMETRY_TASK_ID,
 	SERIAL_TELEMETRY_TASK_ID,

@@ -70,6 +70,10 @@ class Serial_Telemetry
 		Ephemeris_Status_M	ephemeris_status;				//!< Status of ephemeris
 		FIFO_M				fifo_status;
 
+		Acq_Result_S		tAcq;
+		SV_Select_2_Telem_S tSelect;
+		PVT_2_Telem_S 		tNav;
+
 		int32 active[MAX_CHANNELS];
 
 	public:

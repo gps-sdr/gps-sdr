@@ -24,6 +24,7 @@
 #include <wx/textctrl.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
+#include <wx/panel.h>
 #include <wx/stattext.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -83,6 +84,44 @@ class iGUI_Default : public wxFrame
 	private:
 	
 	protected:
+		wxPanel* pCN0;
+		wxPanel* pSkyPlot;
+		wxTextCtrl* tPVT;
+		
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
+		
+	
+	public:
+		iGUI_Default( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Main"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 935,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~iGUI_Default();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class iGUI_Channel
+///////////////////////////////////////////////////////////////////////////////
+class iGUI_Channel : public wxFrame 
+{
+	private:
+	
+	protected:
+		wxTextCtrl* tChannel;
+	
+	public:
+		iGUI_Channel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Channel Status"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~iGUI_Channel();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class MyFrame4
+///////////////////////////////////////////////////////////////////////////////
+class MyFrame4 : public wxFrame 
+{
+	private:
+	
+	protected:
 		wxGauge* g1;
 		wxGauge* g2;
 		wxGauge* g3;
@@ -107,15 +146,10 @@ class iGUI_Default : public wxFrame
 		wxStaticText* t10;
 		wxStaticText* t11;
 		wxStaticText* t12;
-		wxTextCtrl* m_textCtrl8;
-		
-		// Virtual event handlers, overide them in your derived class
-		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
-		
 	
 	public:
-		iGUI_Default( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Main"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 849,586 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
-		~iGUI_Default();
+		MyFrame4( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~MyFrame4();
 	
 };
 

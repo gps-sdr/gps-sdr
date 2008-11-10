@@ -25,20 +25,6 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "includes.h"
 
-/*! \ingroup STRUCTS
- * Information sent from PVT to telemetry
- */
-typedef struct _PVT_2_Telem_S
-{
-
-	SPS_M 			master_nav;
-	Clock_M 		master_clock;
-	SV_Position_M	sv_positions[MAX_CHANNELS];
-	Pseudorange_M	pseudoranges[MAX_CHANNELS];
-	Measurement_M	measurements[MAX_CHANNELS];
-
-} PVT_2_Telem_S;
-
 /*! \ingroup CLASSES
  *
  */

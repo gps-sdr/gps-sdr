@@ -186,23 +186,32 @@ void Serial_Telemetry::Import()
 	/* Unlock correlator status */
 	pthread_mutex_unlock(&mInterrupt);
 
-	/* Read from PVT */
-	bread = read(PVT_2_Telem_P[READ], &sps,   sizeof(SPS_M));
-	bread = read(PVT_2_Telem_P[READ], &clock, sizeof(Clock_M));
-	bread = read(PVT_2_Telem_P[READ], &sv_positions, MAX_CHANNELS*sizeof(SV_Position_M));
-	bread = read(PVT_2_Telem_P[READ], &pseudoranges, MAX_CHANNELS*sizeof(Pseudorange_M));
-	bread = read(PVT_2_Telem_P[READ], &measurements, MAX_CHANNELS*sizeof(Measurement_M));
 
-//	bread = sizeof(Acq_Result_S);
-//	while(bread == sizeof(Acq_Result_S))
-//		bread = read(Acq_2_Telem_P[READ],&tAcq,sizeof(Acq_Result_S));
+	/* Read from PVT */
+	//read(PVT_2_Telem_P[READ], &tNav, sizeof(PVT_2_Telem_S));
+
+	read(PVT_2_Telem_P[READ], &sps, 			sizeof(SPS_M));
+	read(PVT_2_Telem_P[READ], &clock, 			sizeof(Clock_M));
+	read(PVT_2_Telem_P[READ], &sv_positions[0],	MAX_CHANNELS*sizeof(SV_Position_M));
+	read(PVT_2_Telem_P[READ], &pseudoranges[0],	MAX_CHANNELS*sizeof(Pseudorange_M));
+	read(PVT_2_Telem_P[READ], &measurements[0],	MAX_CHANNELS*sizeof(Measurement_M));
+
+	bread = sizeof(Acq_Result_S);
+	while(bread == sizeof(Acq_Result_S))
+		bread = read(Acq_2_Telem_P[READ],&tAcq,sizeof(Acq_Result_S));
 
 	/* Read from Ephemeris */
 	bread = read(Ephem_2_Telem_P[READ], &ephemeris_status, sizeof(Ephemeris_Status_M));
-//
-//	bread = sizeof(SV_Select_2_Telem_S);
-//	while(bread == sizeof(SV_Select_2_Telem_S))
-//		bread = read(SV_Select_2_Telem_P[READ], &tSelect, sizeof(SV_Select_2_Telem_S));
+
+	bread = sizeof(SV_Select_2_Telem_S);
+	while(bread == sizeof(SV_Select_2_Telem_S))
+		bread = read(SV_Select_2_Telem_P[READ], &tSelect, sizeof(SV_Select_2_Telem_S));
+
+//	memcpy(&sps, 				&tNav.master_nav, sizeof(SPS_M));
+//	memcpy(&clock, 				&tNav.master_clock,sizeof(Clock_M));
+//	memcpy(&sv_positions[0], 	&tNav.sv_positions[0],MAX_CHANNELS*sizeof(SV_Position_M));
+//	memcpy(&pseudoranges[0], 	&tNav.pseudoranges[0],MAX_CHANNELS*sizeof(Pseudorange_M));
+//	memcpy(&measurements[0], 	&tNav.measurements[0],MAX_CHANNELS*sizeof(Measurement_M));
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -260,8 +269,9 @@ void Serial_Telemetry::ExportGUI()
 	SendBoardHealth();
 	SendTaskHealth();
 	SendChannelHealth();
-//	SendSPS();
-//	SendClock();
+	SendSVPosition();
+	SendSPS();
+	SendClock();
 
 	/* See if there is any new GEONS data */
 
@@ -366,6 +376,7 @@ void Serial_Telemetry::SendChannelHealth()
 		FormCCSDSPacketHeader(CHANNEL_HEALTH_M_ID, 0, sizeof(Channel_Health_M));
 
 		/* Emit the packet */
+		channel_health[lcv].chan = lcv;
 		EmitCCSDSPacket((void *)&channel_health[lcv], sizeof(Channel_Health_M));
 	}
 
@@ -391,6 +402,11 @@ void Serial_Telemetry::SendFIFO()
 void Serial_Telemetry::SendSPS()
 {
 
+	/* Form the packet header */
+	FormCCSDSPacketHeader(SPS_M_ID, 0, sizeof(SPS_M));
+
+	/* Emit the packet */
+	EmitCCSDSPacket((void *)&sps, sizeof(SPS_M));
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -400,6 +416,11 @@ void Serial_Telemetry::SendSPS()
 void Serial_Telemetry::SendClock()
 {
 
+	/* Form the packet header */
+	FormCCSDSPacketHeader(CLOCK_M_ID, 0, sizeof(Clock_M));
+
+	/* Emit the packet */
+	EmitCCSDSPacket((void *)&clock, sizeof(Clock_M));
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -413,6 +434,24 @@ void Serial_Telemetry::SendEKF()
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
+/*----------------------------------------------------------------------------------------------*/
+void Serial_Telemetry::SendSVPosition()
+{
+	int32 lcv;
+
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	{
+
+		/* Form the packet */
+		FormCCSDSPacketHeader(SV_POSITION_M_ID, 0, sizeof(SV_Position_M));
+
+		/* Emit the packet */
+		sv_positions[lcv].chan = lcv;
+		EmitCCSDSPacket((void *)&sv_positions[lcv], sizeof(SV_Position_M));
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::EmitCCSDSPacket(void *_buff, uint32 _len)

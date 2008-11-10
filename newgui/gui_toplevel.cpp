@@ -19,6 +19,7 @@ BEGIN_EVENT_TABLE(GUI_Toplevel, wxFrame)
     EVT_MENU(ID_USRP_Stop,			GUI_Toplevel::onUSRPStop)
     EVT_TIMER(ID_TIMER,				GUI_Toplevel::onTimer)
     EVT_TOGGLEBUTTON(ID_MAIN_B,		GUI_Toplevel::onMain)
+    EVT_TOGGLEBUTTON(ID_CHANNEL_B,	GUI_Toplevel::onChannel)
     EVT_PAINT(GUI_Toplevel::paintEvent)
     EVT_CLOSE(GUI_Toplevel::onClose)
 END_EVENT_TABLE()
@@ -282,9 +283,12 @@ void GUI_Toplevel::render(wxDC& dc)
     wxString str;
     wxString str2;
 
-    //pSerial->Lock();
 
-	/* Render FIFO Panel */
+    pSerial->Lock();
+    memcpy(&messages,pSerial->GetMessages(),sizeof(Message_Struct));
+    pSerial->Unlock();
+
+    /* Render FIFO Panel */
 	renderFIFO();
 
 	/* Render RS422 Panel */
@@ -293,20 +297,23 @@ void GUI_Toplevel::render(wxDC& dc)
 	/* Render Task Panel */
 	renderTask();
 
-	count++;
-
-	str += status_str;
-	str += '\t';
-	str2.Printf(wxT("Count: %d"),pSerial->GetExecTic());
+	str = status_str;
+	str2.Printf(wxT("Count: %d"),count++);
 	str += str2;
 
 	SetStatusText(str);
 
-	//pSerial->Unlock();
+	/* Render default window */
+	if(wDefault != NULL)
+		wDefault->paintNow();
+
+	/* Render channel window */
+	if(wChannel != NULL)
+		wChannel->paintNow();
 
 }
 /*----------------------------------------------------------------------------------------------*/
-//mvwprintw(screen,line++,1,"FIFO:\t%d\t%d\t%d\t%d",(FIFO_DEPTH-(tFIFO.head-tFIFO.tail)) % FIFO_DEPTH,tFIFO.count,tFIFO.agc_scale,tFIFO.overflw);
+
 
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Toplevel::renderFIFO()
@@ -314,8 +321,9 @@ void GUI_Toplevel::renderFIFO()
 	wxString str;
 	float fifo_p;
 	int fifo_i;
+	FIFO_M *p = &messages.fifo_status;
 
-	fifo_p = FIFO_DEPTH - (pSerial->fifo_status.head - pSerial->fifo_status.tail) % FIFO_DEPTH;
+	fifo_p = FIFO_DEPTH - (p->head - p->tail) % FIFO_DEPTH;
 	fifo_p = fifo_p / FIFO_DEPTH;
 	fifo_i = 100 - (int)fifo_p;
 
@@ -323,11 +331,11 @@ void GUI_Toplevel::renderFIFO()
 
 	gUSRP->SetValue(fifo_i);
 
-	str.Printf(wxT("AGC Scale:\t%d\n"),pSerial->fifo_status.agc_scale);
+	str.Printf(wxT("AGC Scale:\t%d\n"),p->agc_scale);
 	tUSRP->AppendText(str);
-	str.Printf(wxT("AGC Overflws:\t%d\n"),pSerial->fifo_status.overflw);
+	str.Printf(wxT("AGC Overflws:\t%d\n"),p->overflw);
 	tUSRP->AppendText(str);
-	str.Printf(wxT("FIFO Count:\t%d\n"),pSerial->fifo_status.count);
+	str.Printf(wxT("FIFO Count:\t%d\n"),p->count);
 	tUSRP->AppendText(str);
 
 }
@@ -353,13 +361,13 @@ void GUI_Toplevel::renderRS422()
 
 	str.Printf(wxT("Synchronized Count:\t%d\n"),pSerial->message_sync);
 	tRS422->AppendText(str);
-	str.Printf(wxT("Last Message Tic:\t\t%d\n"),pSerial->ccsds_header.tic);
+	str.Printf(wxT("Last Message Tic:\t%d\n"),pSerial->ccsds_header.tic);
 	tRS422->AppendText(str);
-	str.Printf(wxT("Failed Messages:\t\t%d\n"),pSerial->packet_count[LAST_M_ID]);
+	str.Printf(wxT("Failed Messages:\t%d\n"),pSerial->packet_count[LAST_M_ID]);
 	tRS422->AppendText(str);
 
 	kB_sec = (float)bytes_sec / 1024.0;
-	str.Printf(wxT("Serial Bandwidth:\t\t%.2f "),kB_sec);
+	str.Printf(wxT("Serial Bandwidth:\t%.2f "),kB_sec);
 	str += wxT("kB/sec\n");
 	tRS422->AppendText(str);
 
@@ -395,7 +403,28 @@ void GUI_Toplevel::onMain(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		wDefault = new GUI_Default();
+		wDefault->setPointer(&messages);
 		wDefault->Show(TRUE);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onChannel(wxCommandEvent& WXUNUSED(event))
+{
+
+	if(wChannel)
+	{
+		delete wChannel;
+		wChannel = NULL;
+	}
+	else
+	{
+		wChannel = new GUI_Channel();
+		wChannel->setPointer(&messages);
+		wChannel->Show(TRUE);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
