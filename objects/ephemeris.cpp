@@ -93,6 +93,10 @@ Ephemeris::Ephemeris()
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_unlock(&mutex);
 
+	/* Zero out sheit */
+	ClearEphemeris(NUM_CODES);
+	ClearAlmanac(NUM_CODES);
+
 	/* Read in stored ephem/almanac on bootup */
 	//ReadEphemeris();
 	ReadAlmanac();
@@ -326,11 +330,44 @@ void Ephemeris::Unlock()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Ephemeris::ClearSV(int32 _sv)
+void Ephemeris::ClearEphemeris(int32 _sv)
 {
-	iode_master[_sv] = 9999; //some non possible IODE value
-	memset(&ephemerides[_sv], 0x0, sizeof(Ephemeris_M));
-	memset(&ephem_data[_sv], 0x0, sizeof(Ephem_Data_S));
+	uint32 lcv;
+
+	if((_sv >= 0) && (_sv < NUM_CODES))
+	{
+		iode_master[_sv] = 9999; //some non possible IODE value
+		memset(&ephemerides[_sv], 0x0, sizeof(Ephemeris_M));
+		memset(&ephem_data[_sv], 0x0, sizeof(Ephem_Data_S));
+	}
+	else
+	{
+		for(lcv = 0; lcv < NUM_CODES; lcv++)
+			iode_master[lcv] = 9999; //some non possible IODE value
+
+		memset(&ephemerides[0], 0x0, NUM_CODES*sizeof(Ephemeris_M));
+		memset(&ephem_data[0], 0x0, NUM_CODES*sizeof(Ephem_Data_S));
+
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Ephemeris::ClearAlmanac(int32 _sv)
+{
+
+	if((_sv >= 0) && (_sv < NUM_CODES))
+	{
+		memset(&almanacs[_sv], 0x0, sizeof(Almanac_M));
+		memset(&almanac_data[_sv], 0x0, sizeof(Almanac_Data_S));
+	}
+	else
+	{
+		memset(&almanacs[0], 0x0, NUM_CODES*sizeof(Almanac_M));
+		memset(&almanac_data[0], 0x0, NUM_CODES*sizeof(Almanac_Data_S));
+	}
+
 }
 /*----------------------------------------------------------------------------------------------*/
 

@@ -54,6 +54,9 @@ void Thread_Shutdown(void)
 	/* Stop the ephemeris */
 	pEphemeris->Stop();
 
+	/* Stop the command interface */
+	pCommando->Stop();
+
 	/* Stop the tracking */
 	pSV_Select->Stop();
 
@@ -87,6 +90,10 @@ void Pipes_Shutdown(void)
 	close(PVT_2_Telem_P[WRITE]);
 	close(Chan_2_Ephem_P[READ]);
 	close(Chan_2_Ephem_P[WRITE]);
+	close(Telem_2_Cmd_P[READ]);
+	close(Telem_2_Cmd_P[WRITE]);
+	close(Cmd_2_Telem_P[READ]);
+	close(Cmd_2_Telem_P[WRITE]);
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -127,6 +134,7 @@ void Object_Shutdown(void)
 	delete pSV_Select;
 	delete pTelemetry;
 	delete pPVT;
+	delete pCommando;
 
 }
 /*----------------------------------------------------------------------------------------------*/

@@ -1,3 +1,6 @@
+/*! \file COMMANDO.h
+	Defines the class COMMANDO
+*/
 /************************************************************************************************
 Copyright 2008 Gregory W Heckler
 
@@ -17,16 +20,17 @@ write to the:
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
 
-#ifndef EPHEMERIS_H
-#define EPHEMERIS_H
+#ifndef COMMANDO_H
+#define COMMANDO_H
 
 #include "includes.h"
 
 /*! \ingroup CLASSES
  *
  */
-class Ephemeris
+class Commando
 {
+
 	private:
 
 		/* Default object variables */
@@ -36,39 +40,43 @@ class Ephemeris
 		pthread_t 			thread;			//!< For the thread
 		pthread_mutex_t		mutex;			//!< Protect the following variable
 
-		Ephemeris_M			ephemerides[NUM_CODES];			//!< The decoded ephemerides
-		Ephem_Data_S		ephem_data[NUM_CODES];			//!< Raw binary data
-		Almanac_M			almanacs[NUM_CODES];			//!< The decoded almanacs
-		Almanac_Data_S		almanac_data[NUM_CODES];		//!< Raw binary data
-		Chan_2_Ephem_S		ephem_packet;
-		Ephemeris_Status_M	output_s;
-		int32 				iode_master[NUM_CODES];			//!< IODE flags
+		/* Nondefault variables */
+		CCSDS_Packet_Header  packet_header;			//!< CCSDS Packet header
+		CCSDS_Packet_Header  command_header;		//!< CCSDS Command header
+		CCSDS_Decoded_Header decoded_header;		//!< Decoded header
+
+		Union_C				command_body;			//!< Body of the command
+		Union_M				message_buff;			//!< Transmit sheit over
+		Command_Ack_M		command_ack;			//!< Dump the acknowledge
+		uint32				command_tic;
 
 	public:
 
-		Ephemeris();
-		~Ephemeris();
-		void Import();								//!< Read data from channels
-		void Export();								//!< Send stuff to the telemetry thread
+		/* Default object methods */
+		Commando();									//!< Constructor
+		~Commando();								//!< Destructor
 		void Start();								//!< Start the thread
 		void Stop();								//!< Stop the thread
-		void Lock();								//!< Lock critical data
-		void Unlock();								//!< Unlock critical data
+		void Import();								//!< Get data into the thread
+		void Export();								//!< Get data out of the thread
+		void Lock(){pthread_mutex_lock(&mutex);};	//!< Lock the object's mutex
+		void Unlock(){pthread_mutex_unlock(&mutex);};//!< Unlock the object's mutex
 		uint32 GetExecTic(){return(execution_tic);};//!< Get the execution counter
 		uint32 GetStartTic(){return(start_tic);};	//!< Get the Nucleus tic at start of function
 		uint32 GetStopTic(){return(execution_tic);};//!< Get the Nucleus tic at end of function
 
-		void Parse(int32 _sv);					//!< Parse data message into decimal values
-		void ParsePage(int32 _sv_id);			//!< Parse almanac page
-		void ClearEphemeris(int32 _sv);			//!< Dump an ephemeris
-		void ClearAlmanac(int32 _sv);			//!< Dump an almanac
-		void WriteEphemeris();					//!< Write ephemerides to a txt file
-		void ReadEphemeris();					//!< Read ephemerides from the same txt file
-		void WriteAlmanac();					//!< Write alamanacs to a YUMA file
-		void ReadAlmanac();						//!< Write alamanacs from a YUMA file
-		Ephemeris_M getEphemeris(int32 _sv){return(ephemerides[_sv]);}	//!< Get this SV's ephemeris values
-		Almanac_M getAlmanac(int32 _sv){return(almanacs[_sv]);}			//!< Get this SV's almanac values
-		int32 getIODE(int32 _sv){return(iode_master[_sv]);}				//!< Get the current IODE for this SV
+		/* Nondefault methods */
+		void Send_Ack();
+		void Reset_PVT();
+		void Reset_EKF();
+		void Reset_Channel();
+		void Reset_Ephemeris();
+		void Reset_Almanac();
+		void Get_Measurement();
+		void Get_Pseudorange();
+		void Get_Ephemeris();
+		void Get_Alamanc();
+
 };
 
-#endif // EPHEMERIS_H
+#endif /* COMMANDO_H */

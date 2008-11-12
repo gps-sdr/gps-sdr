@@ -42,7 +42,7 @@ enum CCSDS_PACKET_IDS
 	ALMANAC_M_ID,
 	EPHEMERIS_VALID_M_ID,
 	FIFO_M_ID,
-	COMMAND_ACQ_M_ID,
+	COMMAND_ACK_M_ID,
 	LAST_M_ID
 };
 
@@ -50,39 +50,26 @@ enum CCSDS_PACKET_IDS
 /*! \ingroup MESSAGES
  * Packet dumped to telemetry and to disk to keep track of each channel
  */
-typedef struct CCSDS_PH
+typedef struct CCSDS_Packet_Header
 {
 
 	uint16 pid;	//!< Packet ID
 	uint16 psc;	//!< Packet sequence control
 	uint16 pdl; //!< Packet data length
 
-} CCSDS_PH;
+} CCSDS_Packet_Header;
 
 
 /*! \ingroup MESSAGES
- * Packet dumped to telemetry and to disk to keep track of each channel
+ * Decoded header
  */
-typedef struct CCSDS_CH
-{
-
-	uint16 pid;	//!< Packet ID
-	uint16 psc;	//!< Packet sequence control
-	uint16 pdl; //!< Packet data length
-
-} CCSDS_CH;
-
-
-/*! \ingroup MESSAGES
- * Packet dumped to telemetry and to disk to keep track of each channel
- */
-typedef struct CCSDS_Header
+typedef struct CCSDS_Decoded_Header
 {
 	uint32 id;
 	uint32 type;
 	uint32 tic;
 	uint32 length;
-} CCSDS_Header;
+} CCSDS_Decoded_Header;
 
 
 /*! \ingroup MESSAGES
@@ -453,7 +440,7 @@ typedef struct Command_Ack_M
 {
 
 	uint32 command_id;
-	uint32 command_count;
+	uint32 command_tic;
 
 } Command_Ack_M;
 
@@ -476,10 +463,31 @@ typedef struct Message_Struct
 	Ephemeris_M			ephemeris[NUM_CODES+1];			//!< Ephemeris message, last element is used as a buffer
 	Almanac_M			almanac[NUM_CODES+1];			//!< Almanac message, last element is used as a buffer
 	Ephemeris_Status_M	ephemeris_status;				//!< Status of ephemeris
-	FIFO_M				fifo_status;					//!< FIFO status
+	FIFO_M				fifo;							//!< FIFO status
 	Command_Ack_M		command_ack;
 
 } Message_Struct;
+
+
+/* Unionize the structures */
+typedef union Union_M
+{
+	Board_Health_M		board_health;
+	Task_Health_M		task_health;
+	Channel_Health_M	channel_health;
+	SPS_M				sps;
+	Clock_M				clock;
+	SV_Position_M		sv_position;
+	EKF_M				ekf;
+	Measurement_M		measurement;
+	Pseudorange_M		pseudorange;
+	Ephemeris_M			ephemeris;
+	Almanac_M			alamanac;
+	Ephemeris_Status_M	ephemeris_status;
+	FIFO_M				fifo;
+	Command_Ack_M		command_ack;
+} Union_M;
+
 
 #endif /* MESSAGES_H */
 

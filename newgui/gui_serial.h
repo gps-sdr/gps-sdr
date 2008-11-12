@@ -34,7 +34,7 @@ class GUI_Serial
 	private:
 
 		/* Default GUI_Serial variables */
-		//uint32 				execution_tic;					//!< Execution counter
+		//uint32 				execution_tic;				//!< Execution counter
 		uint32 				start_tic;						//!< OS tic at start of function
 		uint32 				stop_tic;						//!< OS tic at end of function
 		pthread_t 			thread;							//!< For the thread
@@ -43,18 +43,23 @@ class GUI_Serial
 	public:
 
 		uint32 				execution_tic;					//!< Execution counter
+		uint32				packet_tic;						//!< Received packets
+		uint32				command_tic;					//!< Transmitted commands
 
 		/* Nondefault variables */
-		int					message_sync;					//!< Are we synched to the packets
-		int					pipe_open;
-		char 				syncword[9];
+		int32				message_sync;					//!< Are we synched to the packets
+		int32				pipe_open;						//!< Flag to see if the pipes are open
+		uint32 				syncword;						//!< Sync to the 0xAAAAAAAA preamble
 
 		/* Headers for CCSDC packets */
-		CCSDS_PH 			pheader;						//!< CCSDS Packet header
-		CCSDS_CH 			cheader;						//!< CCSDS Command header
-		CCSDS_Header		ccsds_header;					//!< Decoded header
-		int 				packet_count[LAST_M_ID+1];		//!< Count the packets
-		int					byte_count;						//!< Count the bytes
+		CCSDS_Packet_Header  packet_header;					//!< CCSDS Packet header
+		CCSDS_Packet_Header  command_header;				//!< CCSDS Command header
+		CCSDS_Decoded_Header decoded_header;				//!< Decoded header
+		int32 				packet_count[LAST_M_ID+1];		//!< Count the packets
+		int32				byte_count;						//!< Count the bytes
+
+		Union_C				command_body;					//!< Union for commands
+		Union_M				message_body;					//!< Union for messages
 
 		Message_Struct		messages;						//!< Hold all the messages
 		char buff[2048];									//!< Dump wasted data
@@ -75,12 +80,15 @@ class GUI_Serial
 		uint32 GetStopTic(){return(execution_tic);};		//!< Get the Nucleus tic at end of function
 		uint32 GetPipeOpen(){return(pipe_open);};
 		uint32 GetByteCount(){return(byte_count);};
+		uint32 GetPacketTic(){return(packet_tic);};
+		uint32 GetCommandTic(){return(command_tic);};
 		Message_Struct *GetMessages(){return(&messages);};	//!< Dump the messages
 
 		/* Nondefault methods */
 		void readPipe();
 		int pipeRead(void *_b, int32 _bytes);
-	    void DecodeCCSDSPacketHeader(CCSDS_Header *_h, CCSDS_PH *_p);
+
+		SendCommand(uint32 _id, void *payload);				//!< Send a command
 
 };
 

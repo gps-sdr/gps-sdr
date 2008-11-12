@@ -86,4 +86,17 @@ typedef struct Get_Almanac_C
 	int32 sv;		//!< SV #, or all if sv > NUM_CODES
 } Get_Almanac_C;
 
+typedef union Union_C
+{
+	Reset_PVT_C			reset_pvt;
+	Reset_EKF_C			reset_ekf;
+	Reset_Channel_C		reset_channel;
+	Reset_Ephemeris_C	reset_ephemeris;
+	Reset_Almanac_C		reset_almanac;
+	Get_Measurement_C	get_measurement;
+	Get_Pseudorange_C	get_pseudorange;
+	Get_Ephemeris_C		get_ephemeris;
+	Get_Almanac_C		get_almanac;
+} Union_C;
+
 #endif /* COMMANDS_H_ */

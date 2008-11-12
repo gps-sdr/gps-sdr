@@ -314,6 +314,8 @@ int32 Object_Init(void)
 	else
 		pSerial_Telemetry = new Serial_Telemetry(gopt.serial);
 
+	pCommando = new Commando();
+
 	pPVT = new PVT(gopt.startup);
 
 	if(gopt.post_process)
@@ -361,6 +363,11 @@ int32 Pipes_Init(void)
 	pipe((int *)PVT_2_SV_Select_P);
 	fcntl(PVT_2_SV_Select_P[WRITE], F_SETFL, O_NONBLOCK);
 	fcntl(PVT_2_SV_Select_P[READ], F_SETFL, O_NONBLOCK);
+
+	/* Commando pipes */
+	pipe((int *)Telem_2_Cmd_P);
+	pipe((int *)Cmd_2_Telem_P);
+	fcntl(Cmd_2_Telem_P[READ], F_SETFL, O_NONBLOCK);
 
 	/* Channel and correlator */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
@@ -414,9 +421,11 @@ int32 Thread_Init(void)
 	/* Start up the ephemeris */
 	pEphemeris->Start();
 
+	/* Start up the command interface */
+	pCommando->Start();
+
 	/* Start the SV select thread */
-	//if(gopt.realtime)
-		pSV_Select->Start();
+	pSV_Select->Start();
 
 	//if(gopt.verbose)
 	{

@@ -45,6 +45,7 @@ EXTERN class SV_Select		*pSV_Select;					//!< Contains the channels and drives t
 EXTERN class Telemetry		*pTelemetry;					//!< Simple ncurses interface
 EXTERN class Post_Process	*pPost_Process;					//!< Drive the receiver from a recorded file
 EXTERN class Serial_Telemetry *pSerial_Telemetry;			//!< Dump data to GUI over named pipe or serial
+EXTERN class Commando		*pCommando;						//!< Process and execute commands
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -86,6 +87,8 @@ EXTERN int32 PVT_2_Telem_P[2];								//!< \ingroup PIPES Send latest nav soluti
 EXTERN int32 Ephem_2_Telem_P[2];							//!< \ingroup PIPES Send latest ephemeris to GUI
 EXTERN int32 SV_Select_2_Telem_P[2];						//!< \ingroup PIPES Send predicted SV states to GUI
 EXTERN int32 PVT_2_SV_Select_P[2];							//!< \ingroup PIPES Output nav state to sat select
+EXTERN int32 Telem_2_Cmd_P[2];								//!< \ingroup PIPES Send received commands to Commando
+EXTERN int32 Cmd_2_Telem_P[2];								//!< \ingroup PIPES Send results of commands to Telemetry
 /*----------------------------------------------------------------------------------------------*/
 
 

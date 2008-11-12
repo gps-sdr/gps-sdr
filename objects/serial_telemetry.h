@@ -25,6 +25,8 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "includes.h"
 
+#define COMMANDO_BUFF_SIZE	(10240)
+
 /*! \ingroup CLASSES
  *
  */
@@ -42,7 +44,6 @@ class Serial_Telemetry
 
 
 		uint32				packet_tic;
-		uint32				command_tic;
 
 		int32				serial;			//!< false = use named pipe, true = use serial port
 
@@ -52,8 +53,12 @@ class Serial_Telemetry
 
 		int32				serial_open;	//!< Has the serial port been configured
 
-		CCSDS_PH 			pheader;						//!< CCSDS Packet header
-		CCSDS_CH 			cheader;						//!< CCSDS Command header
+		CCSDS_Packet_Header  packet_header;					//!< CCSDS Packet header
+		CCSDS_Packet_Header  command_header;				//!< CCSDS Command header
+		CCSDS_Decoded_Header decoded_header;				//!< Decoded header
+
+		Union_C				command_body;						//!< Body of the command
+		uint8				commando_buff[COMMANDO_BUFF_SIZE];	//!< Bent pipe size
 
 		Board_Health_M 		board_health;					//!< Board health message
 		Task_Health_M		task_health;					//!< Task health message
@@ -72,7 +77,6 @@ class Serial_Telemetry
 
 		Acq_Result_S		tAcq;
 		SV_Select_2_Telem_S tSelect;
-		PVT_2_Telem_S 		tNav;
 
 		int32 active[MAX_CHANNELS];
 
@@ -93,13 +97,13 @@ class Serial_Telemetry
 		void OpenGUIPipe();
 		void SetGUIPipe(bool _status);
 		void ExportGUI();
+		void ImportGUI();
 		void OpenSerial();
 		void ExportSerial();
+		void ImportSerial();
 
 		/* Object specific methods */
-		void FormCCSDSPacketHeader(uint32 _apid, uint32 _sf, uint32 _pl); 	//!< Form the CCSDS packet header
 		void EmitCCSDSPacket(void *_buff, uint32 _len);						//!< Emit a CCSDS packet
-		void FormCCSDSCommandHeader();										//!< Form the CCSDS command header
 
 		/* Types of output messages */
 		void SendBoardHealth();						//!< Emit hardware health values
@@ -108,12 +112,6 @@ class Serial_Telemetry
 		void SendSPS();								//!< Emit a PVT
 		void SendClock();							//!< Emit a Clock state
 		void SendSVPosition();						//!< Send the SV Position
-		void SendEKF();								//!< Emit a GEONS solution
-		void SendMeasurement();						//!< Emit a raw measurement
-		void SendPseudorange();						//!< Emit a pseudorange
-		void SendEphemeris();						//!< Emit a decoded ephemeris
-		void SendAlamanac();						//!< Emit a decoded almanac
-		void SendCommandAck();						//!< Send a command acknowledge
 		void SendFIFO();							//!< Send the FIFO status
 };
 

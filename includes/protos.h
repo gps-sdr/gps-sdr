@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -47,5 +47,7 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale);
 int32 AtanApprox(int32 y, int32 x);
 int32 Atan2Approx(int32 y, int32 x);
 int32 Invert4x4(double A[4][4], double B[4][4]);
+void FormCCSDSPacketHeader(CCSDS_Packet_Header *_p, uint32 _apid, uint32 _sf, uint32 _pl, uint32 _cm, uint32 _tic);
+void DecodeCCSDSPacketHeader(CCSDS_Decoded_Header *_d, CCSDS_Packet_Header *_p);
 /*----------------------------------------------------------------------------------------------*/
 

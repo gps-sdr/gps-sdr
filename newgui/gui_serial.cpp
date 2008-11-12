@@ -23,6 +23,30 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "gui_serial.h"
 
 /*----------------------------------------------------------------------------------------------*/
+/* Form the CCSDS packet header with the given _apid, sequence flag, and packet length, and command bit */
+void FormCCSDSPacketHeader(CCSDS_Packet_Header *_p, uint32 _apid, uint32 _sf, uint32 _pl, uint32 _cm, uint32 _tic)
+{
+
+	_p->pid = ((_cm & 0x1) << 12) + (_apid + CCSDS_APID_BASE) & 0x7FF;
+	_p->psc = (_sf & 0x3) + ((_tic & 0x3FFF) << 2);
+	_p->pdl = _pl & 0xFFFF;
+
+}
+
+/* Decode a command into its components */
+void DecodeCCSDSPacketHeader(CCSDS_Decoded_Header *_d, CCSDS_Packet_Header *_p)
+{
+
+	_d->id 		= _p->pid - CCSDS_APID_BASE;
+	_d->type 	= _p->psc & 0x3;
+	_d->tic		= (_p->psc >> 2) & 0x3FFF;
+	_d->length 	= _p->pdl & 0xFFFF;
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 /* This is global so it can be handled by the signal handler */
 int gpipe_open[2];
 int gpipe[2];
@@ -106,9 +130,9 @@ GUI_Serial::GUI_Serial()
 	gpipe_open[READ] = false;
 	gpipe_open[WRITE] = false;
 	packet_count[LAST_M_ID] = 0;
-	ccsds_header.tic = ccsds_header.id = ccsds_header.length = 0;
+	decoded_header.tic = decoded_header.id = decoded_header.length = 0;
 	memset(&packet_count[0], 0x0, (LAST_M_ID+1)*sizeof(int));
-	memset(&messages.fifo_status, 0x0, sizeof(FIFO_M));
+	memset(&messages.fifo, 0x0, sizeof(FIFO_M));
 
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_unlock(&mutex);
@@ -150,6 +174,12 @@ void GUI_Serial::Import()
 void GUI_Serial::Export()
 {
 
+	/* Open the pipe */
+	if(!gpipe_open[WRITE])
+		openPipe();
+	else
+		writePipe();
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -176,24 +206,44 @@ int GUI_Serial::pipeRead(void *_b, int32 _bytes)
 }
 /*----------------------------------------------------------------------------------------------*/
 
+/*----------------------------------------------------------------------------------------------*/
+int GUI_Serial::pipeWrite(void *_b, int32 _bytes)
+{
+
+	int32 nbytes, bread;
+	uint8 *buff;
+
+	nbytes = 0; bread = 0;
+	buff = (uint8 *)_b;
+	while((nbytes < _bytes) && grun)
+	{
+		signal(SIGPIPE, gui_pipe_close);
+		bread = read(gpipe[READ], &buff[nbytes], _bytes - nbytes);
+		if(bread > 0)
+			nbytes += bread;
+	}
+
+	return(nbytes);
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
 
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Serial::readPipe()
 {
-	int nbytes, bread, k, chan;
-	char q[9] = "01234567";
-	char v;
+	int32 nbytes, bread, k, chan;
+	uint8 v;
 
 	Message_Struct *m = &messages;
 
 	if(message_sync)
 	{
 
-		/* Check to make sure the first 8 bytes are "AAAAAAAA" */
-		byte_count += pipeRead(&syncword[0], 8);
-		syncword[8] = '\0';
+		/* Check to make sure the first 4 bytes are "0xAAAAAAAA" */
+		byte_count += pipeRead(&syncword, sizeof(uint32));
 
-		if(strcmp(syncword, "AAAAAAAA") == 0)
+		if(syncword == 0xAAAAAAAA)
 		{
 			message_sync++;
 		}
@@ -206,18 +256,18 @@ void GUI_Serial::readPipe()
 
 
 		/* If so get the packet header */
-		byte_count += pipeRead(&pheader, sizeof(CCSDS_PH));
-		DecodeCCSDSPacketHeader(&ccsds_header, &pheader);
+		byte_count += pipeRead(&packet_header, sizeof(CCSDS_Packet_Header));
+		DecodeCCSDSPacketHeader(&decoded_header, &packet_header);
 
 		/* Catch some failures */
-		if(ccsds_header.length < 0 ||  ccsds_header.length > 512)
+		if(decoded_header.length < 0 ||  decoded_header.length > 512)
 		{
 			message_sync = 0;
 			packet_count[LAST_M_ID]++;
 			return;
 		}
 
-		if(ccsds_header.id < FIRST_M_ID ||  ccsds_header.id > LAST_M_ID)
+		if(decoded_header.id < FIRST_M_ID ||  decoded_header.id > LAST_M_ID)
 		{
 			message_sync = 0;
 			packet_count[LAST_M_ID]++;
@@ -225,14 +275,14 @@ void GUI_Serial::readPipe()
 		}
 
 		/* For the bytes/sec calculation */
-		byte_count += ccsds_header.length;
+		byte_count += decoded_header.length;
 
-		packet_count[ccsds_header.id]++;
+		packet_count[decoded_header.id]++;
 
 		Lock();
 
 		/* Now copy in the body */
-		switch(ccsds_header.id)
+		switch(decoded_header.id)
 		{
 			case BOARD_HEALTH_M_ID:
 				pipeRead(&m->board_health, sizeof(Board_Health_M));
@@ -283,16 +333,16 @@ void GUI_Serial::readPipe()
 				pipeRead(&m->ephemeris_status, sizeof(Ephemeris_Status_M));
 				break;
 			case FIFO_M_ID:
-				pipeRead(&m->fifo_status, sizeof(FIFO_M));
+				pipeRead(&m->fifo, sizeof(FIFO_M));
 				break;
 //			case LAST_M_ID:
-//				pipeRead(&buff[0], ccsds_header.length);
+//				pipeRead(&buff[0], decoded_header.length);
 //				message_sync = 0;
 //				packet_count[LAST_M_ID]++;
 //				break;
 			default:
 				packet_count[LAST_M_ID]++;
-				pipeRead(&buff[0], ccsds_header.length);
+				pipeRead(&buff[0], decoded_header.length);
 				break;
 		}
 
@@ -301,42 +351,47 @@ void GUI_Serial::readPipe()
 	}
 	else
 	{
-		v = '0';
+		v = 0;
 		byte_count += pipeRead(&v, 1);
 
-		memcpy(&q[0], &syncword[0], 7*sizeof(char));
-		syncword[0] = v;
-		memcpy(&syncword[1], &q[0], 7*sizeof(char));
-		syncword[8] = '\0';
+		syncword <<= 8;
+		syncword += (uint32)v;
 
-		if(strcmp(syncword, "AAAAAAAA") == 0)
+		if(syncword == 0xAAAAAAAA)
 		{
 			message_sync = 1;
 
 			/* If so get the packet header */
-			byte_count += pipeRead(&pheader, sizeof(CCSDS_PH));
-			DecodeCCSDSPacketHeader(&ccsds_header, &pheader);
+			byte_count += pipeRead(&packet_header, sizeof(CCSDS_Packet_Header));
+			DecodeCCSDSPacketHeader(&decoded_header, &packet_header);
 
 			/* Get the body */
-			byte_count += pipeRead(&buff[0], ccsds_header.length);
+			byte_count += pipeRead(&buff[0], decoded_header.length);
 		}
 	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
-
 /*----------------------------------------------------------------------------------------------*/
-void GUI_Serial::DecodeCCSDSPacketHeader(CCSDS_Header *_h, CCSDS_PH *_p)
+void GUI_Serial::writePipe()
 {
 
-	_h->id 		= _p->pid - CCSDS_APID_BASE;
-	_h->type 	= _p->psc & 0x3;
-	_h->tic		= (_p->psc >> 2) & 0x3FFF;
-	_h->length 	= _p->pdl & 0xFFFF;
+
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::QueueCommand()
+{
+
+
+
+
+
+
+}
+/*----------------------------------------------------------------------------------------------*/
 
 

@@ -55,6 +55,7 @@ class GUI_Toplevel: public iGUI_Toplevel
 
 		void onMain(wxCommandEvent& event);
 		void onChannel(wxCommandEvent& event);
+		void onSpeed(wxCommandEvent& event);
 
 	    void paintEvent(wxPaintEvent& evt);
 	    void paintNow();

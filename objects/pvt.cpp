@@ -872,7 +872,7 @@ void PVT::ErrorCheckCrossCorr()
 					if(cross)
 					{
 						pEphemeris->Lock();
-						pEphemeris->ClearSV(master_sv[lcv2]);
+						pEphemeris->ClearEphemeris(master_sv[lcv2]);
 						pEphemeris->Unlock();
 						pChannels[lcv2]->Stop();
 					}

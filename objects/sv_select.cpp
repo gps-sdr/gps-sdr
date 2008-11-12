@@ -102,7 +102,8 @@ SV_Select::SV_Select()
 SV_Select::~SV_Select()
 {
 
-	printf("Destructing SV_Select\n");
+	if(gopt.verbose)
+		printf("Destructing SV_Select\n");
 
 }
 /*----------------------------------------------------------------------------------------------*/

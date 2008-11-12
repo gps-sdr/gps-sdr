@@ -20,6 +20,7 @@ BEGIN_EVENT_TABLE(GUI_Toplevel, wxFrame)
     EVT_TIMER(ID_TIMER,				GUI_Toplevel::onTimer)
     EVT_TOGGLEBUTTON(ID_MAIN_B,		GUI_Toplevel::onMain)
     EVT_TOGGLEBUTTON(ID_CHANNEL_B,	GUI_Toplevel::onChannel)
+    EVT_TOGGLEBUTTON(ID_SPEED_B,	GUI_Toplevel::onSpeed)
     EVT_PAINT(GUI_Toplevel::paintEvent)
     EVT_CLOSE(GUI_Toplevel::onClose)
 END_EVENT_TABLE()
@@ -321,7 +322,7 @@ void GUI_Toplevel::renderFIFO()
 	wxString str;
 	float fifo_p;
 	int fifo_i;
-	FIFO_M *p = &messages.fifo_status;
+	FIFO_M *p = &messages.fifo;
 
 	fifo_p = FIFO_DEPTH - (p->head - p->tail) % FIFO_DEPTH;
 	fifo_p = fifo_p / FIFO_DEPTH;
@@ -361,7 +362,7 @@ void GUI_Toplevel::renderRS422()
 
 	str.Printf(wxT("Synchronized Count:\t%d\n"),pSerial->message_sync);
 	tRS422->AppendText(str);
-	str.Printf(wxT("Last Message Tic:\t%d\n"),pSerial->ccsds_header.tic);
+	str.Printf(wxT("Last Message Tic:\t%d\n"),pSerial->decoded_header.tic);
 	tRS422->AppendText(str);
 	str.Printf(wxT("Failed Messages:\t%d\n"),pSerial->packet_count[LAST_M_ID]);
 	tRS422->AppendText(str);
@@ -426,5 +427,16 @@ void GUI_Toplevel::onChannel(wxCommandEvent& WXUNUSED(event))
 		wChannel->setPointer(&messages);
 		wChannel->Show(TRUE);
 	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onSpeed(wxCommandEvent& WXUNUSED(event))
+{
+
+	pSerial->Lock();
+	pSerial->SendCommand();
+	pSerial->Unlock();
 }
 /*----------------------------------------------------------------------------------------------*/

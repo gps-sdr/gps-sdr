@@ -565,3 +565,27 @@ int32 AtanApprox(int32 y, int32 x)
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
+
+/*----------------------------------------------------------------------------------------------*/
+/* Form the CCSDS packet header with the given _apid, sequence flag, and packet length, and command bit */
+void FormCCSDSPacketHeader(CCSDS_Packet_Header *_p, uint32 _apid, uint32 _sf, uint32 _pl, uint32 _cm, uint32 _tic)
+{
+
+	_p->pid = ((_cm & 0x1) << 12) + (_apid + CCSDS_APID_BASE) & 0x7FF;
+	_p->psc = (_sf & 0x3) + ((_tic & 0x3FFF) << 2);
+	_p->pdl = _pl & 0xFFFF;
+
+}
+/* Decode a command into its components */
+void DecodeCCSDSPacketHeader(CCSDS_Decoded_Header *_d, CCSDS_Packet_Header *_p)
+{
+
+	_d->id 		= _p->pid - CCSDS_APID_BASE;
+	_d->type 	= _p->psc & 0x3;
+	_d->tic		= (_p->psc >> 2) & 0x3FFF;
+	_d->length 	= _p->pdl & 0xFFFF;
+
+}
+/*----------------------------------------------------------------------------------------------*/
+

@@ -58,8 +58,8 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "signaldef.h"			//!< Define attributes of input data
 #include "defines.h"			//!< Defines from IS-GPS-200D and some other things
 #include "macros.h"				//!< Macros
-#include "messages.h"
-#include "commands.h"
+#include "messages.h"			//!< Defines output telemetry
+#include "commands.h"			//!< Defines command input
 #include "structs.h"			//!< Structs used for interprocess communication
 #include "protos.h"				//!< Functions & thread prototypes
 #include "simd.h"				//!< Include the SIMD functionality
@@ -77,6 +77,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "ephemeris.h"			//!< Ephemeris decode
 #include "telemetry.h"			//!< Ncurses telemetry
 #include "serial_telemetry.h"	//!< Serial/GUI telemetry
+#include "commando.h"			//!< Command interface
 #include "sv_select.h"			//!< Drives acquisition/reacquisition process
 //#include "ocean.h"			//!< Ocean reflection waveforms
 #include "post_process.h"		//!< Run the receiver from a file

@@ -20,33 +20,10 @@ LDFLAGS	 = -lpthread -lncurses -m32
 CFLAGS   = -O3 -D_FORTIFY_SOURCE=0 -m32 $(CINCPATHFLAGS)
 ASMFLAGS = -masm=intel
 
-HEADERS =   config.h		\
-			defines.h 		\
-			globals.h		\
-			includes.h		\
-			macros.h		\
-			protos.h		\
-			signaldef.h		\
-			structs.h		
-
-OBJS =		init.o			\
-			shutdown.o		\
-			misc.o			\
-			fft.o			\
-			cpuid.o			\
-			sse.o			\
-			x86.o			\
-			fifo.o			\
-			acquisition.o 	\
-			keyboard.o 		\
-			correlator.o 	\
-			sv_select.o		\
-			channel.o		\
-			telemetry.o 	\
-			ephemeris.o 	\
-			pvt.o			\
-			post_process.o	\
-			serial_telemetry.o
+SRC = $(wildcard objects/*.cpp)
+OBJS = $(SRC:.cpp=.o)
+OBJS += sse.o x86.o cpuid.o acquisition.o fft.o misc.o init.o shutdown.o
+HEADERS = $(wildcard accessories/*.h acquisition/*.h main/*.h objects/*.h simd/*.h includes/*.h)			
 			
 #Uncomment these to look at the disassembly
 #DIS = 		x86.dis		\

@@ -189,7 +189,6 @@ void Serial_Telemetry::Import()
 
 	/* Read from PVT */
 	//read(PVT_2_Telem_P[READ], &tNav, sizeof(PVT_2_Telem_S));
-
 	read(PVT_2_Telem_P[READ], &sps, 			sizeof(SPS_M));
 	read(PVT_2_Telem_P[READ], &clock, 			sizeof(Clock_M));
 	read(PVT_2_Telem_P[READ], &sv_positions[0],	MAX_CHANNELS*sizeof(SV_Position_M));
@@ -207,11 +206,18 @@ void Serial_Telemetry::Import()
 	while(bread == sizeof(SV_Select_2_Telem_S))
 		bread = read(SV_Select_2_Telem_P[READ], &tSelect, sizeof(SV_Select_2_Telem_S));
 
-//	memcpy(&sps, 				&tNav.master_nav, sizeof(SPS_M));
-//	memcpy(&clock, 				&tNav.master_clock,sizeof(Clock_M));
-//	memcpy(&sv_positions[0], 	&tNav.sv_positions[0],MAX_CHANNELS*sizeof(SV_Position_M));
-//	memcpy(&pseudoranges[0], 	&tNav.pseudoranges[0],MAX_CHANNELS*sizeof(Pseudorange_M));
-//	memcpy(&measurements[0], 	&tNav.measurements[0],MAX_CHANNELS*sizeof(Measurement_M));
+	/* See if any commands have been sent over */
+	if(serial)
+	{
+		if(serial_open)
+			ImportSerial();
+	}
+	else
+	{
+		if(npipe_open)
+			ImportGUI();
+	}
+
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -299,6 +305,40 @@ void Serial_Telemetry::ExportGUI()
 
 
 /*----------------------------------------------------------------------------------------------*/
+void Serial_Telemetry::ImportGUI()
+{
+
+	uint32 preamble;
+	uint32 bread;
+	uint32 bwrote;
+
+	preamble = 0x0;
+
+	bread = read(npipe[READ], &preamble, sizeof(uint32));
+	if(bread == sizeof(uint32))
+	{
+		if(preamble == 0xAAAAAAAA)
+		{
+			bread = read(npipe[READ], &command_header, sizeof(CCSDS_Packet_Header));//!< Read in the head
+			DecodeCCSDSPacketHeader(&decoded_header, &command_header);				//!< Decode the packet
+			bread = read(npipe[READ], &command_body, decoded_header.length);		//!< Read in the body
+
+			/* Forward the command to Commando */
+			bwrote = write(Telem_2_Cmd_P[WRITE], &command_header, sizeof(CCSDS_Packet_Header));
+			bwrote = write(Telem_2_Cmd_P[WRITE], &command_body, decoded_header.length);
+		}
+	}
+
+	/* Bent pipe anything coming from Commando */
+	bread = read(Cmd_2_Telem_P[READ], &commando_buff, COMMANDO_BUFF_SIZE);
+	if(bread > 0)
+		write(npipe[WRITE], &commando_buff, bread);
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::OpenGUIPipe()
 {
 
@@ -327,6 +367,14 @@ void Serial_Telemetry::ExportSerial()
 
 
 /*----------------------------------------------------------------------------------------------*/
+void Serial_Telemetry::ImportSerial()
+{
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::OpenSerial()
 {
 
@@ -338,7 +386,7 @@ void Serial_Telemetry::SendBoardHealth()
 {
 
 	/* Form the packet header */
-	FormCCSDSPacketHeader(BOARD_HEALTH_M_ID, 0, sizeof(Board_Health_M));
+	FormCCSDSPacketHeader(&packet_header, BOARD_HEALTH_M_ID, 0, sizeof(Board_Health_M), 0, packet_tic++);
 
 	/* Emit the packet */
 	EmitCCSDSPacket((void *)&board_health, sizeof(Board_Health_M));
@@ -354,7 +402,7 @@ void Serial_Telemetry::SendTaskHealth()
 	/* Get execution counters */
 
 	/* Form the packet header */
-	FormCCSDSPacketHeader(TASK_HEALTH_M_ID, 0, sizeof(Task_Health_M));
+	FormCCSDSPacketHeader(&packet_header, TASK_HEALTH_M_ID, 0, sizeof(Task_Health_M), 0, packet_tic++);
 
 	/* Emit the packet */
 	EmitCCSDSPacket((void *)&task_health, sizeof(Task_Health_M));
@@ -373,7 +421,7 @@ void Serial_Telemetry::SendChannelHealth()
 	{
 
 		/* Form the packet */
-		FormCCSDSPacketHeader(CHANNEL_HEALTH_M_ID, 0, sizeof(Channel_Health_M));
+		FormCCSDSPacketHeader(&packet_header, CHANNEL_HEALTH_M_ID, 0, sizeof(Channel_Health_M), 0, packet_tic++);
 
 		/* Emit the packet */
 		channel_health[lcv].chan = lcv;
@@ -389,7 +437,7 @@ void Serial_Telemetry::SendFIFO()
 {
 
 	/* Form the packet header */
-	FormCCSDSPacketHeader(FIFO_M_ID, 0, sizeof(FIFO_M));
+	FormCCSDSPacketHeader(&packet_header, FIFO_M_ID, 0, sizeof(FIFO_M), 0, packet_tic++);
 
 	/* Emit the packet */
 	EmitCCSDSPacket((void *)&fifo_status, sizeof(FIFO_M));
@@ -403,7 +451,7 @@ void Serial_Telemetry::SendSPS()
 {
 
 	/* Form the packet header */
-	FormCCSDSPacketHeader(SPS_M_ID, 0, sizeof(SPS_M));
+	FormCCSDSPacketHeader(&packet_header, SPS_M_ID, 0, sizeof(SPS_M), 0, packet_tic++);
 
 	/* Emit the packet */
 	EmitCCSDSPacket((void *)&sps, sizeof(SPS_M));
@@ -417,19 +465,10 @@ void Serial_Telemetry::SendClock()
 {
 
 	/* Form the packet header */
-	FormCCSDSPacketHeader(CLOCK_M_ID, 0, sizeof(Clock_M));
+	FormCCSDSPacketHeader(&packet_header, CLOCK_M_ID, 0, sizeof(Clock_M), 0, packet_tic++);
 
 	/* Emit the packet */
 	EmitCCSDSPacket((void *)&clock, sizeof(Clock_M));
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Serial_Telemetry::SendEKF()
-{
-
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -444,7 +483,7 @@ void Serial_Telemetry::SendSVPosition()
 	{
 
 		/* Form the packet */
-		FormCCSDSPacketHeader(SV_POSITION_M_ID, 0, sizeof(SV_Position_M));
+		FormCCSDSPacketHeader(&packet_header, SV_POSITION_M_ID, 0, sizeof(SV_Position_M), 0, packet_tic++);
 
 		/* Emit the packet */
 		sv_positions[lcv].chan = lcv;
@@ -453,13 +492,14 @@ void Serial_Telemetry::SendSVPosition()
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
 /*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::EmitCCSDSPacket(void *_buff, uint32 _len)
 {
 
 	uint32 lcv, bwrote;
 	uint8 *sbuff;
-	char header[9] = "AAAAAAAA";
+	uint32 preamble = 0xAAAAAAAA;
 
 	if(serial)
 	{
@@ -468,7 +508,7 @@ void Serial_Telemetry::EmitCCSDSPacket(void *_buff, uint32 _len)
 			//NU_SD_Put_Char(header[lcv], &sport);
 
 		/* Write the CCSDS header to the UART */
-		sbuff = (uint8 *)&pheader;
+		sbuff = (uint8 *)&packet_header;
 		for(lcv = 0; lcv < 6; lcv++)
 		{
 			//NU_SD_Put_Char(*sbuff, &sport);
@@ -491,27 +531,12 @@ void Serial_Telemetry::EmitCCSDSPacket(void *_buff, uint32 _len)
 		/* Only write if the client is connected */
 		if(npipe_open)
 		{
-			bwrote = write(npipe[WRITE], &header, 8*sizeof(char));  	//!< Stuff the preamble
-			bwrote = write(npipe[WRITE], &pheader, sizeof(CCSDS_PH)); 	//!< Stuff the CCSDS header
-			bwrote = write(npipe[WRITE], _buff, _len);					//!< Stuff the body
+			bwrote = write(npipe[WRITE], &preamble, sizeof(uint32));  					//!< Stuff the preamble
+			bwrote = write(npipe[WRITE], &packet_header, sizeof(CCSDS_Packet_Header)); 	//!< Stuff the CCSDS header
+			bwrote = write(npipe[WRITE], _buff, _len);									//!< Stuff the body
 		}
 	}
 
-	/* Increment counter */
-	packet_tic++;
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
-
-/*----------------------------------------------------------------------------------------------*/
-/* Form the CCSDS packet header with the given _apid, sequence flag, and packet length */
-void Serial_Telemetry::FormCCSDSPacketHeader(uint32 _apid, uint32 _sf, uint32 _pl)
-{
-
-	pheader.pid = (_apid + CCSDS_APID_BASE) & 0x7FF;
-	pheader.psc = (_sf & 0x3) + ((packet_tic & 0x3FFF) << 2);
-	pheader.pdl = _pl & 0xFFFF;
-
-}
-/*----------------------------------------------------------------------------------------------*/
