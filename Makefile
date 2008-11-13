@@ -20,9 +20,10 @@ LDFLAGS	 = -lpthread -lncurses -m32
 CFLAGS   = -O3 -D_FORTIFY_SOURCE=0 -m32 $(CINCPATHFLAGS)
 ASMFLAGS = -masm=intel
 
-SRC = $(wildcard objects/*.cpp)
+SKIP = %main.cpp %simd-test.cpp %fft-test.cpp %acq-test.cpp %object_base.cpp %sse_new.cpp
+SRCC = $(wildcard main/*.cpp simd/*.cpp accessories/*.cpp acquisition/*.cpp objects/*.cpp)
+SRC = $(filter-out $(SKIP), $(SRCC)) 
 OBJS = $(SRC:.cpp=.o)
-OBJS += sse.o x86.o cpuid.o acquisition.o fft.o misc.o init.o shutdown.o
 HEADERS = $(wildcard accessories/*.h acquisition/*.h main/*.h objects/*.h simd/*.h includes/*.h)			
 			
 #Uncomment these to look at the disassembly

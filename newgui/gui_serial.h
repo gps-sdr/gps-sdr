@@ -88,7 +88,7 @@ class GUI_Serial
 		void readPipe();
 		int pipeRead(void *_b, int32 _bytes);
 
-		SendCommand(uint32 _id, void *payload);				//!< Send a command
+		void SendCommand(uint32 _id, void *payload);				//!< Send a command
 
 };
 

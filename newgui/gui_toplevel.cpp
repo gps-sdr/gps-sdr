@@ -435,8 +435,8 @@ void GUI_Toplevel::onChannel(wxCommandEvent& WXUNUSED(event))
 void GUI_Toplevel::onSpeed(wxCommandEvent& WXUNUSED(event))
 {
 
-	pSerial->Lock();
-	pSerial->SendCommand();
-	pSerial->Unlock();
+//	pSerial->Lock();
+//	pSerial->SendCommand();
+//	pSerial->Unlock();
 }
 /*----------------------------------------------------------------------------------------------*/
