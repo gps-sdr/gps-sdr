@@ -64,6 +64,9 @@ Post_Process::Post_Process(char *_fname)
 {
 	int32 bytes;
 
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_unlock(&mutex);
+
 	buff = new CPX[310*SAMPS_MS];
 
 	/* Create named pipe */

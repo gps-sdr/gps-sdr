@@ -120,6 +120,9 @@ void Keyboard::Stop()
 Keyboard::Keyboard()
 {
 
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_unlock(&mutex);
+
 	if(gopt.verbose)
 		printf("Creating Keyboard\n");
 

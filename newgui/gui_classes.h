@@ -25,7 +25,8 @@
 #include <wx/statusbr.h>
 #include <wx/frame.h>
 #include <wx/panel.h>
-#include <wx/stattext.h>
+#include <wx/button.h>
+#include <wx/choice.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -42,7 +43,12 @@
 #define ID_EPHEMERIS_B 1010
 #define ID_ALMANAC_B 1011
 #define ID_LOG_B 1012
-#define ID_SPEED_B 1013
+#define ID_COMMANDS_B 1013
+#define ID_SPEED_B 1014
+#define ID_RESET_PVT 1015
+#define ID_RESET_CHANNEL 1016
+#define ID_RESET_EPHEMERIS 1017
+#define ID_RESET_ALMANAC 1018
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Toplevel
@@ -63,6 +69,7 @@ class iGUI_Toplevel : public wxFrame
 		wxToggleButton* bEphemeris;
 		wxToggleButton* bAlmanac;
 		wxToggleButton* bLog;
+		wxToggleButton* bCommands;
 		wxToggleButton* bSpeed;
 		wxGauge* gUSRP;
 		wxTextCtrl* tUSRP;
@@ -71,7 +78,7 @@ class iGUI_Toplevel : public wxFrame
 		wxStatusBar* mStatus;
 	
 	public:
-		iGUI_Toplevel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("GPS-SDR"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 771,635 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL, const wxString& name = wxT("GPS-SDR") );
+		iGUI_Toplevel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("GPS-SDR"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL, const wxString& name = wxT("GPS-SDR") );
 		~iGUI_Toplevel();
 	
 };
@@ -115,41 +122,26 @@ class iGUI_Channel : public wxFrame
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Class MyFrame4
+/// Class iGUI_Commands
 ///////////////////////////////////////////////////////////////////////////////
-class MyFrame4 : public wxFrame 
+class iGUI_Commands : public wxFrame 
 {
 	private:
 	
 	protected:
-		wxGauge* g1;
-		wxGauge* g2;
-		wxGauge* g3;
-		wxGauge* g4;
-		wxGauge* g5;
-		wxGauge* g6;
-		wxGauge* g7;
-		wxGauge* g8;
-		wxGauge* g9;
-		wxGauge* g10;
-		wxGauge* g11;
-		wxGauge* g12;
-		wxStaticText* t1;
-		wxStaticText* t2;
-		wxStaticText* t3;
-		wxStaticText* t4;
-		wxStaticText* t5;
-		wxStaticText* t6;
-		wxStaticText* t7;
-		wxStaticText* t8;
-		wxStaticText* t9;
-		wxStaticText* t10;
-		wxStaticText* t11;
-		wxStaticText* t12;
+		wxButton* bReset_PVT;
+		wxChoice* mReset_PVT;
+		wxButton* bReset_Channel;
+		wxChoice* mReset_Channel;
+		wxButton* bReset_Ephemeris;
+		wxChoice* mReset_Ephemeris;
+		wxButton* bReset_Almanac;
+		wxChoice* mReset_Almanac;
+		wxTextCtrl* tCommand_Ack;
 	
 	public:
-		MyFrame4( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
-		~MyFrame4();
+		iGUI_Commands( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Commands"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~iGUI_Commands();
 	
 };
 

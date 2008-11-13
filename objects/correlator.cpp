@@ -93,6 +93,9 @@ Correlator::Correlator(int32 _chan)
 
 	int32 lcv;
 
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_unlock(&mutex);
+
 	chan = _chan;
 	packet_count = 0;
 	state.active = 0;
@@ -179,9 +182,9 @@ void Correlator::Import()
 			}
 
 			/* Set correlator status to active */
-			pthread_mutex_lock(&mInterrupt);
-			gInterrupt[chan] = 1;
-			pthread_mutex_unlock(&mInterrupt);
+			pChannels[chan]->Lock();
+			pChannels[chan]->setActive(true);
+			pChannels[chan]->Unlock();
 		}
 	}
 
@@ -537,9 +540,9 @@ void Correlator::ProcessFeedback(NCO_Command_S *f)
 		memset(&meas_buff, 	0x0, TICS_PER_SECOND*sizeof(Measurement_M));
 
 		/* Set correlator status to inactive */
-		pthread_mutex_lock(&mInterrupt);
-		gInterrupt[chan] = 0;
-		pthread_mutex_unlock(&mInterrupt);
+		pChannels[chan]->Lock();
+		pChannels[chan]->setActive(false);
+		pChannels[chan]->Unlock();
 	}
 
 }

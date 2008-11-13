@@ -76,7 +76,10 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	bLog = new wxToggleButton( this, ID_LOG_B, wxT("Log"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bLog, 0, wxALL|wxEXPAND, 5 );
 	
-	bSpeed = new wxToggleButton( this, ID_SPEED_B, wxT("Speed"), wxDefaultPosition, wxDefaultSize, 0 );
+	bCommands = new wxToggleButton( this, ID_COMMANDS_B, wxT("Commands"), wxDefaultPosition, wxDefaultSize, 0 );
+	SubWindows->Add( bCommands, 0, wxALL|wxEXPAND, 5 );
+	
+	bSpeed = new wxToggleButton( this, ID_SPEED_B, wxT("Speedometer"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bSpeed, 0, wxALL|wxEXPAND, 5 );
 	
 	sMain->Add( SubWindows, 1, wxALIGN_LEFT|wxALIGN_TOP|wxALL|wxEXPAND, 5 );
@@ -206,118 +209,84 @@ iGUI_Channel::~iGUI_Channel()
 {
 }
 
-MyFrame4::MyFrame4( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+iGUI_Commands::iGUI_Commands( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
-	wxStaticBoxSizer* sbSizer10;
-	sbSizer10 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("SNR") ), wxVERTICAL );
+	wxBoxSizer* bSizer11;
+	bSizer11 = new wxBoxSizer( wxVERTICAL );
 	
-	wxBoxSizer* bSizer22;
-	bSizer22 = new wxBoxSizer( wxVERTICAL );
+	wxBoxSizer* bSizer17;
+	bSizer17 = new wxBoxSizer( wxHORIZONTAL );
 	
-	sbSizer10->Add( bSizer22, 2, wxEXPAND, 5 );
+	bReset_PVT = new wxButton( this, ID_RESET_PVT, wxT("Reset PVT"), wxDefaultPosition, wxDefaultSize, 0 );
+	bReset_PVT->SetMinSize( wxSize( 150,-1 ) );
+	
+	bSizer17->Add( bReset_PVT, 0, wxALL, 5 );
+	
+	wxString mReset_PVTChoices[] = { wxT("All") };
+	int mReset_PVTNChoices = sizeof( mReset_PVTChoices ) / sizeof( wxString );
+	mReset_PVT = new wxChoice( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, mReset_PVTNChoices, mReset_PVTChoices, 0 );
+	mReset_PVT->SetSelection( 0 );
+	bSizer17->Add( mReset_PVT, 0, wxALL, 5 );
+	
+	bSizer11->Add( bSizer17, 0, 0, 5 );
+	
+	wxBoxSizer* bSizer18;
+	bSizer18 = new wxBoxSizer( wxHORIZONTAL );
+	
+	bReset_Channel = new wxButton( this, ID_RESET_CHANNEL, wxT("Reset Channel"), wxDefaultPosition, wxDefaultSize, 0 );
+	bReset_Channel->SetMinSize( wxSize( 150,-1 ) );
+	
+	bSizer18->Add( bReset_Channel, 0, wxALL, 5 );
+	
+	wxString mReset_ChannelChoices[] = { wxT("All"), wxT("01"), wxT("02"), wxT("03"), wxT("04"), wxT("05"), wxT("06"), wxT("07"), wxT("08"), wxT("09"), wxT("10"), wxT("11") };
+	int mReset_ChannelNChoices = sizeof( mReset_ChannelChoices ) / sizeof( wxString );
+	mReset_Channel = new wxChoice( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, mReset_ChannelNChoices, mReset_ChannelChoices, 0 );
+	mReset_Channel->SetSelection( 0 );
+	bSizer18->Add( mReset_Channel, 0, wxALL, 5 );
+	
+	bSizer11->Add( bSizer18, 0, 0, 5 );
 	
 	wxBoxSizer* bSizer19;
 	bSizer19 = new wxBoxSizer( wxHORIZONTAL );
 	
-	g1 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g1, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
+	bReset_Ephemeris = new wxButton( this, ID_RESET_EPHEMERIS, wxT("Reset Ephemeris"), wxDefaultPosition, wxDefaultSize, 0 );
+	bReset_Ephemeris->SetMinSize( wxSize( 150,-1 ) );
 	
-	g2 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g2, 1, wxALL|wxEXPAND, 5 );
+	bSizer19->Add( bReset_Ephemeris, 0, wxALL, 5 );
 	
-	g3 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g3, 1, wxALL|wxEXPAND, 5 );
+	wxString mReset_EphemerisChoices[] = { wxT("All"), wxT("01"), wxT("02"), wxT("03"), wxT("04"), wxT("05"), wxT("06"), wxT("07"), wxT("08"), wxT("09"), wxT("10"), wxT("11"), wxT("12"), wxT("13"), wxT("14"), wxT("15"), wxT("16"), wxT("17"), wxT("18"), wxT("19"), wxT("20"), wxT("21"), wxT("22"), wxT("23"), wxT("24"), wxT("25"), wxT("26"), wxT("27"), wxT("28"), wxT("29"), wxT("30"), wxT("31"), wxT("32") };
+	int mReset_EphemerisNChoices = sizeof( mReset_EphemerisChoices ) / sizeof( wxString );
+	mReset_Ephemeris = new wxChoice( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, mReset_EphemerisNChoices, mReset_EphemerisChoices, 0 );
+	mReset_Ephemeris->SetSelection( 0 );
+	bSizer19->Add( mReset_Ephemeris, 0, wxALL, 5 );
 	
-	g4 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g4, 1, wxALL|wxEXPAND, 5 );
+	bSizer11->Add( bSizer19, 0, 0, 5 );
 	
-	g5 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g5, 1, wxALL|wxEXPAND, 5 );
+	wxBoxSizer* bSizer20;
+	bSizer20 = new wxBoxSizer( wxHORIZONTAL );
 	
-	g6 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g6, 1, wxALL|wxEXPAND, 5 );
+	bReset_Almanac = new wxButton( this, ID_RESET_ALMANAC, wxT("Reset Almanac"), wxDefaultPosition, wxDefaultSize, 0 );
+	bReset_Almanac->SetMinSize( wxSize( 150,-1 ) );
 	
-	g7 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g7, 1, wxALL|wxEXPAND, 5 );
+	bSizer20->Add( bReset_Almanac, 0, wxALL, 5 );
 	
-	g8 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g8, 1, wxALL|wxEXPAND, 5 );
+	wxString mReset_AlmanacChoices[] = { wxT("All"), wxT("01"), wxT("02"), wxT("03"), wxT("04"), wxT("05"), wxT("06"), wxT("07"), wxT("08"), wxT("09"), wxT("10"), wxT("11"), wxT("12"), wxT("13"), wxT("14"), wxT("15"), wxT("16"), wxT("17"), wxT("18"), wxT("09"), wxT("19"), wxT("20"), wxT("21"), wxT("22"), wxT("23"), wxT("24"), wxT("25"), wxT("26"), wxT("27"), wxT("28"), wxT("29"), wxT("30"), wxT("31"), wxT("32") };
+	int mReset_AlmanacNChoices = sizeof( mReset_AlmanacChoices ) / sizeof( wxString );
+	mReset_Almanac = new wxChoice( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, mReset_AlmanacNChoices, mReset_AlmanacChoices, 0 );
+	mReset_Almanac->SetSelection( 0 );
+	bSizer20->Add( mReset_Almanac, 0, wxALL, 5 );
 	
-	g9 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g9, 1, wxALL|wxEXPAND, 5 );
+	bSizer11->Add( bSizer20, 0, 0, 5 );
 	
-	g10 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g10, 1, wxALL|wxEXPAND, 5 );
+	tCommand_Ack = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	bSizer11->Add( tCommand_Ack, 1, wxALL|wxEXPAND, 5 );
 	
-	g11 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g11, 1, wxALL|wxEXPAND, 5 );
-	
-	g12 = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
-	bSizer19->Add( g12, 1, wxALL|wxEXPAND, 5 );
-	
-	sbSizer10->Add( bSizer19, 16, wxEXPAND, 5 );
-	
-	wxBoxSizer* bSizer21;
-	bSizer21 = new wxBoxSizer( wxHORIZONTAL );
-	
-	t1 = new wxStaticText( this, wxID_ANY, wxT("00"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t1->Wrap( -1 );
-	t1->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxEmptyString ) );
-	
-	bSizer21->Add( t1, 1, wxALIGN_CENTER|wxEXPAND, 5 );
-	
-	t2 = new wxStaticText( this, wxID_ANY, wxT("01"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t2->Wrap( -1 );
-	bSizer21->Add( t2, 1, wxEXPAND, 5 );
-	
-	t3 = new wxStaticText( this, wxID_ANY, wxT("02"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t3->Wrap( -1 );
-	bSizer21->Add( t3, 1, wxEXPAND, 5 );
-	
-	t4 = new wxStaticText( this, wxID_ANY, wxT("03"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t4->Wrap( -1 );
-	bSizer21->Add( t4, 1, wxEXPAND, 5 );
-	
-	t5 = new wxStaticText( this, wxID_ANY, wxT("04"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t5->Wrap( -1 );
-	bSizer21->Add( t5, 1, wxEXPAND, 5 );
-	
-	t6 = new wxStaticText( this, wxID_ANY, wxT("05"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t6->Wrap( -1 );
-	bSizer21->Add( t6, 1, wxEXPAND, 5 );
-	
-	t7 = new wxStaticText( this, wxID_ANY, wxT("06"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t7->Wrap( -1 );
-	bSizer21->Add( t7, 1, wxEXPAND, 5 );
-	
-	t8 = new wxStaticText( this, wxID_ANY, wxT("07"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t8->Wrap( -1 );
-	bSizer21->Add( t8, 1, wxEXPAND, 5 );
-	
-	t9 = new wxStaticText( this, wxID_ANY, wxT("08"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t9->Wrap( -1 );
-	bSizer21->Add( t9, 1, wxEXPAND, 5 );
-	
-	t10 = new wxStaticText( this, wxID_ANY, wxT("09"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t10->Wrap( -1 );
-	bSizer21->Add( t10, 1, wxEXPAND, 5 );
-	
-	t11 = new wxStaticText( this, wxID_ANY, wxT("10"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t11->Wrap( -1 );
-	bSizer21->Add( t11, 1, wxEXPAND, 5 );
-	
-	t12 = new wxStaticText( this, wxID_ANY, wxT("11"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxST_NO_AUTORESIZE );
-	t12->Wrap( -1 );
-	bSizer21->Add( t12, 1, wxEXPAND, 5 );
-	
-	sbSizer10->Add( bSizer21, 1, wxEXPAND, 5 );
-	
-	this->SetSizer( sbSizer10 );
+	this->SetSizer( bSizer11 );
 	this->Layout();
 }
 
-MyFrame4::~MyFrame4()
+iGUI_Commands::~iGUI_Commands()
 {
 }

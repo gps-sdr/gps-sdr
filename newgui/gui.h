@@ -53,6 +53,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "gui_serial.h"
 #include "gui_default.h"
 #include "gui_channel.h"
+#include "gui_commands.h"
 #include "gui_toplevel.h"
 /*----------------------------------------------------------------------------------------------*/
 

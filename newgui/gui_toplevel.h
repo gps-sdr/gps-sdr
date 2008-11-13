@@ -13,6 +13,7 @@ class GUI_Toplevel: public iGUI_Toplevel
 		int count;
 		GUI_Default		*wDefault;
 		GUI_Channel		*wChannel;
+		GUI_Commands	*wCommands;
 		class GUI_Serial*pSerial;
 
 		wxTimer 		*timer;
@@ -55,6 +56,7 @@ class GUI_Toplevel: public iGUI_Toplevel
 
 		void onMain(wxCommandEvent& event);
 		void onChannel(wxCommandEvent& event);
+		void onCommands(wxCommandEvent& event);
 		void onSpeed(wxCommandEvent& event);
 
 	    void paintEvent(wxPaintEvent& evt);

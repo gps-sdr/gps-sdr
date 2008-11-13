@@ -52,8 +52,8 @@ class Ephemeris
 		void Export();								//!< Send stuff to the telemetry thread
 		void Start();								//!< Start the thread
 		void Stop();								//!< Stop the thread
-		void Lock();								//!< Lock critical data
-		void Unlock();								//!< Unlock critical data
+		void Lock(){pthread_mutex_lock(&mutex);};	//!< Lock the object's mutex
+		void Unlock(){pthread_mutex_unlock(&mutex);};//!< Unlock the object's mutex
 		uint32 GetExecTic(){return(execution_tic);};//!< Get the execution counter
 		uint32 GetStartTic(){return(start_tic);};	//!< Get the Nucleus tic at start of function
 		uint32 GetStopTic(){return(execution_tic);};//!< Get the Nucleus tic at end of function

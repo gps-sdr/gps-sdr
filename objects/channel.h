@@ -37,6 +37,8 @@ class Channel
 
 	private:
 
+		pthread_mutex_t		mutex;			//!< Protect the following variable
+
 		/* Status info */
 		/*----------------------------------------------------------------------------------------------*/
 		FILE *fp;
@@ -124,6 +126,8 @@ class Channel
 
 		Channel(int32 _chan);
 		~Channel();
+		void Lock(){pthread_mutex_lock(&mutex);};	//!< Lock the object's mutex
+		void Unlock(){pthread_mutex_unlock(&mutex);};//!< Unlock the object's mutex
 		void Start(int32 sv, Acq_Result_S result, int32 _corr_len);
 		void Stop();
 		void Clear();
@@ -146,7 +150,8 @@ class Channel
 		void Accum(Correlation_S *corr, NCO_Command_S *_feedback);	//!< Process an accumulation
 		float getCN0(){return(CN0);}
 		float getNCO(){return(carrier_nco);}
-		float getActive(){return(active);}
+		int32 getActive(){return(active);}
+		void setActive(int32 _active){active = _active;}
 		int32 getSV(){return(sv);}
 };
 

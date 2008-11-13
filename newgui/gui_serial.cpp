@@ -52,31 +52,48 @@ int gpipe_open[2];
 int gpipe[2];
 int grun;
 
-void openPipe()
+void openPipe(int32 _pipe)
 {
 
-	gpipe[READ] = gpipe[WRITE] = -1;
+	gpipe[_pipe] = -1;
 
-	while((gpipe[WRITE] == -1) && grun)
+	if(_pipe == WRITE)
 	{
-		gpipe[WRITE] = open("/tmp/GUI2GPS",O_WRONLY);
-		usleep(1000000);
+
+		while((gpipe[_pipe] == -1) && grun)
+		{
+			gpipe[_pipe] = open("/tmp/GUI2GPS",O_WRONLY);
+			usleep(100000);
+		}
+
+		gpipe_open[_pipe] = true;
+
+	}
+	else
+	{
+
+		while((gpipe[_pipe] == -1) && grun)
+		{
+			gpipe[_pipe] = open("/tmp/GPS2GUI",O_RDONLY);
+			usleep(100000);
+		}
+
+		gpipe_open[_pipe] = true;
 	}
 
-	while((gpipe[READ] == -1) && grun)
-	{
-		gpipe[READ] = open("/tmp/GPS2GUI",O_RDONLY);
-		usleep(1000000);
-	}
-
-	gpipe_open[READ] = true;
 }
 
 
-void gui_pipe_close(int _sig)
+void gps_2_gui_pipe_close(int _sig)
 {
 	gpipe_open[READ] = false;
-	openPipe();
+	openPipe(READ);
+}
+
+void gui_2_gps_pipe_close(int _sig)
+{
+	gpipe_open[WRITE] = false;
+	openPipe(WRITE);
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -127,10 +144,13 @@ GUI_Serial::GUI_Serial()
 	message_sync = 0;
 	pipe_open = 0;
 	byte_count = 0;
+	command_ready = 0;
+	command_sent = 0;
+	command_ack = 0;
 	gpipe_open[READ] = false;
 	gpipe_open[WRITE] = false;
 	packet_count[LAST_M_ID] = 0;
-	decoded_header.tic = decoded_header.id = decoded_header.length = 0;
+	decoded_packet.tic = decoded_packet.id = decoded_packet.length = 0;
 	memset(&packet_count[0], 0x0, (LAST_M_ID+1)*sizeof(int));
 	memset(&messages.fifo, 0x0, sizeof(FIFO_M));
 
@@ -161,7 +181,7 @@ void GUI_Serial::Import()
 
 	/* Open the pipe */
 	if(!gpipe_open[READ])
-		openPipe();
+		openPipe(READ);
 	else
 		readPipe();
 
@@ -175,10 +195,10 @@ void GUI_Serial::Export()
 {
 
 	/* Open the pipe */
-//	if(!gpipe_open[WRITE])
-//		openPipe();
-//	else
-//		writePipe();
+	if(!gpipe_open[WRITE])
+		openPipe(WRITE);
+	else
+		writePipe();
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -195,7 +215,7 @@ int GUI_Serial::pipeRead(void *_b, int32 _bytes)
 	buff = (uint8 *)_b;
 	while((nbytes < _bytes) && grun)
 	{
-		signal(SIGPIPE, gui_pipe_close);
+		signal(SIGPIPE, gps_2_gui_pipe_close);
 		bread = read(gpipe[READ], &buff[nbytes], _bytes - nbytes);
 		if(bread > 0)
 			nbytes += bread;
@@ -206,13 +226,16 @@ int GUI_Serial::pipeRead(void *_b, int32 _bytes)
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
 /*----------------------------------------------------------------------------------------------*/
-//int GUI_Serial::pipeWrite(void *_b, int32 _bytes)
-//{
-//
-//
-//
-//}
+int GUI_Serial::pipeWrite(void *_b, int32 _bytes)
+{
+
+	uint32 bwrote;
+	bwrote = write(gpipe[WRITE], _b, _bytes);
+	return(bwrote);
+
+}
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -244,17 +267,17 @@ void GUI_Serial::readPipe()
 
 		/* If so get the packet header */
 		byte_count += pipeRead(&packet_header, sizeof(CCSDS_Packet_Header));
-		DecodeCCSDSPacketHeader(&decoded_header, &packet_header);
+		DecodeCCSDSPacketHeader(&decoded_packet, &packet_header);
 
 		/* Catch some failures */
-		if(decoded_header.length < 0 ||  decoded_header.length > 512)
+		if(decoded_packet.length < 0 ||  decoded_packet.length > 512)
 		{
 			message_sync = 0;
 			packet_count[LAST_M_ID]++;
 			return;
 		}
 
-		if(decoded_header.id < FIRST_M_ID ||  decoded_header.id > LAST_M_ID)
+		if(decoded_packet.id < FIRST_M_ID ||  decoded_packet.id > LAST_M_ID)
 		{
 			message_sync = 0;
 			packet_count[LAST_M_ID]++;
@@ -262,14 +285,14 @@ void GUI_Serial::readPipe()
 		}
 
 		/* For the bytes/sec calculation */
-		byte_count += decoded_header.length;
+		byte_count += decoded_packet.length;
 
-		packet_count[decoded_header.id]++;
+		packet_count[decoded_packet.id]++;
 
 		Lock();
 
 		/* Now copy in the body */
-		switch(decoded_header.id)
+		switch(decoded_packet.id)
 		{
 			case BOARD_HEALTH_M_ID:
 				pipeRead(&m->board_health, sizeof(Board_Health_M));
@@ -322,14 +345,17 @@ void GUI_Serial::readPipe()
 			case FIFO_M_ID:
 				pipeRead(&m->fifo, sizeof(FIFO_M));
 				break;
+			case COMMAND_ACK_M_ID:
+				pipeRead(&m->command_ack, sizeof(Command_Ack_M));
+				break;
 //			case LAST_M_ID:
-//				pipeRead(&buff[0], decoded_header.length);
+//				pipeRead(&buff[0], decoded_packet.length);
 //				message_sync = 0;
 //				packet_count[LAST_M_ID]++;
 //				break;
 			default:
 				packet_count[LAST_M_ID]++;
-				pipeRead(&buff[0], decoded_header.length);
+				pipeRead(&buff[0], decoded_packet.length);
 				break;
 		}
 
@@ -350,35 +376,95 @@ void GUI_Serial::readPipe()
 
 			/* If so get the packet header */
 			byte_count += pipeRead(&packet_header, sizeof(CCSDS_Packet_Header));
-			DecodeCCSDSPacketHeader(&decoded_header, &packet_header);
+			DecodeCCSDSPacketHeader(&decoded_packet, &packet_header);
 
 			/* Get the body */
-			byte_count += pipeRead(&buff[0], decoded_header.length);
+			byte_count += pipeRead(&buff[0], decoded_packet.length);
 		}
 	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
-///*----------------------------------------------------------------------------------------------*/
-//void GUI_Serial::writePipe()
-//{
-//
-//
-//
-//}
-///*----------------------------------------------------------------------------------------------*/
-//
-///*----------------------------------------------------------------------------------------------*/
-//void GUI_Serial::QueueCommand()
-//{
-//
-//
-//
-//
-//
-//
-//}
-///*----------------------------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::writePipe()
+{
+
+	Lock();
+
+	uint32 preamble = 0xAAAAAAAA;
+
+	if(command_ready && (command_sent == 0))
+	{
+		pipeWrite(&preamble, sizeof(uint32));
+		pipeWrite(&command_header, sizeof(CCSDS_Packet_Header));
+		pipeWrite(&command_body, decoded_command.length);
+		command_sent = 1;
+	}
+
+	Unlock();
+
+}
+/*----------------------------------------------------------------------------------------------*/
 
 
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::formCommand(int32 _id, void *_p)
+{
+
+	Lock();
+
+	memset(&command_body, 0x0, sizeof(Union_C));
+
+	command_ready = 1;
+	command_sent = 0;
+	command_ack = 0;
+
+	switch(_id)
+	{
+		case RESET_PVT_C_ID:
+			command_body.reset_pvt.flag = 1;
+			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Reset_PVT_C), 1, command_tic++);
+			break;
+		case RESET_CHANNEL_C_ID:
+			command_body.reset_channel.chan = *(int32 *)_p;
+			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Reset_Channel_C), 1, command_tic++);
+			break;
+		case RESET_EPHEMERIS_C_ID:
+			command_body.reset_ephemeris.sv = *(int32 *)_p;
+			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Reset_Ephemeris_C), 1, command_tic++);
+			break;
+		case RESET_ALMANAC_C_ID:
+			command_body.reset_almanac.sv = *(int32 *)_p;
+			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Reset_Almanac_C), 1, command_tic++);
+			break;
+		case GET_MEASUREMENT_C_ID:
+			command_body.get_measurement.chan = *(int32 *)_p;
+			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Get_Measurement_C), 1, command_tic++);
+			break;
+		case GET_PSEUDORANGE_C_ID:
+			command_body.get_pseudorange.chan = *(int32 *)_p;
+			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Get_Pseudorange_C), 1, command_tic++);
+			break;
+		case GET_EPHEMERIS_C_ID:
+			command_body.get_ephemeris.sv = *(int32 *)_p;
+			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Get_Ephemeris_C), 1, command_tic++);
+			break;
+		case GET_ALMANAC_C_ID:
+			command_body.get_almanac.sv = *(int32 *)_p;
+			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Get_Almanac_C), 1, command_tic++);
+			break;
+		default:
+			command_ready = 0;
+			command_sent = 0;
+			command_ack = 0;
+			break;
+	}
+
+	DecodeCCSDSPacketHeader(&decoded_command, &command_header);
+
+	Unlock();
+
+}
+/*----------------------------------------------------------------------------------------------*/

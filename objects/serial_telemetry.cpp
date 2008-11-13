@@ -142,22 +142,6 @@ Serial_Telemetry::~Serial_Telemetry()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Serial_Telemetry::Lock()
-{
-	pthread_mutex_lock(&mutex);
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Serial_Telemetry::Unlock()
-{
-	pthread_mutex_unlock(&mutex);
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::Import()
 {
 	Channel_Health_M temp;
@@ -167,11 +151,10 @@ void Serial_Telemetry::Import()
 	bread = read(FIFO_2_Telem_P[READ], &fifo_status, sizeof(FIFO_M));
 
 	/* Lock correlator status */
-	pthread_mutex_lock(&mInterrupt);
-
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		if(gInterrupt[lcv])
+		pChannels[lcv]->Lock();
+		if(pChannels[lcv]->getActive())
 		{
 			channel_health[lcv] = pChannels[lcv]->getPacket();
 			active[lcv] = 1;
@@ -181,10 +164,8 @@ void Serial_Telemetry::Import()
 			channel_health[lcv].count = 0;
 			active[lcv] = 0;
 		}
+		pChannels[lcv]->Unlock();
 	}
-
-	/* Unlock correlator status */
-	pthread_mutex_unlock(&mInterrupt);
 
 
 	/* Read from PVT */

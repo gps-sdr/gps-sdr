@@ -85,9 +85,6 @@ Commando::~Commando()
 }
 /*----------------------------------------------------------------------------------------------*/
 
-/* Fordward the response */
-//bwrote = write(Cmd_2_Telem_P[WRITE], &cheader, sizeof(CCSDS_CH));
-//bwrote = write(Cmd_2_Telem_P[WRITE], &command_body, command_header.length);
 
 /*----------------------------------------------------------------------------------------------*/
 void Commando::Import()
@@ -190,6 +187,26 @@ void Commando::Reset_EKF()
 void Commando::Reset_Channel()
 {
 
+	int32 chan;
+
+	chan = command_body.reset_channel.chan;
+
+	if((chan >= 0) && (chan < MAX_CHANNELS))
+	{
+		pChannels[chan]->Lock();
+		pChannels[chan]->setActive(false);
+		pChannels[chan]->Unlock();
+	}
+	else
+	{
+		for(chan = 0; chan < MAX_CHANNELS; chan++)
+		{
+			pChannels[chan]->Lock();
+			pChannels[chan]->setActive(false);
+			pChannels[chan]->Unlock();
+		}
+
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/

@@ -17,7 +17,7 @@ VPATH		=   accessories:	\
 				simd:			
 											
 LDFLAGS	 = -lpthread -lncurses -m32
-CFLAGS   = -O3 -D_FORTIFY_SOURCE=0 -m32 $(CINCPATHFLAGS)
+CFLAGS   = -O2 -D_FORTIFY_SOURCE=0 $(CINCPATHFLAGS)
 ASMFLAGS = -masm=intel
 
 SKIP = %main.cpp %simd-test.cpp %fft-test.cpp %acq-test.cpp %object_base.cpp %sse_new.cpp

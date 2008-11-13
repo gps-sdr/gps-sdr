@@ -40,6 +40,9 @@ Channel::Channel(int32 _chan)
 
 	pFFT = new FFT(FREQ_LOCK_POINTS);
 
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_unlock(&mutex);
+
 	Clear();
 
 }

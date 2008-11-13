@@ -147,22 +147,6 @@ Telemetry::~Telemetry()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Telemetry::Lock()
-{
-	pthread_mutex_lock(&mutex);
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Telemetry::Unlock()
-{
-	pthread_mutex_unlock(&mutex);
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
 void Telemetry::Import()
 {
 	Channel_Health_M temp;
@@ -171,11 +155,10 @@ void Telemetry::Import()
 	read(FIFO_2_Telem_P[READ], &tFIFO, sizeof(FIFO_M));
 
 	/* Lock correlator status */
-	pthread_mutex_lock(&mInterrupt);
-
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		if(gInterrupt[lcv])
+		pChannels[lcv]->Lock();
+s		if(pChannels[lcv]->getActive())
 		{
 			tChan[lcv] = pChannels[lcv]->getPacket();
 			active[lcv] = 1;
@@ -185,10 +168,8 @@ void Telemetry::Import()
 			tChan[lcv].count = 0;
 			active[lcv] = 0;
 		}
+		pChannels[lcv]->Unlock();
 	}
-
-	/* Unlock correlator status */
-	pthread_mutex_unlock(&mInterrupt);
 
 	read(PVT_2_Telem_P[READ], &tNav, sizeof(PVT_2_Telem_S));
 

@@ -1,4 +1,4 @@
-/*! \file Globals.h
+/*! \file globals.h
 	Default includes for each source file in the project.
 */
 /************************************************************************************************
@@ -53,9 +53,6 @@ EXTERN class Commando		*pCommando;						//!< Process and execute commands
 /*----------------------------------------------------------------------------------------------*/
 EXTERN pthread_mutex_t		mAcq;							//!< Protect the following variable
 EXTERN int32				gAcq_high;						//!< This is set high when the acquisition is active
-
-EXTERN pthread_mutex_t		mInterrupt;						//!< Protect the following variable
-EXTERN uint32 				gInterrupt[MAX_CHANNELS];		//!< Interrupt for servicing tracking channels
 /*----------------------------------------------------------------------------------------------*/
 
 

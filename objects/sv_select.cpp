@@ -87,6 +87,10 @@ void SV_Select::Stop()
 SV_Select::SV_Select()
 {
 
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_unlock(&mutex);
+
+
 	sv = 0;
 	mode = WARM_START;
 	mask_angle = PI/2;
@@ -148,29 +152,29 @@ void SV_Select::Acquire()
 	chan = 666;
 	already = 0;
 
-	/* See if any correlators are available */
-	pthread_mutex_lock(&mInterrupt);
 
-		/* If an empty channel exists, ask for an acquisition */
-		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-			if(gInterrupt[lcv] == 0)
+	/* If an empty channel exists, ask for an acquisition */
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+		if(pChannels[lcv]->getActive() == 0)
+		{
+			chan = lcv;
+			break;
+		}
+
+	sv_prediction[sv].tracked = false;
+
+	/* If the SV is already being tracked skip the acquisition */
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	{
+		pChannels[lcv]->Lock();
+		if(pChannels[lcv]->getActive())
+			if(pChannels[lcv]->getSV() == sv)
 			{
-				chan = lcv;
-				break;
+				already = 666;
+				sv_prediction[sv].tracked = true;
 			}
-
-		sv_prediction[sv].tracked = false;
-
-		/* If the SV is already being tracked skip the acquisition */
-		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-			if(pChannels[lcv]->getActive())
-				if(pChannels[lcv]->getSV() == sv)
-				{
-					already = 666;
-					sv_prediction[sv].tracked = true;
-				}
-
-	pthread_mutex_unlock(&mInterrupt);
+		pChannels[lcv]->Unlock();
+	}
 
 	/* Update prediction if the SV is being tracked */
 //	if(already == 666)

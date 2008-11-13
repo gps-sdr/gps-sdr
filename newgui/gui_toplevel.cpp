@@ -21,6 +21,7 @@ BEGIN_EVENT_TABLE(GUI_Toplevel, wxFrame)
     EVT_TOGGLEBUTTON(ID_MAIN_B,		GUI_Toplevel::onMain)
     EVT_TOGGLEBUTTON(ID_CHANNEL_B,	GUI_Toplevel::onChannel)
     EVT_TOGGLEBUTTON(ID_SPEED_B,	GUI_Toplevel::onSpeed)
+    EVT_TOGGLEBUTTON(ID_COMMANDS_B,	GUI_Toplevel::onCommands)
     EVT_PAINT(GUI_Toplevel::paintEvent)
     EVT_CLOSE(GUI_Toplevel::onClose)
 END_EVENT_TABLE()
@@ -362,7 +363,7 @@ void GUI_Toplevel::renderRS422()
 
 	str.Printf(wxT("Synchronized Count:\t%d\n"),pSerial->message_sync);
 	tRS422->AppendText(str);
-	str.Printf(wxT("Last Message Tic:\t%d\n"),pSerial->decoded_header.tic);
+	str.Printf(wxT("Last Message Tic:\t%d\n"),pSerial->decoded_packet.tic);
 	tRS422->AppendText(str);
 	str.Printf(wxT("Failed Messages:\t%d\n"),pSerial->packet_count[LAST_M_ID]);
 	tRS422->AppendText(str);
@@ -411,7 +412,6 @@ void GUI_Toplevel::onMain(wxCommandEvent& WXUNUSED(event))
 /*----------------------------------------------------------------------------------------------*/
 
 
-
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Toplevel::onChannel(wxCommandEvent& WXUNUSED(event))
 {
@@ -432,11 +432,33 @@ void GUI_Toplevel::onChannel(wxCommandEvent& WXUNUSED(event))
 
 
 /*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onCommands(wxCommandEvent& WXUNUSED(event))
+{
+
+	if(wCommands)
+	{
+		delete wCommands;
+		wCommands = NULL;
+	}
+	else
+	{
+		wCommands = new GUI_Commands();
+		//wCommands->setPointer(&messages);
+		wCommands->Show(TRUE);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void GUI_Toplevel::onSpeed(wxCommandEvent& WXUNUSED(event))
 {
 
-//	pSerial->Lock();
-//	pSerial->SendCommand();
-//	pSerial->Unlock();
+	int32 val;
+
+	val = MAX_CHANNELS;
+
+	pSerial->formCommand(RESET_CHANNEL_C_ID, &val);
+
 }
 /*----------------------------------------------------------------------------------------------*/

@@ -54,12 +54,17 @@ class GUI_Serial
 		/* Headers for CCSDC packets */
 		CCSDS_Packet_Header  packet_header;					//!< CCSDS Packet header
 		CCSDS_Packet_Header  command_header;				//!< CCSDS Command header
-		CCSDS_Decoded_Header decoded_header;				//!< Decoded header
+		CCSDS_Decoded_Header decoded_packet;				//!< Decoded header
+		CCSDS_Decoded_Header decoded_command;				//!< Decoded header
+
 		int32 				packet_count[LAST_M_ID+1];		//!< Count the packets
 		int32				byte_count;						//!< Count the bytes
 
 		Union_C				command_body;					//!< Union for commands
 		Union_M				message_body;					//!< Union for messages
+		uint32				command_ready;					//!< Flag to indicate command needs to be sent
+		uint32				command_sent;					//!< Flag to indicate command was transmitted
+		uint32				command_ack;					//!< Flag to indicate command was executed
 
 		Message_Struct		messages;						//!< Hold all the messages
 		char buff[2048];									//!< Dump wasted data
@@ -86,9 +91,10 @@ class GUI_Serial
 
 		/* Nondefault methods */
 		void readPipe();
+		void writePipe();
 		int pipeRead(void *_b, int32 _bytes);
-
-		void SendCommand(uint32 _id, void *payload);				//!< Send a command
+		int pipeWrite(void *_b, int32 _bytes);
+		void formCommand(int32 _id, void *_p);
 
 };
 
