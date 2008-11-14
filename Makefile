@@ -20,7 +20,7 @@ LDFLAGS	 = -lpthread -lncurses -m32
 CFLAGS   = -O2 -D_FORTIFY_SOURCE=0 $(CINCPATHFLAGS)
 ASMFLAGS = -masm=intel
 
-SKIP = %main.cpp %simd-test.cpp %fft-test.cpp %acq-test.cpp %object_base.cpp %sse_new.cpp
+SKIP = %main.cpp %simd-test.cpp %fft-test.cpp %acq-test.cpp %sse_new.cpp
 SRCC = $(wildcard main/*.cpp simd/*.cpp accessories/*.cpp acquisition/*.cpp objects/*.cpp)
 SRC = $(filter-out $(SKIP), $(SRCC)) 
 OBJS = $(SRC:.cpp=.o)
@@ -33,9 +33,8 @@ HEADERS = $(wildcard accessories/*.h acquisition/*.h main/*.h objects/*.h simd/*
 #			acquisition.dis \
 #			acq_test.dis 
 
-EXE =	gps-sdr		\
-		simd-test
-			
+EXE =	gps-sdr
+
 EXTRAS= gps-gui		\
 		gps-usrp
 		

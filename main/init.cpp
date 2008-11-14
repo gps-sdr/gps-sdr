@@ -325,10 +325,6 @@ int32 Object_Init(void)
 	pthread_mutex_unlock(&mAcq);
 	int32 gAcq_high = false;
 
-	pthread_mutex_init(&mInterrupt, NULL);
-	pthread_mutex_unlock(&mInterrupt);
-	memset(gInterrupt, 0x0, MAX_CHANNELS*sizeof(uint32));
-
 	//if(gopt.verbose)
 	{
 		printf("Cleared Object Init\n");
@@ -362,7 +358,7 @@ int32 Pipes_Init(void)
 	fcntl(SV_Select_2_Telem_P[READ], F_SETFL, O_NONBLOCK);
 	pipe((int *)PVT_2_SV_Select_P);
 	fcntl(PVT_2_SV_Select_P[WRITE], F_SETFL, O_NONBLOCK);
-	fcntl(PVT_2_SV_Select_P[READ], F_SETFL, O_NONBLOCK);
+	//fcntl(PVT_2_SV_Select_P[READ], F_SETFL, O_NONBLOCK);
 
 	/* Commando pipes */
 	pipe((int *)Telem_2_Cmd_P);
@@ -399,9 +395,6 @@ int32 Thread_Init(void)
 	/* Set the global run flag to true */
 	grun = 0x1;
 
-	if(gopt.post_process)
-		pPost_Process->Start();
-
 	/* Start the keyboard thread to handle user input from stdio */
 	pKeyboard->Start();
 
@@ -413,7 +406,9 @@ int32 Thread_Init(void)
 
 	/* Start up the correlators */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	{
 		pCorrelators[lcv]->Start();
+	}
 
 	/* Start up the acquistion */
 	pAcquisition->Start();
@@ -438,6 +433,10 @@ int32 Thread_Init(void)
 		pTelemetry->Start();
 	else
 		pSerial_Telemetry->Start();
+
+	/* Do the post process */
+	if(gopt.post_process)
+		pPost_Process->Start();
 
 	return(1);
 

@@ -30,14 +30,12 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*! \ingroup CLASSES
  *
  */
-class Channel
+class Channel : public Threaded_Object
 {
 
 	friend class SV_Select;
 
 	private:
-
-		pthread_mutex_t		mutex;			//!< Protect the following variable
 
 		/* Status info */
 		/*----------------------------------------------------------------------------------------------*/
@@ -126,11 +124,9 @@ class Channel
 
 		Channel(int32 _chan);
 		~Channel();
-		void Lock(){pthread_mutex_lock(&mutex);};	//!< Lock the object's mutex
-		void Unlock(){pthread_mutex_unlock(&mutex);};//!< Unlock the object's mutex
 		void Start(int32 sv, Acq_Result_S result, int32 _corr_len);
-		void Stop();
 		void Clear();
+		void Kill();									//!< Shutdown the channel
 		void DumpAccum();								//!< Dump the accumulation and do rest of processing
 		void FrequencyLock();							//!< Use FFT to pull in the PLL
 		void PLL_W(float _bw);							//!< Change the PLL bandwidth
@@ -148,11 +144,11 @@ class Channel
 		void Export();									//!< Return NCO command to correlator
 		Channel_Health_M getPacket();
 		void Accum(Correlation_S *corr, NCO_Command_S *_feedback);	//!< Process an accumulation
-		float getCN0(){return(CN0);}
-		float getNCO(){return(carrier_nco);}
-		int32 getActive(){return(active);}
-		void setActive(int32 _active){active = _active;}
-		int32 getSV(){return(sv);}
+		float getCN0(){return(CN0);};
+		float getNCO(){return(carrier_nco);};
+		int32 getActive(){return(active);};
+		void setActive(int32 _active){active = _active;};
+		int32 getSV(){return(sv);};
 };
 
 #endif /* Channel_H */

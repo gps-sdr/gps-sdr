@@ -1,4 +1,4 @@
-/*! \file Includes.h
+/*! \file includes.h
 	Default includes for each source file in the project.
 */
 /************************************************************************************************
@@ -20,13 +20,11 @@ write to the:
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
 
-
 #ifdef GLOBALS_HERE
 	#define EXTERN /**/
 #else
 	#define EXTERN extern
 #endif
-
 
 /* Include standard headers, OS stuff */
 /*----------------------------------------------------------------------------------------------*/
@@ -67,11 +65,12 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 /* Include the "Threaded Objects" */
 /*----------------------------------------------------------------------------------------------*/
+#include "threaded_object.h"	//!< Base class for threaded object
 #include "fft.h"				//!< Fixed point FFT object
 #include "fifo.h"				//!< Circular buffer for Importing IF data
 #include "keyboard.h"			//!< Handle user input via keyboard
-#include "correlator.h"			//!< Correlator
 #include "channel.h"			//!< Tracking channels
+#include "correlator.h"			//!< Correlator
 #include "acquisition.h"		//!< Acquisition
 #include "pvt.h"				//!< PVT solution
 #include "ephemeris.h"			//!< Ephemeris decode
@@ -79,7 +78,6 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "serial_telemetry.h"	//!< Serial/GUI telemetry
 #include "commando.h"			//!< Command interface
 #include "sv_select.h"			//!< Drives acquisition/reacquisition process
-//#include "ocean.h"			//!< Ocean reflection waveforms
 #include "post_process.h"		//!< Run the receiver from a file
 /*----------------------------------------------------------------------------------------------*/
 
@@ -87,4 +85,3 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 #include "globals.h"			//!< Global variables and objects
 /*----------------------------------------------------------------------------------------------*/
-

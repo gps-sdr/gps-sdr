@@ -34,10 +34,13 @@ void *Correlator_Thread(void *_arg)
 
 	Correlator *aCorrelator = pCorrelators[*(int32 *)_arg];
 
+	aCorrelator->SetPid();
+
 	while(grun)
 	{
 		aCorrelator->Import();
 		aCorrelator->Correlate();
+		aCorrelator->IncExecTic();
 	}
 
 	pthread_exit(0);
@@ -49,42 +52,32 @@ void *Correlator_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void Correlator::Start()
 {
-	pthread_attr_t tattr;
-	sched_param param;
-	int32 ret;
-
-	/* Unitialized with default attributes */
-	ret = pthread_attr_init(&tattr);
-
-	/*Ssafe to get existing scheduling param */
-	ret = pthread_attr_getschedparam(&tattr, &param);
-
-	/* Set the priority; others are unchanged */
-	param.sched_priority = CORR_PRIORITY;
-
-	/* Setting the new scheduling param */
-	ret = pthread_attr_setschedparam(&tattr, &param);
-	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
 
 	/* With new priority specified */
-	pthread_create(&thread, NULL, Correlator_Thread, &chan);
+	//if((chan % CORR_PER_CPU) == 0)
+	{
+		Start_Thread(Correlator_Thread, &chan);
 
-	if(gopt.verbose)
-		printf("Started correlator %d\n",chan);
+		if(gopt.verbose)
+			printf("Started correlator %d\n",chan);
+	}
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
-
-/*----------------------------------------------------------------------------------------------*/
-void Correlator::Stop()
-{
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
-
-	if(gopt.verbose)
-		printf("Stopped correlator %d\n",chan);
-}
-/*----------------------------------------------------------------------------------------------*/
+//
+///*----------------------------------------------------------------------------------------------*/
+//void Correlator::Stop()
+//{
+//
+//	/* With new priority specified */
+//	//if((chan % CORR_PER_CPU) == 0)
+//	{
+//		Threaded_Object:Stop();
+//	}
+//
+//}
+///*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
@@ -92,9 +85,6 @@ Correlator::Correlator(int32 _chan)
 {
 
 	int32 lcv;
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_unlock(&mutex);
 
 	chan = _chan;
 	packet_count = 0;
@@ -168,6 +158,8 @@ void Correlator::Import()
 		{
 			InitCorrelator();
 
+			aChannel->Lock();
+
 			switch(result.type)
 			{
 				case ACQ_STRONG:
@@ -181,10 +173,7 @@ void Correlator::Import()
 					break;
 			}
 
-			/* Set correlator status to active */
-			pChannels[chan]->Lock();
-			pChannels[chan]->setActive(true);
-			pChannels[chan]->Unlock();
+			aChannel->Unlock();
 		}
 	}
 
@@ -211,6 +200,8 @@ void Correlator::Correlate()
 	Correlation_S *c;
 	CPX *if_data;
 	int32 leftover;
+
+	IncStartTic();
 
 	if(packet.measurement)
 		TakeMeasurement();
@@ -284,6 +275,8 @@ void Correlator::Correlate()
 			UpdateState(SAMPS_MS);
 		}
 	}
+
+	IncStopTic();
 
 }
 /*----------------------------------------------------------------------------------------------*/

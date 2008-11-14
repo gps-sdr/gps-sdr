@@ -40,9 +40,6 @@ Channel::Channel(int32 _chan)
 
 	pFFT = new FFT(FREQ_LOCK_POINTS);
 
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_unlock(&mutex);
-
 	Clear();
 
 }
@@ -899,19 +896,19 @@ void Channel::Error()
 
 	/* Monitor DLL */
 	if((P_avg < 2e4) && (count > 2000))
-		Stop();
+		Kill();
 
 	/* Monitor CN0 for false PLL lock */
 	if(count > 10000 && mcn0 < 17.0)
-		Stop();
+		Kill();
 
 	/* If 30 seconds have passed and channel has not converged dump it */
 	if(count > 30000 && converged == false)
-		Stop();
+		Kill();
 
 	/* The channel should be killed if the nco goes outside the pre generated wipeoff table */
 	if(fabs(carrier_nco-IF_FREQUENCY) > CARRIER_BINS*CARRIER_SPACING)
-		Stop();
+		Kill();
 
 	/* Adjust integration length based on CN0 */
 	if(count > 5000)
@@ -936,7 +933,7 @@ void Channel::Error()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Channel::Stop()
+void Channel::Kill()
 {
 	active = false;
 	Clear();

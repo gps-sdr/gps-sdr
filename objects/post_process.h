@@ -28,17 +28,10 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*! \ingroup CLASSES
  *
  */
-class Post_Process
+class Post_Process : public Threaded_Object
 {
 
 	private:
-
-		/* Default object variables */
-		uint32 				execution_tic;	//!< Execution counter
-		uint32 				start_tic;		//!< OS tic at start of function
-		uint32 				stop_tic;		//!< OS tic at end of function
-		pthread_t 			thread;			//!< For the thread
-		pthread_mutex_t		mutex;			//!< Protect the following variable
 
 		FILE 		*fp;	//!< file pointer to source GPS data
 		int32 		npipe;	//!< spoof the FIFO's named pipe
@@ -54,14 +47,8 @@ class Post_Process
 		~Post_Process();
 		void Open();
 		void Start();								//!< Start the thread
-		void Stop();								//!< Stop the thread
 		void Import();								//!< Get data into the thread
 		void Export();								//!< Get data out of the thread
-		void Lock(){pthread_mutex_lock(&mutex);};	//!< Lock the object's mutex
-		void Unlock(){pthread_mutex_unlock(&mutex);};//!< Unlock the object's mutex
-		uint32 GetExecTic(){return(execution_tic);};//!< Get the execution counter
-		uint32 GetStartTic(){return(start_tic);};	//!< Get the OS tic at start of function
-		uint32 GetStopTic(){return(execution_tic);};//!< Get the OS tic at end of function
 
 };
 

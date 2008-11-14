@@ -110,30 +110,20 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define	MAX_TASKS				(32)		//!< Max task number (used to allocate arrays)
 enum TASK_IDS
 {
-	TRACKING_ISR_TASK_ID = CPU_CORES,		//!< Bottom tasks are the correlators, which is a variable
+	CORRELATOR_TASK_ID = MAX_CHANNELS,		//!< Bottom tasks are the correlators, which is a variable
+	POST_PROCESS_TASK_ID,
+	FIFO_TASK_ID,
 	COMMANDO_TASK_ID,
 	TELEMETRY_TASK_ID,
 	SERIAL_TELEMETRY_TASK_ID,
-	FIFO_TASK_ID,
 	KEYBOARD_TASK_ID,
 	EPHEMERIS_TASK_ID,
 	SV_SELECT_TASK_ID,
+	ACQUISITION_TASK_ID,
 	PVT_TASK_ID,
 	EKF_TASK_ID,
 	LAST_TASK_ID
 };
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-#define FIFO_PRIORITY			(89)
-#define CORR_PRIORITY			(88)
-#define EPHEM_PRIORITY			(87)
-#define PVT_PRIORITY			(86)
-#define TRAK_PRIORITY			(85)
-#define ACQ_PRIORITY			(80)
-#define TELEM_PRIORITY			(82)
-#define KEY_PRIORITY			(83)
 /*----------------------------------------------------------------------------------------------*/
 
 

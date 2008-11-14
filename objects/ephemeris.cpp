@@ -28,10 +28,13 @@ void *Ephemeris_Thread(void *_arg)
 
 	Ephemeris *aEphemeris = pEphemeris;
 
+	aEphemeris->SetPid();
+
 	while(grun)
 	{
 		aEphemeris->Import();
 		aEphemeris->Export();
+		aEphemeris->IncExecTic();
 	}
 
 	pthread_exit(0);
@@ -43,41 +46,12 @@ void *Ephemeris_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void Ephemeris::Start()
 {
-	pthread_attr_t tattr;
-	pthread_t tid;
-	int32 ret;
-	sched_param param;
 
-	/* Unitialized with default attributes */
-	ret = pthread_attr_init (&tattr);
-
-	/*Ssafe to get existing scheduling param */
-	ret = pthread_attr_getschedparam (&tattr, &param);
-
-	/* Set the priority; others are unchanged */
-	param.sched_priority = EPHEM_PRIORITY;
-
-	/* Setting the new scheduling param */
-	ret = pthread_attr_setschedparam(&tattr, &param);
-	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-
-	/* With new priority specified */
-	pthread_create(&thread, NULL, Ephemeris_Thread, NULL);
+	Start_Thread(Ephemeris_Thread, NULL);
 
 	if(gopt.verbose)
 		printf("Ephemeris thread started\n");
-}
-/*----------------------------------------------------------------------------------------------*/
 
-
-/*----------------------------------------------------------------------------------------------*/
-void Ephemeris::Stop()
-{
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
-
-	if(gopt.verbose)
-		printf("Ephemeris thread stopped\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -89,9 +63,6 @@ Ephemeris::Ephemeris()
 
 	for(lcv = 0; lcv < NUM_CODES; lcv++)
 		iode_master[lcv] = 9999; //some non possible IODE value
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_unlock(&mutex);
 
 	/* Zero out sheit */
 	ClearEphemeris(NUM_CODES);
@@ -111,12 +82,8 @@ Ephemeris::Ephemeris()
 /*----------------------------------------------------------------------------------------------*/
 Ephemeris::~Ephemeris()
 {
-
-	pthread_mutex_destroy(&mutex);
-
 	if(gopt.verbose)
 		printf("Destructing Ephemeris\n");
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -224,6 +191,8 @@ void Ephemeris::Import()
 
 	read(Chan_2_Ephem_P[READ], &ephem_packet, sizeof(Chan_2_Ephem_S));
 
+	IncStartTic();
+
 	sv = ephem_packet.sv;
 	if((sv < NUM_CODES) && (sv >= 0))
 	{
@@ -309,6 +278,7 @@ void Ephemeris::Import()
 void Ephemeris::Export()
 {
 	write(Ephem_2_Telem_P[WRITE], &output_s, sizeof(Ephemeris_Status_M));
+	IncStopTic();
 }
 /*----------------------------------------------------------------------------------------------*/
 

@@ -1,5 +1,5 @@
-/*! \file Keyboard.cpp
-	Implements member functions of Keyboard class.
+/*! \file threaded_object.cpp
+	Implements member functions of threaded_object class.
 */
 /************************************************************************************************
 Copyright 2008 Gregory W Heckler
@@ -20,100 +20,40 @@ write to the:
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
 
-#include "keyboard.h"
+#include "includes.h"
 
 /*----------------------------------------------------------------------------------------------*/
-void *Keyboard_Thread(void *_arg)
+void Threaded_Object::Start_Thread(void *(*_start_routine)(void*), void *_arg)
+{
+	pthread_create(&thread, NULL, _start_routine, _arg);
+}
+/*----------------------------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------------------------*/
+void Threaded_Object::Stop()
+{
+	pthread_cancel(thread);
+	pthread_join(thread, NULL);
+}
+/*----------------------------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------------------------*/
+Threaded_Object::Threaded_Object()
 {
 
-	Keyboard *aKeyboard = pKeyboard;
-	int32 key;
-
-	aKeyboard->SetPid();
-
-	while(grun)
-	{
-
-		key = getchar();
-		printf("%c",(char)key);
-
-		if((char)key == 'Q')
-		{
-			grun = 0x0;
-		}
-
-		if((char)key == 'n') //Navigation
-		{
-			pTelemetry->Lock();
-			pTelemetry->SetDisplay(0);
-			pTelemetry->Unlock();
-		}
-
-		if((char)key == 'a') //Almanac & SV predict
-		{
-			pTelemetry->Lock();
-			pTelemetry->SetDisplay(1);
-			pTelemetry->Unlock();
-		}
-
-		if((char)key == 'h') //Acquisition history
-		{
-			pTelemetry->Lock();
-			pTelemetry->SetDisplay(2);
-			pTelemetry->Unlock();
-		}
-
-		aKeyboard->IncExecTic();
-
-	}
-
-	pthread_exit(0);
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_unlock(&mutex);
+	execution_tic = 0;
+	start_tic = 0;
+	stop_tic = 0;
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
-
 /*----------------------------------------------------------------------------------------------*/
-void Keyboard::Start()
+Threaded_Object::~Threaded_Object()
 {
-	Start_Thread(Keyboard_Thread, NULL);
-
-	if(gopt.verbose)
-		printf("Keyboard thread started\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-Keyboard::Keyboard()
-{
-	if(gopt.verbose)
-		printf("Creating Keyboard\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-Keyboard::~Keyboard()
-{
-	if(gopt.verbose)
-		printf("Destructing Keyboard\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Keyboard::Import()
-{
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Keyboard::Export()
-{
-
+	pthread_mutex_destroy(&mutex);
 }
 /*----------------------------------------------------------------------------------------------*/
 

@@ -28,12 +28,14 @@ void *SV_Select_Thread(void *_arg)
 
 	SV_Select *aSV_Select = pSV_Select;
 
+	aSV_Select->SetPid();
+
 	while(grun)
 	{
 		aSV_Select->Import();
 		aSV_Select->Acquire();
 		aSV_Select->Export();
-		usleep(100000);
+		aSV_Select->IncExecTic();
 	}
 
 	pthread_exit(0);
@@ -45,26 +47,8 @@ void *SV_Select_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void SV_Select::Start()
 {
-	pthread_attr_t tattr;
-	pthread_t tid;
-	int32 ret;
-	sched_param param;
-
-	/* Unitialized with default attributes */
-	ret = pthread_attr_init (&tattr);
-
-	/*Ssafe to get existing scheduling param */
-	ret = pthread_attr_getschedparam (&tattr, &param);
-
-	/* Set the priority; others are unchanged */
-	param.sched_priority = TRAK_PRIORITY;
-
-	/* Setting the new scheduling param */
-	ret = pthread_attr_setschedparam(&tattr, &param);
-	ret = pthread_attr_setschedpolicy(&tattr, SCHED_RR);
-
 	/* With new priority specified */
-	pthread_create(&thread, NULL, SV_Select_Thread, NULL);
+	Start_Thread(SV_Select_Thread, NULL);
 
 	if(gopt.verbose)
 		printf("SV_Select thread started\n");
@@ -73,23 +57,8 @@ void SV_Select::Start()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void SV_Select::Stop()
-{
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
-
-	if(gopt.verbose)
-		printf("SV_Select thread stopped\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-/*----------------------------------------------------------------------------------------------*/
 SV_Select::SV_Select()
 {
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_unlock(&mutex);
-
 
 	sv = 0;
 	mode = WARM_START;
@@ -120,8 +89,10 @@ void SV_Select::Import()
 	int32 bread;
 
 	/* Pend on PVT sltn */
-	read(PVT_2_SV_Select_P[WRITE], &master_nav,   sizeof(SPS_M));
-	read(PVT_2_SV_Select_P[WRITE], &master_clock, sizeof(Clock_M));
+	read(PVT_2_SV_Select_P[READ], &master_nav,   sizeof(SPS_M));
+	read(PVT_2_SV_Select_P[READ], &master_clock, sizeof(Clock_M));
+
+	IncStartTic();
 
 	/* If the PVT is less than 1 minutes old, still use it */
 	if((pnav->stale_ticks < (60*TICS_PER_SECOND)) && pnav->initial_convergence)
@@ -140,6 +111,7 @@ void SV_Select::Import()
 	}
 
 	mode = COLD_START;
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -235,6 +207,7 @@ void SV_Select::Export()
 	memcpy(&output_s.sv_history[0], &sv_history[0], NUM_CODES*sizeof(Acq_History_S));
 	write(SV_Select_2_Telem_P[WRITE], &output_s, sizeof(SV_Select_2_Telem_S));
 
+	IncStopTic();
 }
 /*----------------------------------------------------------------------------------------------*/
 

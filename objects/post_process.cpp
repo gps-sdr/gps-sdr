@@ -28,12 +28,14 @@ void *Post_Process_Thread(void *_arg)
 
 	Post_Process *aPost_Process = pPost_Process;
 
+	aPost_Process->SetPid();
 	aPost_Process->Open();
 
 	while(grun)
 	{
 		aPost_Process->Import();
 		aPost_Process->Export();
+		aPost_Process->IncExecTic();
 	}
 
 	pthread_exit(0);
@@ -45,16 +47,12 @@ void *Post_Process_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void Post_Process::Start()
 {
-	pthread_create(&thread, NULL, Post_Process_Thread, NULL);
-}
-/*----------------------------------------------------------------------------------------------*/
 
+	Start_Thread(Post_Process_Thread, NULL);
 
-/*----------------------------------------------------------------------------------------------*/
-void Post_Process::Stop()
-{
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
+	if(gopt.verbose)
+		printf("Post_Process thread started\n");
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -63,9 +61,6 @@ void Post_Process::Stop()
 Post_Process::Post_Process(char *_fname)
 {
 	int32 bytes;
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_unlock(&mutex);
 
 	buff = new CPX[310*SAMPS_MS];
 
@@ -119,6 +114,8 @@ void Post_Process::Import()
 	if(feof(fp))
 		fseek(fp, bytes, SEEK_END);
 
+	IncStartTic();
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -127,6 +124,7 @@ void Post_Process::Import()
 void Post_Process::Export()
 {
 	write(npipe, &buff[0], sizeof(CPX)*IF_SAMPS_MS);
+	IncStopTic();
 	usleep(1000);
 }
 /*----------------------------------------------------------------------------------------------*/

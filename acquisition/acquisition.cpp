@@ -28,11 +28,14 @@ void *Acquisition_Thread(void *_arg)
 
 	Acquisition *aAcquisition = pAcquisition;
 
+	aAcquisition->SetPid();
+
 	while(grun)
 	{
 		aAcquisition->Import();
 		aAcquisition->Acquire();
 		aAcquisition->Export(NULL);
+		aAcquisition->IncExecTic();
 	}
 
 	pthread_exit(0);
@@ -44,41 +47,11 @@ void *Acquisition_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void Acquisition::Start()
 {
-	pthread_attr_t tattr;
-	pthread_t tid;
-	int32 ret;
-	sched_param param;
-
-	/* Unitialized with default attributes */
-	ret = pthread_attr_init (&tattr);
-
-	/*Ssafe to get existing scheduling param */
-	ret = pthread_attr_getschedparam (&tattr, &param);
-
-	/* Set the priority; others are unchanged */
-	param.sched_priority = ACQ_PRIORITY;
-
-	/* Setting the new scheduling param */
-	ret = pthread_attr_setschedparam(&tattr, &param);
-	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-
 	/* With new priority specified */
-	pthread_create(&thread, NULL, Acquisition_Thread, NULL);
+	Start_Thread(Acquisition_Thread, NULL);
 
 	if(gopt.verbose)
 		printf("Acquisition thread started\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Acquisition::Stop()
-{
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
-
-	if(gopt.verbose)
-		printf("Acquisition thread stopped\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -624,6 +597,8 @@ void Acquisition::Acquire()
 {
 	int32 lcv;
 
+	IncStartTic();
+
 	switch(request.type)
 	{
 		case ACQ_STRONG:
@@ -642,6 +617,7 @@ void Acquisition::Acquire()
 			doAcqStrong(request.sv, request.mindopp, request.maxdopp);
 	}
 
+	IncStopTic();
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -728,21 +704,20 @@ void Acquisition::Import()
 	gAcq_high = false;
 	pthread_mutex_unlock(&mAcq);
 
-
 	ncross = 0;
 
-	pthread_mutex_lock(&mInterrupt);
-
+	/* If the SV is already being tracked skip the acquisition */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	{
+		pChannels[lcv]->Lock();
 		if(pChannels[lcv]->getActive())
 			if(pChannels[lcv]->getCN0() > 45.0)	//If the CN0 is really high
 			{
 				ncross++;
 				cross_doppler[lcv] = (int32)floor(pChannels[lcv]->getNCO() - IF_FREQUENCY);
 			}
-
-	pthread_mutex_unlock(&mInterrupt);
-
+		pChannels[lcv]->Unlock();
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/

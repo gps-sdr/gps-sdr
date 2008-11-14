@@ -28,10 +28,13 @@ void *Commando_Thread(void *_arg)
 
 	Commando *aCommando = pCommando;
 
+	aCommando->SetPid();
+
 	while(grun)
 	{
 		aCommando->Import();
 		aCommando->Export();
+		aCommando->IncExecTic();
 	}
 
 	pthread_exit(0);
@@ -39,33 +42,21 @@ void *Commando_Thread(void *_arg)
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
 /*----------------------------------------------------------------------------------------------*/
 void Commando::Start()
 {
-	pthread_create(&thread, NULL, Commando_Thread, NULL);
+	Start_Thread(Commando_Thread, NULL);
 
 	if(gopt.verbose)
 		printf("Commando thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
-/*----------------------------------------------------------------------------------------------*/
-void Commando::Stop()
-{
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
-
-	if(gopt.verbose)
-		printf("Commando thread stopped\n");
-}
-/*----------------------------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------------------------*/
 Commando::Commando()
 {
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_unlock(&mutex);
 
 	execution_tic = 0;	//!< Execution counter
 	start_tic = 0;		//!< OS tic at start of function
@@ -73,11 +64,10 @@ Commando::Commando()
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
 /*----------------------------------------------------------------------------------------------*/
 Commando::~Commando()
 {
-
-	pthread_mutex_destroy(&mutex);
 
 	if(gopt.verbose)
 		printf("Destructing Commando\n");
@@ -94,7 +84,9 @@ void Commando::Import()
 
 	bread = read(Telem_2_Cmd_P[READ], &command_header, sizeof(CCSDS_Packet_Header));//!< Read in the head
 	DecodeCCSDSPacketHeader(&decoded_header, &command_header);						//!< Decode the commmand
-	bread = read(Telem_2_Cmd_P[READ], &command_body, decoded_header.length);			//!< Read in the body
+	bread = read(Telem_2_Cmd_P[READ], &command_body, decoded_header.length);		//!< Read in the body
+
+	IncStartTic();
 
 	/* Now do something based on the command */
 	switch(decoded_header.id)
@@ -137,6 +129,8 @@ void Commando::Import()
 /*----------------------------------------------------------------------------------------------*/
 void Commando::Export()
 {
+
+	IncStopTic();
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -194,7 +188,7 @@ void Commando::Reset_Channel()
 	if((chan >= 0) && (chan < MAX_CHANNELS))
 	{
 		pChannels[chan]->Lock();
-		pChannels[chan]->setActive(false);
+		pChannels[chan]->Kill();
 		pChannels[chan]->Unlock();
 	}
 	else
@@ -202,7 +196,7 @@ void Commando::Reset_Channel()
 		for(chan = 0; chan < MAX_CHANNELS; chan++)
 		{
 			pChannels[chan]->Lock();
-			pChannels[chan]->setActive(false);
+			pChannels[chan]->Kill();
 			pChannels[chan]->Unlock();
 		}
 

@@ -28,10 +28,13 @@ void *Serial_Telemetry_Thread(void *_arg)
 
 	Serial_Telemetry *aSerial_Telemetry = pSerial_Telemetry;
 
+	aSerial_Telemetry->SetPid();
+
 	while(grun)
 	{
 		aSerial_Telemetry->Import();
 		aSerial_Telemetry->Export();
+		aSerial_Telemetry->IncExecTic();
 	}
 
 	pthread_exit(0);
@@ -43,40 +46,11 @@ void *Serial_Telemetry_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::Start()
 {
-	pthread_attr_t tattr;
-	sched_param param;
-	int32 ret;
-
-	/* Unitialized with default attributes */
-	ret = pthread_attr_init(&tattr);
-
-	/*Ssafe to get existing scheduling param */
-	ret = pthread_attr_getschedparam(&tattr, &param);
-
-	/* Set the priority; others are unchanged */
-	param.sched_priority = TELEM_PRIORITY;
-
-	/* Setting the new scheduling param */
-	ret = pthread_attr_setschedparam(&tattr, &param);
-	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-
 	/* With new priority specified */
-	pthread_create(&thread, NULL, Serial_Telemetry_Thread, NULL);
+	Start_Thread(Serial_Telemetry_Thread, NULL);
 
 	if(gopt.verbose)
 		printf("Serial_Telemetry thread started\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Serial_Telemetry::Stop()
-{
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
-
-	if(gopt.verbose)
-		printf("Serial_Telemetry thread stopped\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -109,12 +83,6 @@ Serial_Telemetry::Serial_Telemetry(int32 _serial)
 		OpenGUIPipe();
 	}
 
-
-
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_unlock(&mutex);
-
 	if(gopt.verbose)
 		printf("Creating Serial_Telemetry\n");
 
@@ -125,9 +93,6 @@ Serial_Telemetry::Serial_Telemetry(int32 _serial)
 /*----------------------------------------------------------------------------------------------*/
 Serial_Telemetry::~Serial_Telemetry()
 {
-
-	pthread_mutex_destroy(&mutex);
-
 	if(npipe_open)
 	{
 		close(npipe[READ]);
@@ -136,7 +101,6 @@ Serial_Telemetry::~Serial_Telemetry()
 
 	if(gopt.verbose)
 		printf("Destroying Serial_Telemetry\n");
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -277,10 +241,6 @@ void Serial_Telemetry::ExportGUI()
 
 	/* Get the stop of execution */
 
-
-	execution_tic++;
-
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -380,7 +340,52 @@ void Serial_Telemetry::SendBoardHealth()
 void Serial_Telemetry::SendTaskHealth()
 {
 
+	uint32 lcv;
+
 	/* Get execution counters */
+	for(lcv = 0; lcv < CORRELATOR_TASK_ID; lcv++)
+		task_health.execution_tic[lcv] 					= pCorrelators[lcv]->GetExecTic();
+	//task_health.execution_tic[POST_PROCESS_TASK_ID]  	= pPost_Process->GetExecTic();
+	task_health.execution_tic[FIFO_TASK_ID]  			= pFIFO->GetExecTic();
+	task_health.execution_tic[COMMANDO_TASK_ID]  		= pCommando->GetExecTic();
+	//task_health.execution_tic[TELEMETRY_TASK_ID]  	= pTelemetry->GetExecTic();
+	task_health.execution_tic[SERIAL_TELEMETRY_TASK_ID] = pSerial_Telemetry->GetExecTic();
+	task_health.execution_tic[KEYBOARD_TASK_ID]  		= pKeyboard->GetExecTic();
+	task_health.execution_tic[EPHEMERIS_TASK_ID]  		= pEphemeris->GetExecTic();
+	task_health.execution_tic[SV_SELECT_TASK_ID]  		= pSV_Select->GetExecTic();
+	task_health.execution_tic[ACQUISITION_TASK_ID]  	= pAcquisition->GetExecTic();
+	task_health.execution_tic[PVT_TASK_ID]  			= pPVT->GetExecTic();
+	//task_health.execution_tic[EKF_TASK_ID]  			= pEKF->GetExecTic();
+
+	/* Get execution counters */
+	for(lcv = 0; lcv < CORRELATOR_TASK_ID; lcv++)
+		task_health.start_tic[lcv] 						= pCorrelators[lcv]->GetStartTic();
+	//task_health.start_tic[POST_PROCESS_TASK_ID]  		= pPost_Process->GetStartTic();
+	task_health.start_tic[FIFO_TASK_ID]  				= pFIFO->GetStartTic();
+	task_health.start_tic[COMMANDO_TASK_ID]  			= pCommando->GetStartTic();
+	//task_health.start_tic[TELEMETRY_TASK_ID]  		= pTelemetry->GetStartTic();
+	task_health.start_tic[SERIAL_TELEMETRY_TASK_ID] 	= pSerial_Telemetry->GetStartTic();
+	task_health.start_tic[KEYBOARD_TASK_ID]  			= pKeyboard->GetStartTic();
+	task_health.start_tic[EPHEMERIS_TASK_ID]  			= pEphemeris->GetStartTic();
+	task_health.start_tic[SV_SELECT_TASK_ID]  			= pSV_Select->GetStartTic();
+	task_health.start_tic[ACQUISITION_TASK_ID]  			= pAcquisition->GetStartTic();
+	task_health.start_tic[PVT_TASK_ID]  				= pPVT->GetStartTic();
+	//task_health.start_tic[EKF_TASK_ID]  				= pEKF->GetStartTic();
+
+	/* Get execution counters */
+	for(lcv = 0; lcv < CORRELATOR_TASK_ID; lcv++)
+		task_health.stop_tic[lcv]						= pCorrelators[lcv]->GetStopTic();
+	//task_health.stop_tic[POST_PROCESS_TASK_ID]  		= pPost_Process->GetStopTic();
+	task_health.stop_tic[FIFO_TASK_ID]  				= pFIFO->GetStopTic();
+	task_health.stop_tic[COMMANDO_TASK_ID]  			= pCommando->GetStopTic();
+	//task_health.stop_tic[TELEMETRY_TASK_ID]  			= pTelemetry->GetStopTic();
+	task_health.stop_tic[SERIAL_TELEMETRY_TASK_ID]		= pSerial_Telemetry->GetStopTic();
+	task_health.stop_tic[KEYBOARD_TASK_ID]  			= pKeyboard->GetStopTic();
+	task_health.stop_tic[EPHEMERIS_TASK_ID]  			= pEphemeris->GetStopTic();
+	task_health.stop_tic[SV_SELECT_TASK_ID]  			= pSV_Select->GetStopTic();
+	task_health.stop_tic[ACQUISITION_TASK_ID]  			= pAcquisition->GetStopTic();
+	task_health.stop_tic[PVT_TASK_ID]  					= pPVT->GetStopTic();
+	//task_health.stop_tic[EKF_TASK_ID]  				= pEKF->GetStopTic();
 
 	/* Form the packet header */
 	FormCCSDSPacketHeader(&packet_header, TASK_HEALTH_M_ID, 0, sizeof(Task_Health_M), 0, packet_tic++);

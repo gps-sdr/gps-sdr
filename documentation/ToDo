@@ -9,3 +9,22 @@
 8) Implement a simple RAIM
 9) Dump ephemerides to disk to speed up the warm start mode																						COMPLETE
 10) Self calibrate the thresholds for the acquisition using a dummy PRN																			ABANDONED
+
+#Receiver ToDo
+1) # of correlator threads == CPU_CORES
+2) Task monitoring																																COMPLETE
+3) Create base object to inherit																												COMPLETE
+4) Serial comm with GUI
+
+#GUI Todo
+1) Self-sizing text in text boxes
+2) Closing sub-windows should not cause seg-fault
+3) Display task status in toplevel																												COMPLETE
+4) Ephemeris, display, save, load
+5) Almanac, display, save, load
+6) Commands, including configuration of acquisition
+	-Min/Max doppler
+	-Strong/medium/weak
+7) Acquisition status page
+8) Logging 
+9) Serial comm

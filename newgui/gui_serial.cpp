@@ -119,16 +119,7 @@ void *GUI_Serial_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Serial::Start()
 {
-	pthread_create(&thread, NULL, GUI_Serial_Thread, this);
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void GUI_Serial::Stop()
-{
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
+	Start_Thread(GUI_Serial_Thread, this);
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -153,10 +144,6 @@ GUI_Serial::GUI_Serial()
 	decoded_packet.tic = decoded_packet.id = decoded_packet.length = 0;
 	memset(&packet_count[0], 0x0, (LAST_M_ID+1)*sizeof(int));
 	memset(&messages.fifo, 0x0, sizeof(FIFO_M));
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_unlock(&mutex);
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -167,7 +154,6 @@ GUI_Serial::~GUI_Serial()
 
 	close(gpipe[READ]);
 	close(gpipe[WRITE]);
-	pthread_mutex_destroy(&mutex);
 	grun = false;
 }
 /*----------------------------------------------------------------------------------------------*/

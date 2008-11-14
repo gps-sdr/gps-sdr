@@ -261,8 +261,9 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 {
 	int32 lcv, num;
 	int16 max, *p;
-	int32 lscale;
-	int32 val;
+	int16 lscale;
+	int16 shift;
+	int16 val;
 
 	p = (int16 *)&_buff[0];
 
@@ -270,16 +271,16 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 	 * back into AGC_BITS of magnitude */
 
 	lscale = (1 << 14) / scale[0];
+	shift = 14 - bits;
+	max = 1 << bits;
+	num = 0;
 
-	max = 1 << bits; num = 0;
+	x86_muls((int16 *)_buff, &lscale, 2*_samps, shift);
+
 	for(lcv = 0; lcv < 2*_samps; lcv++)
 	{
-		val = p[lcv];
-		val *= lscale;
-		val >>= (14 - bits);
-		if(val > max)
+		if(p[lcv] > max)
 			num++;
-		p[lcv] = val;
 	}
 
 	/* Figure out the shift value */

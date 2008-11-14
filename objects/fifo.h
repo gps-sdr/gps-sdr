@@ -30,21 +30,14 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*! \ingroup CLASSES
  *
  */
-class FIFO
+class FIFO : public Threaded_Object
 {
 
 	private:
 
-		/* Default object variables */
-		uint32 				execution_tic;	//!< Execution counter
-		uint32 				start_tic;		//!< OS tic at start of function
-		uint32 				stop_tic;		//!< OS tic at end of function
-		pthread_t 			thread;			//!< For the thread
-		pthread_mutex_t		mutex;			//!< Protect the following variable
-
 		pthread_mutex_t	mutex_head;	//!< Semaphore to protect the FIFO's head
 		pthread_mutex_t	mutex_tail;	//!< Semaphore to protect the FIFO's tail
-		pthread_mutex_t	chan_mutex[MAX_CHANNELS+1];
+		pthread_mutex_t	chan_mutex[MAX_CHANNELS+1]; //!< For each correlator
 
 		CPX *if_buff;		//!< Get the data from the named pipe
 		ms_packet *buff;	//!< 1 second buffer (in 1 ms packets)
@@ -64,14 +57,8 @@ class FIFO
 		FIFO();				//!< Create circular FIFO
 		~FIFO();			//!< Destroy circular FIFO
 		void Start();								//!< Start the thread
-		void Stop();								//!< Stop the thread
 		void Import();								//!< Get data into the thread
 		void Export();								//!< Get data out of the thread
-		void Lock(){pthread_mutex_lock(&mutex);};	//!< Lock the object's mutex
-		void Unlock(){pthread_mutex_unlock(&mutex);};//!< Unlock the object's mutex
-		uint32 GetExecTic(){return(execution_tic);};//!< Get the execution counter
-		uint32 GetStartTic(){return(start_tic);};	//!< Get the Nucleus tic at start of function
-		uint32 GetStopTic(){return(execution_tic);};//!< Get the Nucleus tic at end of function
 
 		void Open();
 		void Enqueue();

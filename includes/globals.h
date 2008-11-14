@@ -23,8 +23,6 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
-#include "includes.h"
-
 #ifdef GLOBALS_HERE
 	#define EXTERN
 #else

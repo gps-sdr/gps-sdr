@@ -67,6 +67,7 @@ void  sse_max(int32 *_A, int32 *_index, int32 *_magt, int32 _cnt) __attribute__ 
 void  x86_add(int16 *A, int16 *B, int32 cnt);	//!< Pointwise vector addition
 void  x86_sub(int16 *A, int16 *B, int32 cnt);	//!< Pointwise vector difference
 void  x86_mul(int16 *A, int16 *B, int32 cnt);	//!< Pointwise vector multiply
+void  x86_muls(int16 *A, int16 *B, int32 cnt, int32 shift);	//!< Pointwise vector multiply
 int32 x86_dot(int16 *A, int16 *B, int32 cnt);	//!< Compute vector dot product
 
 void  x86_conj(CPX *A, int32 cnt);											//!< Pointwise vector conjugate

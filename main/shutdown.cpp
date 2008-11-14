@@ -116,7 +116,6 @@ void Object_Shutdown(void)
 	int32 lcv;
 
 	pthread_mutex_destroy(&mAcq);
-	pthread_mutex_destroy(&mInterrupt);
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		delete pCorrelators[lcv];

@@ -32,7 +32,7 @@ GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS-SDR"), wxDef
 {
 
     timer = new wxTimer(this, ID_TIMER);
-    timer->Start(50, wxTIMER_CONTINUOUS); //Shoot for 20 fps
+    timer->Start(75, wxTIMER_CONTINUOUS); //Shoot for 20 fps
 
     wDefault = NULL;
 
@@ -387,6 +387,42 @@ void GUI_Toplevel::renderRS422()
 void GUI_Toplevel::renderTask()
 {
 
+	Task_Health_M *pTask;
+
+	tTask->Clear();
+	wxString str;
+
+	pTask = &messages.task_health;
+
+		 str = wxT("Task            Execution Tic   Start Tic    Stop Tic\n");
+	tTask->AppendText(str);
+	     str = wxT("-----------------------------------------------------\n");
+	tTask->AppendText(str);
+
+	str.Printf(wxT("FIFO               %10d  %10d  %10d\n"),
+			pTask->execution_tic[FIFO_TASK_ID],pTask->start_tic[FIFO_TASK_ID],pTask->stop_tic[FIFO_TASK_ID]);
+	tTask->AppendText(str);
+	str.Printf(wxT("COMMANDO           %10d  %10d  %10d\n"),
+			pTask->execution_tic[COMMANDO_TASK_ID],pTask->start_tic[COMMANDO_TASK_ID],pTask->stop_tic[COMMANDO_TASK_ID]);
+	tTask->AppendText(str);
+	str.Printf(wxT("TELEMETRY          %10d  %10d  %10d\n"),
+			pTask->execution_tic[SERIAL_TELEMETRY_TASK_ID],pTask->start_tic[SERIAL_TELEMETRY_TASK_ID],pTask->stop_tic[SERIAL_TELEMETRY_TASK_ID]);
+		tTask->AppendText(str);
+	str.Printf(wxT("KEYBOARD           %10d  %10d  %10d\n"),
+			pTask->execution_tic[KEYBOARD_TASK_ID],pTask->start_tic[KEYBOARD_TASK_ID],pTask->stop_tic[KEYBOARD_TASK_ID]);
+	tTask->AppendText(str);
+	str.Printf(wxT("EPHEMERIS          %10d  %10d  %10d\n"),
+			pTask->execution_tic[EPHEMERIS_TASK_ID],pTask->start_tic[EPHEMERIS_TASK_ID],pTask->stop_tic[EPHEMERIS_TASK_ID]);
+	tTask->AppendText(str);
+	str.Printf(wxT("SV_SELECT          %10d  %10d  %10d\n"),
+			pTask->execution_tic[SV_SELECT_TASK_ID],pTask->start_tic[SV_SELECT_TASK_ID],pTask->stop_tic[SV_SELECT_TASK_ID]);
+	tTask->AppendText(str);
+	str.Printf(wxT("ACQUISITION        %10d  %10d  %10d\n"),
+			pTask->execution_tic[ACQUISITION_TASK_ID],pTask->start_tic[ACQUISITION_TASK_ID],pTask->stop_tic[ACQUISITION_TASK_ID]);
+	tTask->AppendText(str);
+	str.Printf(wxT("PVT                %10d  %10d  %10d\n"),
+			pTask->execution_tic[PVT_TASK_ID],pTask->start_tic[PVT_TASK_ID],pTask->stop_tic[PVT_TASK_ID]);
+	tTask->AppendText(str);
 
 }
 /*----------------------------------------------------------------------------------------------*/

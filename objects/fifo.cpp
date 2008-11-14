@@ -28,11 +28,13 @@ void *FIFO_Thread(void *_arg)
 
 	FIFO *aFIFO = pFIFO;
 
+	aFIFO->SetPid();
 	aFIFO->Open();
 
 	while(grun)
 	{
 		aFIFO->Import();
+		aFIFO->IncExecTic();
 	}
 
 	pthread_exit(0);
@@ -45,38 +47,10 @@ void *FIFO_Thread(void *_arg)
 void FIFO::Start()
 {
 
-	pthread_attr_t tattr;
-	pthread_t tid;
-	int32 ret;
-	sched_param param;
-
-	/* Unitialized with default attributes */
-	ret = pthread_attr_init(&tattr);
-
-	/*Ssafe to get existing scheduling param */
-	ret = pthread_attr_getschedparam(&tattr, &param);
-
-	/* Set the priority; others are unchanged */
-	param.sched_priority = FIFO_PRIORITY;
-	ret = pthread_attr_setschedparam (&tattr, &param);
-	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-
-	pthread_create(&thread, NULL, FIFO_Thread, NULL);
+	Start_Thread(FIFO_Thread, NULL);
 
 	if(gopt.verbose)
 		printf("FIFO thread started\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void FIFO::Stop()
-{
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
-
-	if(gopt.verbose)
-		printf("FIFO thread stopped\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -120,9 +94,6 @@ FIFO::FIFO()
 	//agc_scale = 1 << AGC_BITS;
 	agc_scale = 2048;
 
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_unlock(&mutex);
-
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		pthread_mutex_init(&chan_mutex[lcv], NULL);
@@ -140,8 +111,6 @@ FIFO::FIFO()
 FIFO::~FIFO()
 {
 	int32 lcv;
-
-	pthread_mutex_destroy(&mutex);
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -188,20 +157,24 @@ void FIFO::Import()
 			nbytes += bread;
 	}
 
+	IncStartTic();
+
 	/* Add to the buff */
-//	if(count == 0)
-//	{
-//		init_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
-//	}
-//	else if(count < 1000)
-//	{
-//		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
-//	}
-	//else
+	if(count == 0)
+	{
+		init_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
+	}
+	else if(count < 1000)
+	{
+		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
+	}
+	else
 	{
 		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
 		Enqueue();
 	}
+
+	IncStopTic();
 
 	/* Resample? */
 	count++;

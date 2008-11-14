@@ -29,6 +29,8 @@ void *PVT_Thread(void *_arg)
 	PVT *aPVT = pPVT;
 	int32 key;
 
+	aPVT->SetPid();
+
 	while(grun)
 	{
 		aPVT->Import();
@@ -36,6 +38,7 @@ void *PVT_Thread(void *_arg)
 		aPVT->Navigate();
 		aPVT->Export();
 		aPVT->Unlock();
+		aPVT->IncExecTic();
 	}
 
 	pthread_exit(0);
@@ -47,44 +50,11 @@ void *PVT_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void PVT::Start()
 {
-	pthread_attr_t tattr;
-	pthread_t tid;
-	int32 ret;
-	sched_param param;
 
-	/* Unitialized with default attributes */
-	ret = pthread_attr_init (&tattr);
-
-	/*Ssafe to get existing scheduling param */
-	ret = pthread_attr_getschedparam (&tattr, &param);
-
-	/* Set the priority; others are unchanged */
-	param.sched_priority = PVT_PRIORITY;
-
-	/* Setting the new scheduling param */
-	ret = pthread_attr_setschedparam(&tattr, &param);
-	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-
-	/* With new priority specified */
-	pthread_create(&thread, NULL, PVT_Thread, NULL);
+	Start_Thread(PVT_Thread, NULL);
 
 	if(gopt.verbose)
 		printf("PVT thread started\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void PVT::Stop()
-{
-
-	WritePVT();
-
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
-
-	if(gopt.verbose)
-		printf("PVT thread stopped\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -106,9 +76,6 @@ PVT::PVT(int32 _mode)
 		master_nav.stale_ticks = 360*TICS_PER_SECOND;
 	}
 
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_unlock(&mutex);
-
 	if(gopt.verbose)
 		printf("Creating PVT\n");
 
@@ -120,8 +87,7 @@ PVT::PVT(int32 _mode)
 PVT::~PVT()
 {
 
-
-	pthread_mutex_destroy(&mutex);
+	WritePVT();
 
 	if(gopt.verbose)
 		printf("Destructing PVT\n");
@@ -142,6 +108,8 @@ void PVT::Import()
 
 	/* Get number of channels coming off the pipe */
 	read(FIFO_2_PVT_P[READ], &telem, sizeof(FIFO_M));
+
+	IncStartTic();
 
 	master_nav.nav_channels = 0;
 
@@ -235,6 +203,8 @@ void PVT::Export()
 	/* Dump to SV Select */
 	write(PVT_2_SV_Select_P[WRITE], &master_nav,   sizeof(SPS_M));
 	write(PVT_2_SV_Select_P[WRITE], &master_clock, sizeof(Clock_M));
+
+	IncStopTic();
 
 }
 /*----------------------------------------------------------------------------------------------*/

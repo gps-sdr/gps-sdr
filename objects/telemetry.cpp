@@ -28,12 +28,14 @@ void *Telemetry_Thread(void *_arg)
 
 	Telemetry *aTelemetry = pTelemetry;
 
+	aTelemetry->SetPid();
 	aTelemetry->InitScreen();
 
 	while(grun)
 	{
 		aTelemetry->Import();
 		aTelemetry->Export();
+		aTelemetry->IncExecTic();
 	}
 
 	pthread_exit(0);
@@ -45,40 +47,11 @@ void *Telemetry_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::Start()
 {
-	pthread_attr_t tattr;
-	sched_param param;
-	int32 ret;
-
-	/* Unitialized with default attributes */
-	ret = pthread_attr_init(&tattr);
-
-	/*Ssafe to get existing scheduling param */
-	ret = pthread_attr_getschedparam(&tattr, &param);
-
-	/* Set the priority; others are unchanged */
-	param.sched_priority = TELEM_PRIORITY;
-
-	/* Setting the new scheduling param */
-	ret = pthread_attr_setschedparam(&tattr, &param);
-	ret = pthread_attr_setschedpolicy(&tattr, SCHED_FIFO);
-
 	/* With new priority specified */
-	pthread_create(&thread, NULL, Telemetry_Thread, NULL);
+	Start_Thread(Telemetry_Thread, NULL);
 
 	if(gopt.verbose)
 		printf("Telemetry thread started\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Telemetry::Stop()
-{
-	pthread_cancel(thread);
-	pthread_join(thread, NULL);
-
-	if(gopt.verbose)
-		printf("Telemetry thread stopped\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -107,9 +80,6 @@ Telemetry::Telemetry()
 		GoogleEarthHeader();
 	}
 
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_unlock(&mutex);
-
 	if(gopt.verbose)
 		printf("Creating Telemetry\n");
 
@@ -137,8 +107,6 @@ Telemetry::~Telemetry()
 
 	EndScreen();
 
-	pthread_mutex_destroy(&mutex);
-
 	if(gopt.verbose)
 		printf("Destroying Telemetry\n");
 
@@ -154,11 +122,13 @@ void Telemetry::Import()
 
 	read(FIFO_2_Telem_P[READ], &tFIFO, sizeof(FIFO_M));
 
+	IncStartTic();
+
 	/* Lock correlator status */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		pChannels[lcv]->Lock();
-s		if(pChannels[lcv]->getActive())
+		if(pChannels[lcv]->getActive())
 		{
 			tChan[lcv] = pChannels[lcv]->getPacket();
 			active[lcv] = 1;
@@ -208,6 +178,8 @@ void Telemetry::Export()
 	{
 		LogGoogleEarth();
 	}
+
+	IncStopTic();
 
 }
 /*----------------------------------------------------------------------------------------------*/

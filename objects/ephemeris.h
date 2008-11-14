@@ -17,24 +17,17 @@ write to the:
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
 
-#ifndef EPHEMERIS_H
-#define EPHEMERIS_H
+#ifndef EPHEMERIS_H_
+#define EPHEMERIS_H_
 
 #include "includes.h"
 
 /*! \ingroup CLASSES
  *
  */
-class Ephemeris
+class Ephemeris : public Threaded_Object
 {
 	private:
-
-		/* Default object variables */
-		uint32 				execution_tic;	//!< Execution counter
-		uint32 				start_tic;		//!< OS tic at start of function
-		uint32 				stop_tic;		//!< OS tic at end of function
-		pthread_t 			thread;			//!< For the thread
-		pthread_mutex_t		mutex;			//!< Protect the following variable
 
 		Ephemeris_M			ephemerides[NUM_CODES];			//!< The decoded ephemerides
 		Ephem_Data_S		ephem_data[NUM_CODES];			//!< Raw binary data
@@ -48,16 +41,9 @@ class Ephemeris
 
 		Ephemeris();
 		~Ephemeris();
-		void Import();								//!< Read data from channels
-		void Export();								//!< Send stuff to the telemetry thread
-		void Start();								//!< Start the thread
-		void Stop();								//!< Stop the thread
-		void Lock(){pthread_mutex_lock(&mutex);};	//!< Lock the object's mutex
-		void Unlock(){pthread_mutex_unlock(&mutex);};//!< Unlock the object's mutex
-		uint32 GetExecTic(){return(execution_tic);};//!< Get the execution counter
-		uint32 GetStartTic(){return(start_tic);};	//!< Get the Nucleus tic at start of function
-		uint32 GetStopTic(){return(execution_tic);};//!< Get the Nucleus tic at end of function
-
+		void Import();							//!< Read data from channels
+		void Export();							//!< Send stuff to the telemetry thread
+		void Start();							//!< Start the thread
 		void Parse(int32 _sv);					//!< Parse data message into decimal values
 		void ParsePage(int32 _sv_id);			//!< Parse almanac page
 		void ClearEphemeris(int32 _sv);			//!< Dump an ephemeris
