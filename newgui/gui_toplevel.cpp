@@ -22,6 +22,8 @@ BEGIN_EVENT_TABLE(GUI_Toplevel, wxFrame)
     EVT_TOGGLEBUTTON(ID_CHANNEL_B,	GUI_Toplevel::onChannel)
     EVT_TOGGLEBUTTON(ID_SPEED_B,	GUI_Toplevel::onSpeed)
     EVT_TOGGLEBUTTON(ID_COMMANDS_B,	GUI_Toplevel::onCommands)
+    EVT_TOGGLEBUTTON(ID_ALMANAC_B,	GUI_Toplevel::onAlmanac)
+    EVT_TOGGLEBUTTON(ID_EPHEMERIS_B,GUI_Toplevel::onEphemeris)
     EVT_PAINT(GUI_Toplevel::paintEvent)
     EVT_CLOSE(GUI_Toplevel::onClose)
 END_EVENT_TABLE()
@@ -481,6 +483,44 @@ void GUI_Toplevel::onCommands(wxCommandEvent& WXUNUSED(event))
 		wCommands = new GUI_Commands();
 		//wCommands->setPointer(&messages);
 		wCommands->Show(TRUE);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onAlmanac(wxCommandEvent& WXUNUSED(event))
+{
+
+	if(wAlmanac)
+	{
+		delete wAlmanac;
+		wAlmanac = NULL;
+	}
+	else
+	{
+		wAlmanac = new GUI_Almanac();
+		//wAlmanac->setPointer(&messages);
+		wAlmanac->Show(TRUE);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onEphemeris(wxCommandEvent& WXUNUSED(event))
+{
+
+	if(wEphemeris)
+	{
+		delete wEphemeris;
+		wEphemeris = NULL;
+	}
+	else
+	{
+		wEphemeris = new GUI_Ephemeris();
+		//wEphemeris->setPointer(&messages);
+		wEphemeris->Show(TRUE);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/

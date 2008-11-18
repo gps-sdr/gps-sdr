@@ -27,6 +27,7 @@
 #include <wx/panel.h>
 #include <wx/button.h>
 #include <wx/choice.h>
+#include <wx/stattext.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -49,6 +50,10 @@
 #define ID_RESET_CHANNEL 1016
 #define ID_RESET_EPHEMERIS 1017
 #define ID_RESET_ALMANAC 1018
+#define ID_EPHEMERIS_SAVE 1019
+#define ID_EPHEMERIS_LOAD 1020
+#define ID_ALMANAC_SAVE 1021
+#define ID_ALMANAC_LOAD 1022
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Toplevel
@@ -142,6 +147,48 @@ class iGUI_Commands : public wxFrame
 	public:
 		iGUI_Commands( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Commands"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Commands();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class iGUI_Ephemeris
+///////////////////////////////////////////////////////////////////////////////
+class iGUI_Ephemeris : public wxFrame 
+{
+	private:
+	
+	protected:
+		wxStaticText* m_staticText4;
+		wxChoice* mSV;
+		wxButton* bSave;
+		wxButton* bLoad;
+		wxPanel* pDecoded;
+		wxTextCtrl* tDisplay;
+	
+	public:
+		iGUI_Ephemeris( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Ephemeris"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~iGUI_Ephemeris();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class iGUI_Almanac
+///////////////////////////////////////////////////////////////////////////////
+class iGUI_Almanac : public wxFrame 
+{
+	private:
+	
+	protected:
+		wxStaticText* m_staticText4;
+		wxChoice* mSV;
+		wxButton* bSave;
+		wxButton* bLoad;
+		wxPanel* pDecoded;
+		wxTextCtrl* tDisplay;
+	
+	public:
+		iGUI_Almanac( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Almanac"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~iGUI_Almanac();
 	
 };
 
