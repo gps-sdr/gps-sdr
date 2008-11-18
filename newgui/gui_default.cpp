@@ -9,40 +9,15 @@
 
 DECLARE_APP(GUI_App)
 
+/*----------------------------------------------------------------------------------------------*/
+BEGIN_EVENT_TABLE(GUI_Default, wxFrame)
+    EVT_CLOSE(GUI_Default::onClose)
+END_EVENT_TABLE()
+/*----------------------------------------------------------------------------------------------*/
+
 GUI_Default::GUI_Default():iGUI_Default(NULL, wxID_ANY, wxT("Main"), wxDefaultPosition, wxSize(980,600), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL)
 {
 
-	int lcv;
-
-//	gCN0[0] = g1;
-//	gCN0[1] = g2;
-//	gCN0[2] = g3;
-//	gCN0[3] = g4;
-//	gCN0[4] = g5;
-//	gCN0[5] = g6;
-//	gCN0[6] = g7;
-//	gCN0[7] = g8;
-//	gCN0[8] = g9;
-//	gCN0[9] = g10;
-//	gCN0[10] = g11;
-//	gCN0[11] = g12;
-//	tCN0[0] = t1;
-//	tCN0[1] = t2;
-//	tCN0[2] = t3;
-//	tCN0[3] = t4;
-//	tCN0[4] = t5;
-//	tCN0[5] = t6;
-//	tCN0[6] = t7;
-//	tCN0[7] = t8;
-//	tCN0[8] = t9;
-//	tCN0[9] = t10;
-//	tCN0[10] = t11;
-//	tCN0[11] = t12;
-
-//	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-//	{
-//		gCN0[lcv]->SetRange(1000);
-//	}
 
 }
 
@@ -50,11 +25,6 @@ GUI_Default::~GUI_Default()
 {
 
 
-}
-
-void GUI_Default::setPointer(Message_Struct *_p)
-{
-	p = _p;
 }
 
 void GUI_Default::paintNow()
@@ -142,7 +112,8 @@ void GUI_Default::renderCN0()
     dX = (1000-150)/MAX_CHANNELS;
     dX *= scaleX;
 
-    dc.DrawText(wxT("SV#"),mX-500*scaleX, h - 30*scaleY);
+    dc.DrawText(wxT("CH#"),mX-500*scaleX, h - 30*scaleY);
+    dc.DrawText(wxT("SV#"),mX-500*scaleX, h - 60*scaleY);
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -150,7 +121,7 @@ void GUI_Default::renderCN0()
 		if(pchan->count > 2000.0)
 		{
 			str.Printf(wxT("%02d"),(int)pchan->sv+1);
-			dc.DrawText(str, lcv*dX + 150*scaleX, h - 30*scaleY);
+			dc.DrawText(str, lcv*dX + 150*scaleX, h - 60*scaleY);
 
 			dY = pchan->CN0 - 40.0;
 			dY /= 40.0;
@@ -179,9 +150,11 @@ void GUI_Default::renderCN0()
 		}
 		else
 		{
-			dc.DrawText(wxT("__"), lcv*dX + 150*scaleX, h - 30*scaleY);
+			dc.DrawText(wxT("__"), lcv*dX + 150*scaleX, h - 60*scaleY);
 		}
 
+		str.Printf(wxT("%02d"),lcv);
+		dc.DrawText(str, lcv*dX + 150*scaleX, h - 30*scaleY);
 
 	}
 

@@ -30,8 +30,10 @@ class GUI_Default: public iGUI_Default
 		void renderCN0();
 		void renderSkyPlot();
 		void renderPVT();
-		void setPointer(Message_Struct *_p);
+		void setPointer(Message_Struct *_p){p = _p;};
+		void onClose(wxCloseEvent& evt){evt.Veto();};
 
+		DECLARE_EVENT_TABLE()
 };
 /*----------------------------------------------------------------------------------------------*/
 

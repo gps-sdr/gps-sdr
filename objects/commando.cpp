@@ -212,6 +212,7 @@ void Commando::Reset_Ephemeris()
 
 	pEphemeris->Lock();
 	pEphemeris->ClearEphemeris(command_body.reset_ephemeris.sv);
+	pEphemeris->Export();
 	pEphemeris->Unlock();
 
 	Send_Ack();
@@ -225,6 +226,7 @@ void Commando::Reset_Almanac()
 
 	pEphemeris->Lock();
 	pEphemeris->ClearAlmanac(command_body.reset_almanac.sv);
+	pEphemeris->Export();
 	pEphemeris->Unlock();
 
 	Send_Ack();
@@ -254,8 +256,40 @@ void Commando::Get_Pseudorange()
 /*----------------------------------------------------------------------------------------------*/
 void Commando::Get_Ephemeris()
 {
+	int32 lcv;
 
+	/* Get the ephemeris */
+	if((command_body.get_ephemeris.sv >=0) && (command_body.get_ephemeris.sv < NUM_CODES))
+	{
+		pEphemeris->Lock();
+		message_buff.ephemeris = pEphemeris->getEphemeris(command_body.get_ephemeris.sv);
+		pEphemeris->Unlock();
 
+		Send_Ack();
+
+		/* Form the packet header */
+		FormCCSDSPacketHeader(&packet_header, EPHEMERIS_M_ID, 0, sizeof(Ephemeris_M), 0, command_tic++);
+
+		/* Emit the packet */
+		EmitCCSDSPacket((void *)&message_buff, sizeof(Ephemeris_M));
+	}
+	else
+	{
+		for(lcv = 0; lcv < NUM_CODES; lcv++)
+		{
+			pEphemeris->Lock();
+			message_buff.ephemeris = pEphemeris->getEphemeris(lcv);
+			pEphemeris->Unlock();
+
+			/* Form the packet header */
+			FormCCSDSPacketHeader(&packet_header, EPHEMERIS_M_ID, 0, sizeof(Ephemeris_M), 0, command_tic++);
+
+			/* Emit the packet */
+			EmitCCSDSPacket((void *)&message_buff, sizeof(Ephemeris_M));
+		}
+
+		Send_Ack();
+	}
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -264,6 +298,56 @@ void Commando::Get_Ephemeris()
 void Commando::Get_Alamanc()
 {
 
+	int32 lcv;
+
+	/* Get the ephemeris */
+	if((command_body.get_almanac.sv >=0) && (command_body.get_almanac.sv < NUM_CODES))
+	{
+		pEphemeris->Lock();
+		message_buff.almanac = pEphemeris->getAlmanac(command_body.get_almanac.sv);
+		pEphemeris->Unlock();
+
+		/* Form the packet header */
+		FormCCSDSPacketHeader(&packet_header, ALMANAC_M_ID, 0, sizeof(Almanac_M), 0, command_tic++);
+
+		/* Emit the packet */
+		EmitCCSDSPacket((void *)&message_buff, sizeof(Almanac_M));
+
+		Send_Ack();
+	}
+	else
+	{
+		for(lcv = 0; lcv < NUM_CODES; lcv++)
+		{
+			pEphemeris->Lock();
+			message_buff.almanac = pEphemeris->getAlmanac(lcv);
+			pEphemeris->Unlock();
+
+			/* Form the packet header */
+			FormCCSDSPacketHeader(&packet_header, ALMANAC_M_ID, 0, sizeof(Almanac_M), 0, command_tic++);
+
+			/* Emit the packet */
+			EmitCCSDSPacket((void *)&message_buff, sizeof(Almanac_M));
+		}
+
+		Send_Ack();
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Commando::EmitCCSDSPacket(void *_buff, uint32 _len)
+{
+
+	uint32 preamble = 0xAAAAAAAA;
+
+
+	/* Dump to the telemetry */
+	write(Cmd_2_Telem_P[WRITE], &preamble, sizeof(uint32));
+	write(Cmd_2_Telem_P[WRITE], &packet_header, sizeof(CCSDS_Packet_Header));
+	write(Cmd_2_Telem_P[WRITE], _buff, _len);
 
 }
 /*----------------------------------------------------------------------------------------------*/

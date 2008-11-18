@@ -277,6 +277,16 @@ void Ephemeris::Import()
 /*----------------------------------------------------------------------------------------------*/
 void Ephemeris::Export()
 {
+
+	int32 lcv;
+
+	for(lcv = 0; lcv < NUM_CODES; lcv++)
+	{
+		output_s.valid[lcv] = ephemerides[lcv].valid;
+		output_s.iode[lcv] = iode_master[lcv];
+		output_s.avalid[lcv] = almanacs[lcv].decoded;
+	}
+
 	write(Ephem_2_Telem_P[WRITE], &output_s, sizeof(Ephemeris_Status_M));
 	IncStopTic();
 }
@@ -301,7 +311,6 @@ void Ephemeris::ClearEphemeris(int32 _sv)
 
 		memset(&ephemerides[0], 0x0, NUM_CODES*sizeof(Ephemeris_M));
 		memset(&ephem_data[0], 0x0, NUM_CODES*sizeof(Ephem_Data_S));
-
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -337,6 +346,7 @@ void Ephemeris::ParsePage(int32 _sv_id)
 		if(almanacs[_sv_id].decoded == false)
 		{
 
+			almanacs[_sv_id].sv			= _sv_id;
 			almanacs[_sv_id].ecc		=	(double) TWO_N21 * (double)( (almanac_data[_sv_id].page[2] >> 6)  & 0x0000FFFF );
 			almanacs[_sv_id].toa		=	(double) TWO_P12 * (double)(	(almanac_data[_sv_id].page[3] >> 22) & 0x000000FF );
 			almanacs[_sv_id].sqrta		=	(double) TWO_N11 * (double)( (almanac_data[_sv_id].page[5] >> 6)  & 0x00FFFFFF );
@@ -462,6 +472,7 @@ void Ephemeris::ReadAlmanac()
 			p = &almanacs[prn-1];
 			p->decoded = true;
 			output_s.avalid[prn-1] = true;
+			p->sv = prn-1;
 			fscanf(fp,"ID:                         %02d\n",&prn);
 			fscanf(fp,"Health:                     %03d\n",&p->health);
 			fscanf(fp,"Eccentricity:               %lE\n",&p->ecc);

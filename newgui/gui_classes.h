@@ -50,10 +50,12 @@
 #define ID_RESET_CHANNEL 1016
 #define ID_RESET_EPHEMERIS 1017
 #define ID_RESET_ALMANAC 1018
-#define ID_EPHEMERIS_SAVE 1019
-#define ID_EPHEMERIS_LOAD 1020
-#define ID_ALMANAC_SAVE 1021
-#define ID_ALMANAC_LOAD 1022
+#define ID_EPHEMERIS_SV 1019
+#define ID_EPHEMERIS_SAVE 1020
+#define ID_EPHEMERIS_LOAD 1021
+#define ID_ALMANAC_SV 1022
+#define ID_ALMANAC_SAVE 1023
+#define ID_ALMANAC_LOAD 1024
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Toplevel
@@ -83,7 +85,7 @@ class iGUI_Toplevel : public wxFrame
 		wxStatusBar* mStatus;
 	
 	public:
-		iGUI_Toplevel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("GPS-SDR"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL, const wxString& name = wxT("GPS-SDR") );
+		iGUI_Toplevel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("GPS-SDR"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL, const wxString& name = wxT("GPS-SDR") );
 		~iGUI_Toplevel();
 	
 };

@@ -172,21 +172,23 @@ void Serial_Telemetry::Import()
 void Serial_Telemetry::Export()
 {
 
-	if(serial)
+	if(execution_tic % gopt.log_decimate == 0)
 	{
-		if(serial_open)
-			ExportSerial();
+		if(serial)
+		{
+			if(serial_open)
+				ExportSerial();
+			else
+				OpenSerial();
+		}
 		else
-			OpenSerial();
+		{
+			if(npipe_open)
+				ExportGUI();
+			else
+				OpenGUIPipe();
+		}
 	}
-	else
-	{
-		if(npipe_open)
-			ExportGUI();
-		else
-			OpenGUIPipe();
-	}
-
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -223,6 +225,7 @@ void Serial_Telemetry::ExportGUI()
 	SendSVPosition();
 	SendSPS();
 	SendClock();
+	SendEphemerisStatus();
 
 	/* See if there is any new GEONS data */
 
@@ -477,6 +480,19 @@ void Serial_Telemetry::SendSVPosition()
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Serial_Telemetry::SendEphemerisStatus()
+{
+	/* Form the packet */
+	FormCCSDSPacketHeader(&packet_header, EPHEMERIS_VALID_M_ID, 0, sizeof(Ephemeris_Status_M), 0, packet_tic++);
+
+	/* Emit the packet */
+	EmitCCSDSPacket((void *)&ephemeris_status, sizeof(Ephemeris_Status_M));
+}
+/*----------------------------------------------------------------------------------------------*/
+
 
 
 /*----------------------------------------------------------------------------------------------*/

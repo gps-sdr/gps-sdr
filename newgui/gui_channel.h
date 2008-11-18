@@ -29,6 +29,9 @@ class GUI_Channel: public iGUI_Channel
 		void paintNow();
 		void renderChannel();
 		void setPointer(Message_Struct *_p);
+		void onClose(wxCloseEvent& evt){evt.Veto();};
+
+		DECLARE_EVENT_TABLE()
 
 };
 /*----------------------------------------------------------------------------------------------*/

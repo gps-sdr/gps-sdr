@@ -240,7 +240,7 @@ iGUI_Commands::iGUI_Commands( wxWindow* parent, wxWindowID id, const wxString& t
 	
 	bSizer18->Add( bReset_Channel, 0, wxALL, 5 );
 	
-	wxString mReset_ChannelChoices[] = { wxT("All"), wxT("01"), wxT("02"), wxT("03"), wxT("04"), wxT("05"), wxT("06"), wxT("07"), wxT("08"), wxT("09"), wxT("10"), wxT("11") };
+	wxString mReset_ChannelChoices[] = { wxT("All"), wxT("00"), wxT("01"), wxT("02"), wxT("03"), wxT("04"), wxT("05"), wxT("06"), wxT("07"), wxT("08"), wxT("09"), wxT("10"), wxT("11") };
 	int mReset_ChannelNChoices = sizeof( mReset_ChannelChoices ) / sizeof( wxString );
 	mReset_Channel = new wxChoice( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, mReset_ChannelNChoices, mReset_ChannelChoices, 0 );
 	mReset_Channel->SetSelection( 0 );
@@ -281,6 +281,8 @@ iGUI_Commands::iGUI_Commands( wxWindow* parent, wxWindowID id, const wxString& t
 	bSizer11->Add( bSizer20, 0, 0, 5 );
 	
 	tCommand_Ack = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tCommand_Ack->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	
 	bSizer11->Add( tCommand_Ack, 1, wxALL|wxEXPAND, 5 );
 	
 	this->SetSizer( bSizer11 );
@@ -310,9 +312,9 @@ iGUI_Ephemeris::iGUI_Ephemeris( wxWindow* parent, wxWindowID id, const wxString&
 	m_staticText4->Wrap( -1 );
 	bSizer21->Add( m_staticText4, 0, wxALIGN_CENTER|wxALL, 5 );
 	
-	wxString mSVChoices[] = { wxT("01"), wxT("02"), wxT("03"), wxT("04"), wxT("05"), wxT("06"), wxT("07"), wxT("08"), wxT("09"), wxT("10"), wxT("11"), wxT("12"), wxT("13"), wxT("14"), wxT("15"), wxT("16"), wxT("17"), wxT("18"), wxT("19"), wxT("20"), wxT("21"), wxT("22"), wxT("23"), wxT("24"), wxT("25"), wxT("26"), wxT("27"), wxT("28"), wxT("29"), wxT("30"), wxT("31") };
+	wxString mSVChoices[] = { wxT("All"), wxT("01"), wxT("02"), wxT("03"), wxT("04"), wxT("05"), wxT("06"), wxT("07"), wxT("08"), wxT("09"), wxT("10"), wxT("11"), wxT("12"), wxT("13"), wxT("14"), wxT("15"), wxT("16"), wxT("17"), wxT("18"), wxT("19"), wxT("20"), wxT("21"), wxT("22"), wxT("23"), wxT("24"), wxT("25"), wxT("26"), wxT("27"), wxT("28"), wxT("29"), wxT("30"), wxT("31"), wxT("32") };
 	int mSVNChoices = sizeof( mSVChoices ) / sizeof( wxString );
-	mSV = new wxChoice( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, mSVNChoices, mSVChoices, 0 );
+	mSV = new wxChoice( this, ID_EPHEMERIS_SV, wxDefaultPosition, wxDefaultSize, mSVNChoices, mSVChoices, 0 );
 	mSV->SetSelection( 0 );
 	bSizer21->Add( mSV, 0, wxALL, 5 );
 	
@@ -332,15 +334,18 @@ iGUI_Ephemeris::iGUI_Ephemeris( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* bSizer22;
 	bSizer22 = new wxBoxSizer( wxVERTICAL );
 	
+	bSizer22->SetMinSize( wxSize( -1,60 ) ); 
 	pDecoded = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	bSizer22->Add( pDecoded, 1, wxALL|wxEXPAND, 5 );
 	
-	bSizer17->Add( bSizer22, 1, wxEXPAND, 5 );
+	bSizer17->Add( bSizer22, 0, wxEXPAND, 5 );
 	
 	wxBoxSizer* bSizer23;
 	bSizer23 = new wxBoxSizer( wxVERTICAL );
 	
-	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
+	tDisplay->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	
 	bSizer23->Add( tDisplay, 1, wxALL|wxEXPAND, 5 );
 	
 	bSizer17->Add( bSizer23, 10, wxEXPAND, 5 );
@@ -372,9 +377,9 @@ iGUI_Almanac::iGUI_Almanac( wxWindow* parent, wxWindowID id, const wxString& tit
 	m_staticText4->Wrap( -1 );
 	bSizer21->Add( m_staticText4, 0, wxALIGN_CENTER|wxALL, 5 );
 	
-	wxString mSVChoices[] = { wxT("01"), wxT("02"), wxT("03"), wxT("04"), wxT("05"), wxT("06"), wxT("07"), wxT("08"), wxT("09"), wxT("10"), wxT("11"), wxT("12"), wxT("13"), wxT("14"), wxT("15"), wxT("16"), wxT("17"), wxT("18"), wxT("19"), wxT("20"), wxT("21"), wxT("22"), wxT("23"), wxT("24"), wxT("25"), wxT("26"), wxT("27"), wxT("28"), wxT("29"), wxT("30"), wxT("31") };
+	wxString mSVChoices[] = { wxT("All"), wxT("01"), wxT("02"), wxT("03"), wxT("04"), wxT("05"), wxT("06"), wxT("07"), wxT("08"), wxT("09"), wxT("10"), wxT("11"), wxT("12"), wxT("13"), wxT("14"), wxT("15"), wxT("16"), wxT("17"), wxT("18"), wxT("19"), wxT("20"), wxT("21"), wxT("22"), wxT("23"), wxT("24"), wxT("25"), wxT("26"), wxT("27"), wxT("28"), wxT("29"), wxT("30"), wxT("31"), wxT("32") };
 	int mSVNChoices = sizeof( mSVChoices ) / sizeof( wxString );
-	mSV = new wxChoice( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, mSVNChoices, mSVChoices, 0 );
+	mSV = new wxChoice( this, ID_ALMANAC_SV, wxDefaultPosition, wxDefaultSize, mSVNChoices, mSVChoices, 0 );
 	mSV->SetSelection( 0 );
 	bSizer21->Add( mSV, 0, wxALL, 5 );
 	
@@ -394,15 +399,18 @@ iGUI_Almanac::iGUI_Almanac( wxWindow* parent, wxWindowID id, const wxString& tit
 	wxBoxSizer* bSizer22;
 	bSizer22 = new wxBoxSizer( wxVERTICAL );
 	
+	bSizer22->SetMinSize( wxSize( -1,60 ) ); 
 	pDecoded = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	bSizer22->Add( pDecoded, 1, wxALL|wxEXPAND, 5 );
 	
-	bSizer17->Add( bSizer22, 1, wxEXPAND, 5 );
+	bSizer17->Add( bSizer22, 0, wxEXPAND, 5 );
 	
 	wxBoxSizer* bSizer23;
 	bSizer23 = new wxBoxSizer( wxVERTICAL );
 	
-	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
+	tDisplay->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	
 	bSizer23->Add( tDisplay, 1, wxALL|wxEXPAND, 5 );
 	
 	bSizer17->Add( bSizer23, 10, wxEXPAND, 5 );

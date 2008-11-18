@@ -100,6 +100,7 @@ class Serial_Telemetry : public Threaded_Object
 		void SendClock();							//!< Emit a Clock state
 		void SendSVPosition();						//!< Send the SV Position
 		void SendFIFO();							//!< Send the FIFO status
+		void SendEphemerisStatus();					//!< Decoded ephemerides, etc
 };
 
 #endif /* Serial_Telemetry_H */

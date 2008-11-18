@@ -42,25 +42,28 @@ void *Keyboard_Thread(void *_arg)
 			grun = 0x0;
 		}
 
-		if((char)key == 'n') //Navigation
+		if(pTelemetry != NULL)
 		{
-			pTelemetry->Lock();
-			pTelemetry->SetDisplay(0);
-			pTelemetry->Unlock();
-		}
+			if((char)key == 'n') //Navigation
+			{
+				pTelemetry->Lock();
+				pTelemetry->SetDisplay(0);
+				pTelemetry->Unlock();
+			}
 
-		if((char)key == 'a') //Almanac & SV predict
-		{
-			pTelemetry->Lock();
-			pTelemetry->SetDisplay(1);
-			pTelemetry->Unlock();
-		}
+			if((char)key == 'a') //Almanac & SV predict
+			{
+				pTelemetry->Lock();
+				pTelemetry->SetDisplay(1);
+				pTelemetry->Unlock();
+			}
 
-		if((char)key == 'h') //Acquisition history
-		{
-			pTelemetry->Lock();
-			pTelemetry->SetDisplay(2);
-			pTelemetry->Unlock();
+			if((char)key == 'h') //Acquisition history
+			{
+				pTelemetry->Lock();
+				pTelemetry->SetDisplay(2);
+				pTelemetry->Unlock();
+			}
 		}
 
 		aKeyboard->IncExecTic();

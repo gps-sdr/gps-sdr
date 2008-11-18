@@ -10,6 +10,9 @@ class GUI_Ephemeris: public iGUI_Ephemeris
 	private:
 
 		/* Add all the "subwindows" here */
+		Message_Struct *p;
+		class GUI_Serial *pSerial;
+		int32 sv;
 
 	public:
 
@@ -18,7 +21,14 @@ class GUI_Ephemeris: public iGUI_Ephemeris
 
 		void render(wxDC& dc);
 		void paintNow();
+		void setSerial(GUI_Serial *_p){pSerial = _p;};
+		void setPointer(Message_Struct *_p){p = _p;};
+		void onClose(wxCloseEvent& evt){evt.Veto();};
+		void onSV(wxCommandEvent& event);
+		void renderDecoded();
+		void renderSV();
 
+		DECLARE_EVENT_TABLE()
 
 };
 /*----------------------------------------------------------------------------------------------*/

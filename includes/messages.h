@@ -482,7 +482,7 @@ typedef union Union_M
 	Measurement_M		measurement;
 	Pseudorange_M		pseudorange;
 	Ephemeris_M			ephemeris;
-	Almanac_M			alamanac;
+	Almanac_M			almanac;
 	Ephemeris_Status_M	ephemeris_status;
 	FIFO_M				fifo;
 	Command_Ack_M		command_ack;

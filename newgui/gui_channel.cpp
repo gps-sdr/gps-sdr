@@ -9,6 +9,12 @@
 
 DECLARE_APP(GUI_App)
 
+/*----------------------------------------------------------------------------------------------*/
+BEGIN_EVENT_TABLE(GUI_Channel, wxFrame)
+    EVT_CLOSE(GUI_Channel::onClose)
+END_EVENT_TABLE()
+/*----------------------------------------------------------------------------------------------*/
+
 GUI_Channel::GUI_Channel():iGUI_Channel(NULL, wxID_ANY, wxT("Channel"), wxDefaultPosition, wxSize(650,250), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL)
 {
 

@@ -69,14 +69,9 @@ class GUI_Serial : public Threaded_Object
 		GUI_Serial();										//!< Constructor
 		~GUI_Serial();										//!< Destructor
 		void Start();										//!< Start the thread
-//		void Stop();										//!< Stop the thread
 		void Import();										//!< Get data into the thread
 		void Export();										//!< Get data out of the thread
-//		void Lock(){pthread_mutex_lock(&mutex);};			//!< Lock the object's mutex
-//		void Unlock(){pthread_mutex_unlock(&mutex);};		//!< Unlock the object's mutex
-//		uint32 GetExecTic(){return(execution_tic);};		//!< Get the execution counter
-//		uint32 GetStartTic(){return(start_tic);};			//!< Get the Nucleus tic at start of function
-//		uint32 GetStopTic(){return(execution_tic);};		//!< Get the Nucleus tic at end of function
+
 		uint32 GetPipeOpen(){return(pipe_open);};
 		uint32 GetByteCount(){return(byte_count);};
 		uint32 GetPacketTic(){return(packet_tic);};

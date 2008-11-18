@@ -64,6 +64,8 @@ class Commando : public Threaded_Object
 		void Get_Ephemeris();
 		void Get_Alamanc();
 
+		void EmitCCSDSPacket(void *_buff, uint32 _len);
+
 };
 
 #endif /* COMMANDO_H */

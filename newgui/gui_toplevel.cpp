@@ -30,7 +30,7 @@ END_EVENT_TABLE()
 /*----------------------------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------------------------*/
-GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS-SDR"), wxDefaultPosition, wxSize( 800,600 ), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL, wxT("GPS-SDR") )
+GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS-SDR"), wxDefaultPosition, wxSize( 600,600 ), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL, wxT("GPS-SDR") )
 {
 
     timer = new wxTimer(this, ID_TIMER);
@@ -49,6 +49,22 @@ GUI_Toplevel::~GUI_Toplevel()
 {
 	pSerial->Stop();
 	delete pSerial;
+
+	if(wDefault)
+		delete wDefault;
+
+	if(wChannel)
+		delete wChannel;
+
+	if(wAlmanac)
+		delete wAlmanac;
+
+	if(wEphemeris)
+		delete wEphemeris;
+
+	if(wCommands)
+		delete wCommands;
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -248,12 +264,6 @@ void GUI_Toplevel::onUSRPStop(wxCommandEvent& WXUNUSED(event))
 void GUI_Toplevel::onClose(wxCloseEvent& evt)
 {
 
-	if(wDefault)
-	{
-		delete wDefault;
-		wDefault = NULL;
-	}
-
     wxGetApp().activateRenderLoop(false);
     evt.Skip(); // don't stop event, we still want window to close
     //Close(TRUE);
@@ -314,6 +324,14 @@ void GUI_Toplevel::render(wxDC& dc)
 	/* Render channel window */
 	if(wChannel != NULL)
 		wChannel->paintNow();
+
+	/* Render channel window */
+	if(wAlmanac != NULL)
+		wAlmanac->paintNow();
+
+	/* Render channel window */
+	if(wEphemeris != NULL)
+		wEphemeris->paintNow();
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -481,7 +499,8 @@ void GUI_Toplevel::onCommands(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		wCommands = new GUI_Commands();
-		//wCommands->setPointer(&messages);
+		wCommands->setPointer(&messages);
+		wCommands->setSerial(pSerial);
 		wCommands->Show(TRUE);
 	}
 }
@@ -500,7 +519,8 @@ void GUI_Toplevel::onAlmanac(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		wAlmanac = new GUI_Almanac();
-		//wAlmanac->setPointer(&messages);
+		wAlmanac->setPointer(&messages);
+		wAlmanac->setSerial(pSerial);
 		wAlmanac->Show(TRUE);
 	}
 }
@@ -519,7 +539,8 @@ void GUI_Toplevel::onEphemeris(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		wEphemeris = new GUI_Ephemeris();
-		//wEphemeris->setPointer(&messages);
+		wEphemeris->setPointer(&messages);
+		wEphemeris->setSerial(pSerial);
 		wEphemeris->Show(TRUE);
 	}
 }
@@ -530,11 +551,7 @@ void GUI_Toplevel::onEphemeris(wxCommandEvent& WXUNUSED(event))
 void GUI_Toplevel::onSpeed(wxCommandEvent& WXUNUSED(event))
 {
 
-	int32 val;
 
-	val = MAX_CHANNELS;
-
-	pSerial->formCommand(RESET_CHANNEL_C_ID, &val);
 
 }
 /*----------------------------------------------------------------------------------------------*/

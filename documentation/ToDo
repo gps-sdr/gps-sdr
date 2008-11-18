@@ -18,7 +18,7 @@
 
 #GUI Todo
 1) Self-sizing text in text boxes
-2) Closing sub-windows should not cause seg-fault
+2) Closing sub-windows should not cause seg-fault																								COMPLETE
 3) Display task status in toplevel																												COMPLETE
 4) Ephemeris, display, save, load
 5) Almanac, display, save, load

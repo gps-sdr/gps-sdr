@@ -35,7 +35,7 @@ $(EXE): $(OBJ) $(SRC) $(HEADERS)
 	 $(LINK) $(LDFLAGS) $(WX_FLAGS) $(OBJ) -o $@
 	 cp $(EXE) ../$(EXE)
 	  
-%.o : %.cpp $(SRC)
+%.o : %.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
 clean:
