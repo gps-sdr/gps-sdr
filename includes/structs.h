@@ -120,13 +120,13 @@ typedef struct _NCO_Command
 
 	double carrier_nco;	//!< New carr_freq
 	double code_nco;	//!< New code_freq
-	int32 kill;			//!< Stop or start the channel
-	int32 reset_1ms;	//!< Reset the 1ms counter
-	int32 reset_20ms;	//!< Reset the 20ms counter
-	int32 set_z_count;	//!< Set the z count
-	int32 z_count;		//!< Actual value
-	int32 length;		//!< Integrate for this many ms
-	int32 navigate;		//!< Use this correlator to navigate
+	uint32 kill;			//!< Stop or start the channel
+	uint32 reset_1ms;	//!< Reset the 1ms counter
+	uint32 reset_20ms;	//!< Reset the 20ms counter
+	uint32 set_z_count;	//!< Set the z count
+	uint32 z_count;		//!< Actual value
+	uint32 length;		//!< Integrate for this many ms
+	uint32 navigate;		//!< Use this correlator to navigate
 
 } NCO_Command_S;
 
@@ -149,11 +149,6 @@ typedef struct _Correlation_S
 typedef struct _Correlator_State_S
 {
 
-	int32	sv;
-	int32	navigate;			//!< Is this correlator sending out valid measurements
-	int32	active;				//!< Active flag
-	int32  	count;				//!< How long has this been active (ms)
-	int32   scount;				//!< Number of samples in current accumulation
 	double 	code_phase; 		//!< Code phase (chips)
 	double 	carrier_phase;		//!< Carrier phase (cycles)
 	double  carrier_phase_prev;	//!< Used for phase correction to correlations
@@ -161,15 +156,22 @@ typedef struct _Correlator_State_S
 	double 	carrier_phase_mod;	//!< Carrier phsae (cycles), mod 1
 	double 	code_nco;			//!< Code NCO
 	double 	carrier_nco;		//!< Carrier NCO
-	int32  	_1ms_epoch;			//!< _1ms_epoch
-	int32  	_20ms_epoch;		//!< _20ms_epoch
-	int32 	_z_count;			//!< Keep track of the z count
-	int32  	rollover;			//!< rollover point of C/A code in next ms packet
-	int32	cbin[3];			//!< Code bins
-	int32	sbin;				//!< Carriers bins
+
+	uint32	sv;
+	uint32	navigate;			//!< Is this correlator sending out valid measurements
+	uint32	active;				//!< Active flag
+	uint32  count;				//!< How long has this been active (ms)
+	uint32   scount;			//!< Number of samples in current accumulation
+	uint32  _1ms_epoch;			//!< _1ms_epoch
+	uint32  _20ms_epoch;		//!< _20ms_epoch
+	uint32 	_z_count;			//!< Keep track of the z count
+	uint32  rollover;			//!< rollover point of C/A code in next ms packet
+	uint32	cbin[3];			//!< Code bins
+	uint32	sbin;				//!< Carriers bins
+	uint32	nav_history[MEASUREMENT_DELAY]; //!< keep track of the navigate flag
 	MIX		*pcode[3];			//!< pointer to early-prompt-late codes
 	CPX		*psine;				//!< pointer to Doppler removal vector
-	int32	nav_history[MEASUREMENT_DELAY]; //!< keep track of the navigate flag
+
 
 } Correlator_State_S;
 
@@ -272,12 +274,12 @@ typedef struct _Almanac_Data_S
 typedef struct _Acq_Result_S
 {
 
-	int32 count;		//!< Packet tag
-	int32 chan;			//!< The channel this SV will be assigned to
-	int32 sv;			//!< SV number
-	int32 type;			//!< Strong, medium, or weak
-	int32 success;		//!< Did we declare detection?
-	int32 antenna;		//!< antenna number
+	uint32 count;		//!< Packet tag
+	uint32 chan;		//!< The channel this SV will be assigned to
+	uint32 sv;			//!< SV number
+	uint32 type;		//!< Strong, medium, or weak
+	uint32 success;		//!< Did we declare detection?
+	uint32 antenna;		//!< antenna number
 	float delay;		//!< Delay in chips
 	float doppler;		//!< Doppler in Hz
 	float magnitude;	//!< Magnitude

@@ -31,6 +31,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include <wx/gdicmn.h>
 #include <wx/font.h>
 #include <wx/colour.h>
+#include <wx/dcbuffer.h>
 #include <wx/settings.h>
 #include <wx/string.h>
 #include <wx/bitmap.h>

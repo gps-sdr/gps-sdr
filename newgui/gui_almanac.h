@@ -23,8 +23,7 @@ class GUI_Almanac: public iGUI_Almanac
 		void setSerial(GUI_Serial *_p){pSerial = _p;};
 		void setPointer(Message_Struct *_p){p = _p;};
 		void onClose(wxCloseEvent& evt){evt.Veto();};
-		void onSV(wxCommandEvent& event);
-
+		void onMouse(wxMouseEvent& event);
 		void renderDecoded();
 		void renderSV();
 

@@ -33,10 +33,11 @@ HEADERS = $(wildcard accessories/*.h acquisition/*.h main/*.h objects/*.h simd/*
 #			acquisition.dis \
 #			acq_test.dis 
 
-EXE =	gps-sdr
+EXE =	gps-sdr		\
+		simd-test
 
-EXTRAS= gps-gui		\
-		gps-usrp
+EXTRAS= gps-usrp	\
+		gps-gui
 		
 TEST =	simd-test	\
 		fft-test	\

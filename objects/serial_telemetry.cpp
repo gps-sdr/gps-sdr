@@ -276,7 +276,10 @@ void Serial_Telemetry::ImportGUI()
 	/* Bent pipe anything coming from Commando */
 	bread = read(Cmd_2_Telem_P[READ], &commando_buff, COMMANDO_BUFF_SIZE);
 	if(bread > 0)
+	{
+		signal(SIGPIPE, lost_gui_pipe);
 		write(npipe[WRITE], &commando_buff, bread);
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/

@@ -12,11 +12,11 @@ DECLARE_APP(GUI_App)
 /*----------------------------------------------------------------------------------------------*/
 BEGIN_EVENT_TABLE(GUI_Almanac, wxFrame)
     EVT_CLOSE(GUI_Almanac::onClose)
-    EVT_CHOICE(ID_ALMANAC_SV, GUI_Almanac::onSV)
+    EVT_LEFT_DOWN(GUI_Almanac::onMouse)
 END_EVENT_TABLE()
 /*----------------------------------------------------------------------------------------------*/
 
-GUI_Almanac::GUI_Almanac():iGUI_Almanac(NULL, wxID_ANY, wxT("Almanac"), wxDefaultPosition, wxSize(800,600), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL)
+GUI_Almanac::GUI_Almanac():iGUI_Almanac(NULL, wxID_ANY, wxT("Almanac"), wxDefaultPosition, wxSize(400,600), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL)
 {
 
 	sv = 0;
@@ -32,6 +32,7 @@ GUI_Almanac::~GUI_Almanac()
 void GUI_Almanac::paintNow()
 {
     wxClientDC dc(this);
+	//wxBufferedPaintDC dc(this, wxBUFFER_CLIENT_AREA);
     render(dc);
 }
 
@@ -41,25 +42,42 @@ void GUI_Almanac::render(wxDC& dc)
 	renderSV();
 }
 
-void GUI_Almanac::onSV(wxCommandEvent& event)
+void GUI_Almanac::onMouse(wxMouseEvent& event)
 {
-	int32 val;
 
-	val = mSV->GetCurrentSelection();
+	wxRect rect;
+	wxPoint br, tl;
+	int32 mx, my;
+	int32 row, col;
+	int32 dX,dY;
 
-	if(val == 0)
-		val = NUM_CODES;
-	else
-		val = val-1;
+	tl = pDecoded->GetPosition();
+	rect = pDecoded->GetClientRect();
+	br = rect.GetBottomRight();
 
-	if(val >= NUM_CODES)
-		sv = 0;
-	else
-		sv = val;
+	dY = (br.y/4);
+	dX = (4*br.x/NUM_CODES);
 
-	pSerial->formCommand(GET_ALMANAC_C_ID, &val);
+	br.x += tl.x;
+	br.y += tl.y;
+
+	mx = wxGetMousePosition().x - this->GetScreenPosition().x;
+	my = wxGetMousePosition().y - this->GetScreenPosition().y;
+
+	/* Within the pDecoded area */
+	if((mx >= tl.x) && (mx <= br.x) && (my >= tl.y) && (my <= br.y))
+	{
+		mx = mx - tl.x;
+		my = my - tl.y;
+
+		row = mx/dX;
+		col = my/dY;
+		sv = row;
+		sv += col*(NUM_CODES>>2);
+
+		pSerial->formCommand(GET_ALMANAC_C_ID, &sv);
+	}
 }
-
 
 void GUI_Almanac::renderDecoded()
 {
@@ -68,14 +86,15 @@ void GUI_Almanac::renderDecoded()
 
 	wxPoint box[4];
 	wxString str;
+
 	wxPaintDC dc(pDecoded);
 	dc.Clear();
 
 	wxCoord w, h;
 	dc.GetSize(&w, &h);
 
-	dY = (h/2);
-	dX = (2*w/NUM_CODES);
+	dY = (h/4);
+	dX = (4*w/NUM_CODES);
 
 	box[0].x = 0;	box[0].y = 0;
 	box[1].x = dX;	box[1].y = 0;
@@ -95,10 +114,10 @@ void GUI_Almanac::renderDecoded()
 			dc.SetBrush(wxBrush(wxColor(127,127,127)));
 			dc.SetPen(wxPen(wxColor(0,0,0), 1));
 		}
-		dc.DrawPolygon(4, box, (lcv%(NUM_CODES>>1))*dX, (lcv/(NUM_CODES>>1))*dY);
+		dc.DrawPolygon(4, box, (lcv%(NUM_CODES>>2))*dX, (lcv/(NUM_CODES>>2))*dY);
 
 		str.Printf(wxT("%02d"),(int)lcv+1);
-		dc.DrawText(str, (lcv%(NUM_CODES>>1))*dX + dX/3, (lcv/(NUM_CODES>>1))*dY + dY/5);
+		dc.DrawText(str, (lcv%(NUM_CODES>>2))*dX + dX/3, (lcv/(NUM_CODES>>2))*dY + dY/5);
 	}
 
 }
@@ -110,34 +129,32 @@ void GUI_Almanac::renderSV()
 	tDisplay->Clear();
 
 	Almanac_M *a;
-	a = &p->almanac[sv];
-	str.Printf(wxT("******** Week %d almanac for PRN-%02d ********\n"),a->week,sv+1);
+	a = &p->almanacs[sv];
+	str.Printf(wxT("************* Week %d almanac for PRN-%02d *************\n"),a->week,sv+1);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("ID:                        % 02d\n"),sv+1);
+	str.Printf(wxT("ID:                        %02d\n"),sv+1);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("Health:                    % 03d\n"),a->health);
+	str.Printf(wxT("Health:                    %03d\n"),a->health);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("Eccentricity:              % .10E\n"),a->ecc);
+	str.Printf(wxT("Eccentricity:              %.10g\n"),a->ecc);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("Time of Applicability(s):  % .4f\n"),a->toa);
+	str.Printf(wxT("Time of Applicability(s):  %.10g\n"),a->toa);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("Orbital Inclination(rad):  % .10E\n"),a->in0);
+	str.Printf(wxT("Orbital Inclination(rad):  %.10g\n"),a->in0);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("Rate of Right Ascen(r/s):  % .10E\n"),a->omd);
+	str.Printf(wxT("Rate of Right Ascen(r/s):  %.10g\n"),a->omd);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("SQRT(A)  (m 1/2):          % .6f\n"),a->sqrta);
+	str.Printf(wxT("SQRT(A)  (m 1/2):          %.10g\n"),a->sqrta);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("Right Ascen at Week(rad):  % 0.10E\n"),a->om0);
+	str.Printf(wxT("Right Ascen at Week(rad):  %.10g\n"),a->om0);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("Argument of Perigee(rad):  % .9f\n"),a->argp);
+	str.Printf(wxT("Argument of Perigee(rad):  %.10g\n"),a->argp);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("Mean Anom(rad):            % 0.10e\n"),a->m0);
+	str.Printf(wxT("Mean Anom(rad):            %.10g\n"),a->m0);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("Af0(s):                    % 0.10G\n"),a->af0);
+	str.Printf(wxT("Af0(s):                    %.10g\n"),a->af0);
 	tDisplay->AppendText(str);
-	str.Printf(wxT("Af1(s/s):                  % 0.10g\n"),a->af1);
-	tDisplay->AppendText(str);
-	str.Printf(wxT("Week:                      % -4d"),a->week);
+	str.Printf(wxT("Af1(s/s):                  %.10g\n"),a->af1);
 	tDisplay->AppendText(str);
 
 }

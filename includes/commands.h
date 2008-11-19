@@ -38,53 +38,68 @@ enum CCSDS_COMMAND_IDS
 	GET_PSEUDORANGE_C_ID,
 	GET_EPHEMERIS_C_ID,
 	GET_ALMANAC_C_ID,
+	SET_ALMANAC_C_ID,
+	SET_EPHEMERIS_C_ID,
 	LAST_C_ID
 };
 
 typedef struct Reset_PVT_C
 {
-	int32 flag;		//!< Flag for no reason
+	uint32 flag;		//!< Flag for no reason
 } Reset_PVT_C;
 
 typedef struct Reset_EKF_C
 {
-	int32 flag;		//!< Flag for no reason
+	uint32 flag;		//!< Flag for no reason
 } Reset_EKF_C;
 
 typedef struct Reset_Channel_C
 {
-	int32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
+	uint32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
 } Reset_Channel_C;
 
 typedef struct Reset_Ephemeris_C
 {
-	int32 sv;		//!< SV #, or all if sv > NUM_CODES
+	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
 } Reset_Ephemeris_C;
 
 typedef struct Reset_Almanac_C
 {
-	int32 sv;		//!< SV #, or all if sv > NUM_CODES
+	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
 } Reset_Almanac_C;
 
 typedef struct Get_Measurement_C
 {
-	int32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
+	uint32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
 } Get_Measurement_C;
 
 typedef struct Get_Pseudorange_C
 {
-	int32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
+	uint32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
 } Get_Pseudorange_C;
 
 typedef struct Get_Ephemeris_C
 {
-	int32 sv;		//!< SV #, or all if sv > NUM_CODES
+	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
 } Get_Ephemeris_C;
 
 typedef struct Get_Almanac_C
 {
-	int32 sv;		//!< SV #, or all if sv > NUM_CODES
+	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
 } Get_Almanac_C;
+
+typedef struct Set_Almanac_C
+{
+	uint32 sv;				//!< SV #
+	Almanac_M almanac;		//!< Data to load
+} Set_Almanac_C;
+
+typedef struct Set_Ephemeris_C
+{
+	uint32 sv;				//!< SV #
+	Ephemeris_M ephemeris;	//!< Data to load
+} Set_Ephemeris_C;
+
 
 typedef union Union_C
 {
@@ -97,6 +112,8 @@ typedef union Union_C
 	Get_Pseudorange_C	get_pseudorange;
 	Get_Ephemeris_C		get_ephemeris;
 	Get_Almanac_C		get_almanac;
+	Set_Almanac_C		set_almanac;
+	Set_Ephemeris_C		set_ephemeris;
 } Union_C;
 
 #endif /* COMMANDS_H_ */

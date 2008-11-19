@@ -23,8 +23,8 @@ class GUI_Ephemeris: public iGUI_Ephemeris
 		void paintNow();
 		void setSerial(GUI_Serial *_p){pSerial = _p;};
 		void setPointer(Message_Struct *_p){p = _p;};
+		void onMouse(wxMouseEvent& event);
 		void onClose(wxCloseEvent& evt){evt.Veto();};
-		void onSV(wxCommandEvent& event);
 		void renderDecoded();
 		void renderSV();
 

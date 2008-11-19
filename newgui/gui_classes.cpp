@@ -164,8 +164,8 @@ iGUI_Default::iGUI_Default( wxWindow* parent, wxWindowID id, const wxString& tit
 	wxStaticBoxSizer* sbSizer13;
 	sbSizer13 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("PVT") ), wxVERTICAL );
 	
-	sbSizer13->SetMinSize( wxSize( -1,220 ) ); 
-	tPVT = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	sbSizer13->SetMinSize( wxSize( -1,180 ) ); 
+	tPVT = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_LEFT|wxTE_MULTILINE );
 	tPVT->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	sbSizer13->Add( tPVT, 1, wxEXPAND, 5 );
@@ -300,6 +300,25 @@ iGUI_Ephemeris::iGUI_Ephemeris( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* bSizer17;
 	bSizer17 = new wxBoxSizer( wxVERTICAL );
 	
+	wxBoxSizer* bSizer22;
+	bSizer22 = new wxBoxSizer( wxVERTICAL );
+	
+	bSizer22->SetMinSize( wxSize( -1,120 ) ); 
+	pDecoded = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	bSizer22->Add( pDecoded, 1, wxALL|wxEXPAND, 5 );
+	
+	bSizer17->Add( bSizer22, 0, wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer23;
+	bSizer23 = new wxBoxSizer( wxVERTICAL );
+	
+	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
+	tDisplay->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	
+	bSizer23->Add( tDisplay, 1, wxALL|wxEXPAND, 5 );
+	
+	bSizer17->Add( bSizer23, 10, wxEXPAND, 5 );
+	
 	wxBoxSizer* bSizer21;
 	bSizer21 = new wxBoxSizer( wxHORIZONTAL );
 	
@@ -307,16 +326,6 @@ iGUI_Ephemeris::iGUI_Ephemeris( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer24 = new wxBoxSizer( wxVERTICAL );
 	
 	bSizer21->Add( bSizer24, 1, wxEXPAND, 5 );
-	
-	m_staticText4 = new wxStaticText( this, wxID_ANY, wxT("SV#"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText4->Wrap( -1 );
-	bSizer21->Add( m_staticText4, 0, wxALIGN_CENTER|wxALL, 5 );
-	
-	wxString mSVChoices[] = { wxT("All"), wxT("01"), wxT("02"), wxT("03"), wxT("04"), wxT("05"), wxT("06"), wxT("07"), wxT("08"), wxT("09"), wxT("10"), wxT("11"), wxT("12"), wxT("13"), wxT("14"), wxT("15"), wxT("16"), wxT("17"), wxT("18"), wxT("19"), wxT("20"), wxT("21"), wxT("22"), wxT("23"), wxT("24"), wxT("25"), wxT("26"), wxT("27"), wxT("28"), wxT("29"), wxT("30"), wxT("31"), wxT("32") };
-	int mSVNChoices = sizeof( mSVChoices ) / sizeof( wxString );
-	mSV = new wxChoice( this, ID_EPHEMERIS_SV, wxDefaultPosition, wxDefaultSize, mSVNChoices, mSVChoices, 0 );
-	mSV->SetSelection( 0 );
-	bSizer21->Add( mSV, 0, wxALL, 5 );
 	
 	bSave = new wxButton( this, ID_EPHEMERIS_SAVE, wxT("Save"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer21->Add( bSave, 0, wxALL, 5 );
@@ -331,10 +340,30 @@ iGUI_Ephemeris::iGUI_Ephemeris( wxWindow* parent, wxWindowID id, const wxString&
 	
 	bSizer17->Add( bSizer21, 0, wxEXPAND, 5 );
 	
+	this->SetSizer( bSizer17 );
+	this->Layout();
+	
+	// Connect Events
+	pDecoded->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( iGUI_Ephemeris::onMouse ), NULL, this );
+}
+
+iGUI_Ephemeris::~iGUI_Ephemeris()
+{
+	// Disconnect Events
+	pDecoded->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( iGUI_Ephemeris::onMouse ), NULL, this );
+}
+
+iGUI_Almanac::iGUI_Almanac( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxBoxSizer* bSizer17;
+	bSizer17 = new wxBoxSizer( wxVERTICAL );
+	
 	wxBoxSizer* bSizer22;
 	bSizer22 = new wxBoxSizer( wxVERTICAL );
 	
-	bSizer22->SetMinSize( wxSize( -1,60 ) ); 
+	bSizer22->SetMinSize( wxSize( -1,120 ) ); 
 	pDecoded = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	bSizer22->Add( pDecoded, 1, wxALL|wxEXPAND, 5 );
 	
@@ -350,21 +379,6 @@ iGUI_Ephemeris::iGUI_Ephemeris( wxWindow* parent, wxWindowID id, const wxString&
 	
 	bSizer17->Add( bSizer23, 10, wxEXPAND, 5 );
 	
-	this->SetSizer( bSizer17 );
-	this->Layout();
-}
-
-iGUI_Ephemeris::~iGUI_Ephemeris()
-{
-}
-
-iGUI_Almanac::iGUI_Almanac( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
-{
-	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
-	
-	wxBoxSizer* bSizer17;
-	bSizer17 = new wxBoxSizer( wxVERTICAL );
-	
 	wxBoxSizer* bSizer21;
 	bSizer21 = new wxBoxSizer( wxHORIZONTAL );
 	
@@ -372,16 +386,6 @@ iGUI_Almanac::iGUI_Almanac( wxWindow* parent, wxWindowID id, const wxString& tit
 	bSizer24 = new wxBoxSizer( wxVERTICAL );
 	
 	bSizer21->Add( bSizer24, 1, wxEXPAND, 5 );
-	
-	m_staticText4 = new wxStaticText( this, wxID_ANY, wxT("SV#"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText4->Wrap( -1 );
-	bSizer21->Add( m_staticText4, 0, wxALIGN_CENTER|wxALL, 5 );
-	
-	wxString mSVChoices[] = { wxT("All"), wxT("01"), wxT("02"), wxT("03"), wxT("04"), wxT("05"), wxT("06"), wxT("07"), wxT("08"), wxT("09"), wxT("10"), wxT("11"), wxT("12"), wxT("13"), wxT("14"), wxT("15"), wxT("16"), wxT("17"), wxT("18"), wxT("19"), wxT("20"), wxT("21"), wxT("22"), wxT("23"), wxT("24"), wxT("25"), wxT("26"), wxT("27"), wxT("28"), wxT("29"), wxT("30"), wxT("31"), wxT("32") };
-	int mSVNChoices = sizeof( mSVChoices ) / sizeof( wxString );
-	mSV = new wxChoice( this, ID_ALMANAC_SV, wxDefaultPosition, wxDefaultSize, mSVNChoices, mSVChoices, 0 );
-	mSV->SetSelection( 0 );
-	bSizer21->Add( mSV, 0, wxALL, 5 );
 	
 	bSave = new wxButton( this, ID_ALMANAC_SAVE, wxT("Save"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer21->Add( bSave, 0, wxALL, 5 );
@@ -396,29 +400,62 @@ iGUI_Almanac::iGUI_Almanac( wxWindow* parent, wxWindowID id, const wxString& tit
 	
 	bSizer17->Add( bSizer21, 0, wxEXPAND, 5 );
 	
-	wxBoxSizer* bSizer22;
-	bSizer22 = new wxBoxSizer( wxVERTICAL );
-	
-	bSizer22->SetMinSize( wxSize( -1,60 ) ); 
-	pDecoded = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	bSizer22->Add( pDecoded, 1, wxALL|wxEXPAND, 5 );
-	
-	bSizer17->Add( bSizer22, 0, wxEXPAND, 5 );
-	
-	wxBoxSizer* bSizer23;
-	bSizer23 = new wxBoxSizer( wxVERTICAL );
-	
-	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
-	tDisplay->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
-	
-	bSizer23->Add( tDisplay, 1, wxALL|wxEXPAND, 5 );
-	
-	bSizer17->Add( bSizer23, 10, wxEXPAND, 5 );
-	
 	this->SetSizer( bSizer17 );
 	this->Layout();
+	
+	// Connect Events
+	pDecoded->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( iGUI_Almanac::onMouse ), NULL, this );
 }
 
 iGUI_Almanac::~iGUI_Almanac()
+{
+	// Disconnect Events
+	pDecoded->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( iGUI_Almanac::onMouse ), NULL, this );
+}
+
+iGUI_Acquisition::iGUI_Acquisition( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxBoxSizer* bSizer25;
+	bSizer25 = new wxBoxSizer( wxVERTICAL );
+	
+	wxStaticBoxSizer* sbSizer8;
+	sbSizer8 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Strong") ), wxVERTICAL );
+	
+	pStrong = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer8->Add( pStrong, 1, wxEXPAND, 5 );
+	
+	bSizer25->Add( sbSizer8, 4, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer9;
+	sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Medium") ), wxVERTICAL );
+	
+	pMedium = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer9->Add( pMedium, 1, wxEXPAND, 5 );
+	
+	bSizer25->Add( sbSizer9, 4, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer10;
+	sbSizer10 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Weak") ), wxVERTICAL );
+	
+	pWeak = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer10->Add( pWeak, 1, wxEXPAND, 5 );
+	
+	bSizer25->Add( sbSizer10, 4, wxALL|wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer29;
+	bSizer29 = new wxBoxSizer( wxVERTICAL );
+	
+	pSV = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	bSizer29->Add( pSV, 1, wxALL|wxEXPAND, 5 );
+	
+	bSizer25->Add( bSizer29, 1, wxEXPAND, 5 );
+	
+	this->SetSizer( bSizer25 );
+	this->Layout();
+}
+
+iGUI_Acquisition::~iGUI_Acquisition()
 {
 }

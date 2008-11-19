@@ -183,16 +183,16 @@ typedef struct SPS_M
 	double hdop;		//!< hdop diultion of precision
 	double vdop;		//!< vertical dilution of precision
 
-	int32 nsvs;			//!< This is a mask, not a number
-	int32 converged;	//!< declare convergence
-	int32 tic;			//!< global_tic associated with this solution
+	uint32 nsvs;		//!< This is a mask, not a number
+	uint32 converged;	//!< declare convergence
+	uint32 tic;			//!< global_tic associated with this solution
 
-	int32 stale_ticks;			//!< count the number of tics since the last good sltn
-	int32 converged_ticks;		//!< count number of converged tics
-	int32 nav_channels;			//!< count number of SVs used in last PVT estimation
-	int32 initial_convergence;	//!< Flag set ONCE if the first convergence has occured
+	uint32 stale_ticks;			//!< count the number of tics since the last good sltn
+	uint32 converged_ticks;		//!< count number of converged tics
+	uint32 nav_channels;		//!< count number of SVs used in last PVT estimation
+	uint32 initial_convergence;	//!< Flag set ONCE if the first convergence has occured
 
-	int32 chanmap[MAX_CHANNELS];
+	uint32 chanmap[MAX_CHANNELS];
 
 } SPS_M;
 
@@ -272,16 +272,16 @@ typedef struct EKF_M
 	double hdop;		//!< hdop diultion of precision
 	double vdop;		//!< vertical dilution of precision
 
-	int32 nsvs;			//!< This is a mask, not a number
-	int32 converged;	//!< declare convergence
-	int32 tic;			//!< global_tic associated with this solution
+	uint32 nsvs;		//!< This is a mask, not a number
+	uint32 converged;	//!< declare convergence
+	uint32 tic;			//!< global_tic associated with this solution
 
-	int32 stale_ticks;			//!< count the number of tics since the last good sltn
-	int32 converged_ticks;		//!< count number of converged tics
-	int32 nav_channels;			//!< count number of SVs used in last PVT estimation
-	int32 initial_convergence;	//!< Flag set ONCE if the first convergence has occured
+	uint32 stale_ticks;			//!< count the number of tics since the last good sltn
+	uint32 converged_ticks;		//!< count number of converged tics
+	uint32 nav_channels;		//!< count number of SVs used in last PVT estimation
+	uint32 initial_convergence;	//!< Flag set ONCE if the first convergence has occured
 
-	int32 chanmap[MAX_CHANNELS];
+	uint32 chanmap[MAX_CHANNELS];
 
 } EKF_M;
 
@@ -301,13 +301,13 @@ typedef struct Measurement_M
 	double 	carrier_phase_mod;			//!< Carrier phase (cycles), mod 1
 	double 	code_nco;					//!< Code NCO
 	double 	carrier_nco;				//!< Carrier NCO
-	int32  	_1ms_epoch;					//!< _1ms_epoch
-	int32  	_20ms_epoch;				//!< _20ms_epoch
-	int32	_z_count;					//!< The z count
-	int32 	navigate;					//!< This has been tagged as a good measurement
-	int32	sv;							//!< For this sv
-	int32	chan;						//!< For this channel
-	int32 	count;						//!< Corresponds to this tic
+	uint32  _1ms_epoch;					//!< _1ms_epoch
+	uint32  _20ms_epoch;				//!< _20ms_epoch
+	uint32	_z_count;					//!< The z count
+	uint32 	navigate;					//!< This has been tagged as a good measurement
+	uint32	sv;							//!< For this sv
+	uint32	chan;						//!< For this channel
+	uint32 	count;						//!< Corresponds to this tic
 
 } Measurement_M;
 
@@ -317,7 +317,7 @@ typedef struct Measurement_M
 */
 typedef struct Pseudorange_M
 {
-	uint32 chan;
+
 	double gpstime;			//!< Time tag associated with pseudorange
 	double time;			//!< pseudorange in seconds
 	double time_rate;		//!< pseudorange rate in sec/sec
@@ -328,6 +328,8 @@ typedef struct Pseudorange_M
 	double time_uncorrected;//!< raw pseudorange measurements
 	double previous;		//!< from previous step, used for err check
 
+	uint32 chan;
+
 } Pseudorange_M;
 
 
@@ -336,23 +338,11 @@ typedef struct Pseudorange_M
 */
 typedef struct Ephemeris_M
 {
-	int32	sv;
-	int32	valid;					//!< 0=No valid data.
-	int32	tofxmission;			//!< Time of subframe 1 transmission, sec of week.
-	int32	tow;					//!< Truncated TOW count
-	int32	subframe_1_health;      //!< Subframe 1 health code.
-	int32	code_on_L2;             //!< Code on L2 flag.
-	int32	week_number;			//!< GPS week at time of subframe 1 reception.
-	int32	L2pdata;                //!< L2 P data flag.
-	int32	ura;                    //!< Satellite's URA code.
-	int32	iodc;                   //!< Issue of data, clock.
 	double	tgd;                    //!< Group delay parameter.
-	int32	tocwk;					//!< GPS week corresponding to toc.
 	double	toc;					//!< Reference time of clock data parameter set.
 	double	af0;					//!< Clock correction polynomial coefficient.
 	double	af1;					//!< Clock correction polynomial coefficient.
 	double	af2;					//!< Clock correction polynomial coefficient.
-	int32	iode;                   //!< Issue of data, ephemeris.
 	double	crs;					//!< Sine harmonic correction to orbital radius.
 	double	deltan;					//!< Mean motion delta from computed value.
 	double	m0;                     //!< Mean anomaly at TOE.
@@ -360,9 +350,7 @@ typedef struct Ephemeris_M
 	double	ecc;                    //!< Eccentricity.
 	double	cus;					//!< Sine harmonic corr to argument of latitude.
 	double	sqrta;                  //!< Square root of semimajor axis.
-	int32	toewk;                  //!< GPS week corresponding to toe.
 	double	toe;					//!< Reference time of ephemeris data set.
-	int32	fti;                    //!< Fit interval.
 	double	cic;					//!< Cosine harmonic corr to inclination.
 	double	om0;                    //!< Right ascension at TOE.
 	double	cis;					//!< Sine harmonic corr to inclination.
@@ -374,7 +362,23 @@ typedef struct Ephemeris_M
 	double	a;						//!< Derived qty: a = sqrta**2.
 	double	n0;						//!< Derived qty: n0 = sqrt(GravConstant/(a*a*a)).
 	double	relativistic;			//!< Relativistic correction
-	int32	zcount;
+
+	uint32	sv;						//!< SV #
+	uint32	zcount;					//!< zcount?
+	uint32	toewk;                  //!< GPS week corresponding to toe.
+	uint32	fti;                    //!< Fit interval.
+	uint32	iode;                   //!< Issue of data, ephemeris.
+	uint32	tocwk;					//!< GPS week corresponding to toc.
+	uint32	valid;					//!< 0=No valid data.
+	uint32	tofxmission;			//!< Time of subframe 1 transmission, sec of week.
+	uint32	tow;					//!< Truncated TOW count
+	uint32	subframe_1_health;      //!< Subframe 1 health code.
+	uint32	code_on_L2;             //!< Code on L2 flag.
+	uint32	week_number;			//!< GPS week at time of subframe 1 reception.
+	uint32	L2pdata;                //!< L2 P data flag.
+	uint32	ura;                    //!< Satellite's URA code.
+	uint32	iodc;                   //!< Issue of data, clock.
+
 
 } Ephemeris_M;
 
@@ -385,9 +389,6 @@ typedef struct Ephemeris_M
 typedef struct Almanac_M
 {
 
-	int32	sv;
-	uint32	decoded;				//!< Has this been decoded yet
-	int32	health;					//!< Health code
 	double	ecc;					//!< Eccentricity
 	double	toa;					//!< Time of Almanac
 	double	in0;					//!< Inclination
@@ -398,7 +399,11 @@ typedef struct Almanac_M
 	double	m0;						//!< Mean Anomaly
 	double	af0;					//!< Clock parameter 0
 	double	af1;					//!< Clock parameter 1
-	int32	week;					//!< Week number
+
+	uint32	sv;
+	uint32	week;					//!< Week number
+	uint32	decoded;				//!< Has this been decoded yet
+	uint32	health;					//!< Health code
 
 } Almanac_M;
 
@@ -409,9 +414,9 @@ typedef struct Almanac_M
 typedef struct Ephemeris_Status_M
 {
 
-	int32 valid[NUM_CODES];		//!< Valid ephemeris
-	int32 iode[NUM_CODES];		//!< Corresponding IODE
-	int32 avalid[NUM_CODES];	//!< Valid almanac
+	uint32 valid[NUM_CODES];		//!< Valid ephemeris
+	uint32 iode[NUM_CODES];		//!< Corresponding IODE
+	uint32 avalid[NUM_CODES];	//!< Valid almanac
 
 } Ephemeris_Status_M;
 
@@ -422,13 +427,13 @@ typedef struct Ephemeris_Status_M
 typedef struct FIFO_M
 {
 
-	int32 tic;
-	int32 count;		//!< Number of 1 ms packets processed
-	int32 head;			//!< Head pointer number
-	int32 tail;			//!< Tail pointer number
-	int32 agc_scale;	//!< Value used for AGC scale
-	int32 overflw;		//!< Overflows in last ms
-	int32 nactive;		//!< Number of channels to process the measurment packet
+	uint32 tic;
+	uint32 count;		//!< Number of 1 ms packets processed
+	uint32 head;		//!< Head pointer number
+	uint32 tail;		//!< Tail pointer number
+	uint32 agc_scale;	//!< Value used for AGC scale
+	uint32 overflw;		//!< Overflows in last ms
+	uint32 nactive;		//!< Number of channels to process the measurment packet
 
 } FIFO_M;
 
@@ -460,8 +465,8 @@ typedef struct Message_Struct
 	Pseudorange_M 		pseudoranges[MAX_CHANNELS+1];	//!< Pseudoranges, last element is used as a buffer
 	Measurement_M 		measurements[MAX_CHANNELS+1];	//!< Measurements, last element is used as a buffer
 
-	Ephemeris_M			ephemeris[NUM_CODES+1];			//!< Ephemeris message, last element is used as a buffer
-	Almanac_M			almanac[NUM_CODES+1];			//!< Almanac message, last element is used as a buffer
+	Ephemeris_M			ephemerides[NUM_CODES+1];		//!< Ephemeris message, last element is used as a buffer
+	Almanac_M			almanacs[NUM_CODES+1];			//!< Almanac message, last element is used as a buffer
 	Ephemeris_Status_M	ephemeris_status;				//!< Status of ephemeris
 	FIFO_M				fifo;							//!< FIFO status
 	Command_Ack_M		command_ack;

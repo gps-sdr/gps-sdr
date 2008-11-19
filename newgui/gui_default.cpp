@@ -45,38 +45,7 @@ void GUI_Default::render(wxDC& dc)
 void GUI_Default::renderCN0()
 {
 
-//	int lcv;
-//	int iCN0;
-//	wxString str;
 	Channel_Health_M *pchan;
-//
-//	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-//	{
-//		pchan = &p->channel_health[lcv];
-//		if(pchan->count > 2000.0)
-//		{
-//			str.Printf(wxT("%02d"),(int)pchan->sv+1);
-//			tCN0[lcv]->SetLabel(str);
-//
-//			if(pchan->CN0 > 60.0)
-//				iCN0 = 1000;
-//
-//			if(pchan->CN0 < 10.0)
-//				iCN0 = 1000;
-//
-//			iCN0 = (int)((pchan->CN0 - 10.0)*20.0);
-//
-//			gCN0[lcv]->SetValue(iCN0);
-//
-//		}
-//		else
-//		{
-//			str = wxT("  ");
-//			tCN0[lcv]->SetLabel(str);
-//			gCN0[lcv]->SetValue(0);
-//		}
-//	}
-
 	int mX, mY, lcv, gval, rval;
 	double maxX, maxY, svX, svY, dX, dY;
 	double scaleX, scaleY;
@@ -127,25 +96,15 @@ void GUI_Default::renderCN0()
 			dY /= 40.0;
 			dY *= 800;
 			dY *= scaleY;
-			bar[0].x = 0;
-			bar[0].y = 0;
-			bar[1].x = dX/2;
-			bar[1].y = 0;
-			bar[2].x = dX/2;
-			bar[2].y = -dY;
-			bar[3].x = 0;
-			bar[3].y = -dY;
-
-//			bar[1] = (dX/2, 0);
-//			bar[2] = (dX/2, dY);
-//			bar[3] = (0, dY);
+			bar[0].x = 0;		bar[0].y = 0;
+			bar[1].x = dX/2;	bar[1].y = 0;
+			bar[2].x = dX/2;	bar[2].y = -dY;
+			bar[3].x = 0;		bar[3].y = -dY;
 
 			gval = 255.0*(pchan->CN0 - 20.0)/40.0;
 			rval = 255.0 - 255.0*(pchan->CN0 - 20.0)/40.0;
 			dc.SetBrush(wxBrush(wxColor(rval,gval,0)));
 			dc.SetPen(wxPen(wxColor(0,0,0), 1));
-//			dc.DrawLine(lcv*dX + 100*scaleX, h-600*scaleY, lcv*dX + 100*scaleX, h - 600*scaleY - dY);
-
 			dc.DrawPolygon(4, bar, lcv*dX + 150*scaleX, h-600*scaleY);
 		}
 		else
@@ -172,7 +131,7 @@ void GUI_Default::renderSkyPlot()
 	SV_Position_M *psv;
 	Channel_Health_M *pchan;
 
-	maxX = maxY = 1000;
+	maxX = maxY = 1100;
 
 	wxPaintDC dc(pSkyPlot);
 
@@ -187,19 +146,25 @@ void GUI_Default::renderSkyPlot()
 
     /* Draw a circle */
     dc.SetPen(wxPen(wxColor(0,0,0), 1 ));
-
     dc.DrawCircle(mX, mY, 900*scaleY);
+    dc.SetPen(wxPen(wxColor(0,0,0), 1, wxLONG_DASH ));
     dc.DrawCircle(mX, mY, 750*scaleY);
     dc.DrawCircle(mX, mY, 600*scaleY);
     dc.DrawCircle(mX, mY, 450*scaleY);
     dc.DrawCircle(mX, mY, 300*scaleY);
     dc.DrawCircle(mX, mY, 150*scaleY);
+    dc.SetPen(wxPen(wxColor(0,0,0), 1 ));
     dc.DrawLine(mX, mY-900*scaleY, mX, mY+900*scaleY);
     dc.DrawLine(mX-900*scaleY, mY, mX+900*scaleY, mY);
 
-
     dc.SetBrush(wxBrush(wxColor(0,0,0)));
     dc.SetFont(wxFont(14, wxDEFAULT, wxNORMAL, wxBOLD));
+
+    /* Draw the "NESW" */
+    str = wxT("N"); dc.DrawText(str,mX-5, mY-900*scaleY-20);
+    str = wxT("S"); dc.DrawText(str,mX-5, mY+900*scaleY);
+    str = wxT("E"); dc.DrawText(str,mX+900*scaleY+5, mY-10);
+    str = wxT("W"); dc.DrawText(str,mX-900*scaleY-25, mY-10);
 
     /* Now place the SVs */
     for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
@@ -230,10 +195,10 @@ void GUI_Default::renderPVT()
 
 	tPVT->Clear();
 
-	str.Printf(wxT("Nav SVs:\t%-2d\n"),pNav->nav_channels);
-	tPVT->AppendText(str);
-	str.Printf(wxT("Receiver Time:\t%10.2f\n"),(float)pNav->tic/(float)TICS_PER_SECOND);
-	tPVT->AppendText(str);
+//	str.Printf(wxT("Nav SVs:\t%-2d\n"),pNav->nav_channels);
+//	tPVT->AppendText(str);
+//	str.Printf(wxT("Receiver Time:\t%10.2f\n"),(float)pNav->tic/(float)TICS_PER_SECOND);
+//	tPVT->AppendText(str);
 	str.Printf(wxT("\t\t\t      X\t\t      Y\t\t      Z\n"));
 	tPVT->AppendText(str);
 	str.Printf(wxT("Position (m):\t%15.2f\t%15.2f\t%15.2f\n"),pNav->x,pNav->y,pNav->z);

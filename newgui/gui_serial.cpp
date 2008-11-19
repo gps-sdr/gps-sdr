@@ -316,14 +316,14 @@ void GUI_Serial::readPipe()
 				memcpy(&m->pseudoranges[chan], &m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
 				break;
 			case EPHEMERIS_M_ID:
-				pipeRead(&m->ephemeris[NUM_CODES], sizeof(Ephemeris_M));
-				chan = m->ephemeris[NUM_CODES].sv;
-				memcpy(&m->ephemeris[chan], &m->ephemeris[NUM_CODES], sizeof(Ephemeris_M));
+				pipeRead(&m->ephemerides[NUM_CODES], sizeof(Ephemeris_M));
+				chan = m->ephemerides[NUM_CODES].sv;
+				memcpy(&m->ephemerides[chan], &m->ephemerides[NUM_CODES], sizeof(Ephemeris_M));
 				break;
 			case ALMANAC_M_ID:
-				pipeRead(&m->almanac[NUM_CODES], sizeof(Almanac_M));
-				chan = m->almanac[NUM_CODES].sv;
-				memcpy(&m->almanac[chan], &m->almanac[NUM_CODES], sizeof(Almanac_M));
+				pipeRead(&m->almanacs[NUM_CODES], sizeof(Almanac_M));
+				chan = m->almanacs[NUM_CODES].sv;
+				memcpy(&m->almanacs[chan], &m->almanacs[NUM_CODES], sizeof(Almanac_M));
 				break;
 			case EPHEMERIS_VALID_M_ID:
 				pipeRead(&m->ephemeris_status, sizeof(Ephemeris_Status_M));
