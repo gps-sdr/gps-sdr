@@ -33,8 +33,8 @@ END_EVENT_TABLE()
 GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS-SDR"), wxDefaultPosition, wxSize( 600,600 ), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL, wxT("GPS-SDR") )
 {
 
-    timer = new wxTimer(this, ID_TIMER);
-    timer->Start(75, wxTIMER_CONTINUOUS); //Shoot for 20 fps
+//    timer = new wxTimer(this, ID_TIMER);
+//    timer->Start(75, wxTIMER_CONTINUOUS); //Shoot for 20 fps
 
     wDefault = NULL;
 

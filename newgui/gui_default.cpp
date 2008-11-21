@@ -52,7 +52,8 @@ void GUI_Default::renderCN0()
 	wxPoint bar[4];
 
 	wxString str;
-	wxPaintDC dc(pCN0);
+//	wxPaintDC dc(pCN0);
+	wxBufferedPaintDC dc(pCN0, wxBUFFER_CLIENT_AREA);
 	dc.Clear();
 
 	maxX = maxY = 1000;
@@ -133,8 +134,9 @@ void GUI_Default::renderSkyPlot()
 
 	maxX = maxY = 1100;
 
-	wxPaintDC dc(pSkyPlot);
-
+	//wxPaintDC dc(pSkyPlot);
+	//wxBufferedPaintDC dc(pSkyPlot, pSkyPlot->GetSize(), wxBUFFER_CLIENT_AREA);
+	wxBufferedPaintDC dc(pSkyPlot, wxBUFFER_CLIENT_AREA);
 	dc.Clear();
 
 	wxCoord w, h;

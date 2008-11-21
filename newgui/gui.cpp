@@ -29,7 +29,7 @@ bool GUI_App::OnInit()
     SetTopWindow(pMain);
 
 	/* Start up the render loop */
-//    activateRenderLoop(true);
+    activateRenderLoop(true);
     return TRUE;
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -59,6 +59,7 @@ void GUI_App::onIdle(wxIdleEvent& evt)
     if(render_loop_on)
     {
 		pMain->paintNow();
+		usleep(50000);
         evt.RequestMore(); //render continuously, not only once on idle
     }
 

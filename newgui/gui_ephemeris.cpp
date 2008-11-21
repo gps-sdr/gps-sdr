@@ -45,37 +45,38 @@ void GUI_Ephemeris::render(wxDC& dc)
 void GUI_Ephemeris::onMouse(wxMouseEvent& event)
 {
 
-	wxRect rect;
-	wxPoint br, tl;
-	int32 mx, my;
+	wxString str;
+	wxPoint br, tl, sp, mp;
+	wxCoord w, h;
+
 	int32 row, col;
 	int32 dX,dY;
 
-	tl = pDecoded->GetPosition();
-	rect = pDecoded->GetClientRect();
-	br = rect.GetBottomRight();
+	pDecoded->GetClientSize(&w, &h);
+	sp = this->GetScreenPosition();
+	tl = pDecoded->GetScreenPosition() - sp;
+	mp = wxGetMousePosition() - sp;
 
-	dY = (br.y/4);
-	dX = (4*br.x/NUM_CODES);
+	dY = (h/4);
+	dX = (w/(NUM_CODES>>2));
 
-	br.x += tl.x;
-	br.y += tl.y;
-
-	mx = wxGetMousePosition().x - this->GetScreenPosition().x;
-	my = wxGetMousePosition().y - this->GetScreenPosition().y;
+	br.x = tl.x + w;
+	br.y = tl.y + h;
 
 	/* Within the pDecoded area */
-	if((mx >= tl.x) && (mx <= br.x) && (my >= tl.y) && (my <= br.y))
+	if((mp.x >= tl.x) && (mp.x <= br.x) && (mp.y >= tl.y) && (mp.y <= br.y))
 	{
-		mx = mx - tl.x;
-		my = my - tl.y;
+		mp -= tl;
 
-		row = mx/dX;
-		col = my/dY;
-		sv = row;
-		sv += col*(NUM_CODES>>2);
+		row = mp.y/dY;
+		col = mp.x/dX;
+		sv = row*(NUM_CODES>>2);
+		sv += col;
 
-		pSerial->formCommand(GET_EPHEMERIS_C_ID, &sv);
+		if(sv >= 0 && sv <= NUM_CODES)
+			pSerial->formCommand(GET_EPHEMERIS_C_ID, &sv);
+		else
+			sv = 0;
 	}
 }
 
@@ -87,14 +88,15 @@ void GUI_Ephemeris::renderDecoded()
 
 	wxPoint box[4];
 	wxString str;
-	wxPaintDC dc(pDecoded);
+	//wxPaintDC dc(pDecoded);
+	wxBufferedPaintDC dc(pDecoded, wxBUFFER_CLIENT_AREA);
 	dc.Clear();
 
 	wxCoord w, h;
-	dc.GetSize(&w, &h);
+	pDecoded->GetClientSize(&w, &h);
 
 	dY = (h/4);
-	dX = (4*w/NUM_CODES);
+	dX = (w/(NUM_CODES>>2));
 
 	box[0].x = 0;	box[0].y = 0;
 	box[1].x = dX;	box[1].y = 0;
