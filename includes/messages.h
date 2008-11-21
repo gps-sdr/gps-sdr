@@ -43,6 +43,8 @@ enum CCSDS_PACKET_IDS
 	EPHEMERIS_VALID_M_ID,
 	FIFO_M_ID,
 	COMMAND_ACK_M_ID,
+	SV_PREDICTION_M_ID,
+	ACQ_COMMAND_M_ID,
 	LAST_M_ID
 };
 
@@ -437,6 +439,47 @@ typedef struct FIFO_M
 
 } FIFO_M;
 
+/*! \ingroup MESSAGES
+ * Informs the acquisition in what mode to perform the next acquisition
+ */
+typedef struct _Acq_Command_M
+{
+
+	int32 chan;			//!< Which channel this will be mapped to
+	int32 sv;			//!< Look for this SV
+	int32 type;			//!< Type (STRONG/MEDIUM/WEAK)
+	int32 mindopp;		//!< Minimum Doppler
+	int32 maxdopp;		//!< Maximum Doppler
+	int32 antenna;		//!< Antenna number
+	int32 count;		//!< Packet tag
+	int32 state;		//!< Request started, IF data collected, request complete
+	int32 success;		//!< Was the SV detected?
+	float delay;		//!< Delay in chips
+	float doppler;		//!< Doppler in Hz
+	float magnitude;	//!< Magnitude
+
+} Acq_Command_M;
+
+
+/*! \ingroup MESSAGES
+ * The predicted state of an SV via the almanac
+ */
+typedef struct _SV_Prediction_M
+{
+
+	int32 sv;					//!< SV number
+	int32 visible;				//!< Should the SV be visible?
+	int32 tracked;				//!< Is it being tracked?
+	float elev;					//!< Predicted elev (degrees)
+	float azim;					//!< Predicted azim (degrees)
+	float v_elev;				//!< Elevation of vehicle relative to SV
+	float v_azim;				//!< Azimuth of vehicle relative to SV
+	float delay;				//!< Predicted delay (seconds)
+	float doppler;				//!< Predicted Doppler (Hz)
+	float doppler_rate;			//!< Predicted Doppler rate (Hz/sec)
+
+} SV_Prediction_M;
+
 
 /*! \ingroup MESSAGES
 	Acknowledge processing of command
@@ -469,6 +512,8 @@ typedef struct Message_Struct
 	Almanac_M			almanacs[NUM_CODES+1];			//!< Almanac message, last element is used as a buffer
 	Ephemeris_Status_M	ephemeris_status;				//!< Status of ephemeris
 	FIFO_M				fifo;							//!< FIFO status
+	Acq_Command_M		acq_command[NUM_CODES+1];		//!< Last command acquisition
+	SV_Prediction_M		sv_predictions[NUM_CODES+1];	//!< SV Prediction
 	Command_Ack_M		command_ack;
 
 } Message_Struct;
@@ -490,6 +535,8 @@ typedef union Union_M
 	Almanac_M			almanac;
 	Ephemeris_Status_M	ephemeris_status;
 	FIFO_M				fifo;
+	Acq_Command_M		acq_command;
+	SV_Prediction_M		sv_prediction;
 	Command_Ack_M		command_ack;
 } Union_M;
 

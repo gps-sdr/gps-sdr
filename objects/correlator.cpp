@@ -147,14 +147,14 @@ void Correlator::Import()
 	int32 bread;
 	int32 lcv;
 	int32 last;
-	Acq_Request_S temp;
+	Acq_Command_M temp;
 	ms_packet *p = NULL;
 
 	/* Wait for a command to start a new channel */
 	if(state.active == 0)
 	{
-		bread = read(Trak_2_Corr_P[chan][READ], &result, sizeof(Acq_Result_S));
-		if(bread == sizeof(Acq_Result_S))
+		bread = read(Trak_2_Corr_P[chan][READ], &result, sizeof(Acq_Command_M));
+		if(bread == sizeof(Acq_Command_M))
 		{
 			InitCorrelator();
 
@@ -166,7 +166,7 @@ void Correlator::Import()
 					aChannel->Start(result.sv, result, 1);
 					break;
 				case ACQ_MEDIUM:
-					aChannel->Start(result.sv, result, 4);
+					aChannel->Start(result.sv, result, 1);
 					break;
 				case ACQ_WEAK:
 					aChannel->Start(result.sv, result, 4);

@@ -67,12 +67,12 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define ACQ_STRONG				(0)			//!< Acq strong type
 #define ACQ_MEDIUM				(1)			//!< Acq medium type
 #define ACQ_WEAK 				(2)			//!< Acq weak type
-#define ACQ_MAX					(ACQ_STRONG)//!< Cap acquisition type to this
-#define ACQ_ITERATIONS			(10)		//!< Do this many acqs at a given type before moving to next type
+#define ACQ_MAX					(ACQ_MEDIUM)//!< Cap acquisition type to this
+#define ACQ_ITERATIONS			(1)			//!< Do this many acqs at a given type before moving to next type
 #define THRESH_STRONG			(1.3e7)		//!< Threshold for strong signal detection
 #define THRESH_MEDIUM			(1.5e7)		//!< Threshold for medium signal detection
 #define THRESH_WEAK				(1.0e7)		//!< Threshold for weak signal detection
-#define MAX_DOPPLER				(45000)		//!< Set the maximum Doppler frequency
+#define MAX_DOPPLER				(15000)		//!< Set the maximum Doppler frequency
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -90,6 +90,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #define TICS_2_SECONDS			(MEASUREMENT_INT/1000)
 #define TICS_PER_SECOND			(1000/MEASUREMENT_INT)
+#define	ACQS_PER_SECOND			(20)
 /*----------------------------------------------------------------------------------------------*/
 
 

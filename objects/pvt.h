@@ -51,6 +51,7 @@ class PVT : public Threaded_Object
 		SPS_M			master_nav;								//!< Master nav sltn
 		SPS_M			temp_nav;								//!< Temp nav sltn
 		Clock_M			master_clock;							//!< Master clock
+		PVT_2_SV_Select_S sv_select;							//!< Dump stuff to SV_Select
 
 		/* Matrices used in nav solution */
 		double *alpha[MAX_CHANNELS];

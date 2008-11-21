@@ -39,7 +39,7 @@ class Post_Process : public Threaded_Object
 		char		fname[1024];
 		CPX			*buff;
 		CPX 		*buff_in;
-		Acq_Result_S results[NUM_CODES];
+		Acq_Command_M results[NUM_CODES];
 
 	public:
 

@@ -39,7 +39,7 @@
 #define ID_MAIN_B 1006
 #define ID_CHANNEL_B 1007
 #define ID_ACQUISITION_B 1008
-#define ID_SV_SELECT_B 1009
+#define ID_SELECT_B 1009
 #define ID_EPHEMERIS_B 1010
 #define ID_ALMANAC_B 1011
 #define ID_LOG_B 1012
@@ -211,6 +211,24 @@ class iGUI_Acquisition : public wxFrame
 	public:
 		iGUI_Acquisition( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Acquisition();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class iGUI_Select
+///////////////////////////////////////////////////////////////////////////////
+class iGUI_Select : public wxFrame 
+{
+	private:
+	
+	protected:
+		wxPanel* pDoppler;
+		wxPanel* pSV;
+		wxPanel* pRec;
+	
+	public:
+		iGUI_Select( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("SV Select"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~iGUI_Select();
 	
 };
 

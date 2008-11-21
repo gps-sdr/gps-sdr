@@ -140,13 +140,20 @@ void Serial_Telemetry::Import()
 	read(PVT_2_Telem_P[READ], &pseudoranges[0],	MAX_CHANNELS*sizeof(Pseudorange_M));
 	read(PVT_2_Telem_P[READ], &measurements[0],	MAX_CHANNELS*sizeof(Measurement_M));
 
-	bread = sizeof(Acq_Result_S);
-	while(bread == sizeof(Acq_Result_S))
-		bread = read(Acq_2_Telem_P[READ],&tAcq,sizeof(Acq_Result_S));
+	/* Read from actual acquisition */
+	bread = sizeof(Acq_Command_M);
+	while(bread == sizeof(Acq_Command_M))
+	{
+		bread = read(Acq_2_Telem_P[READ],&acq_command, sizeof(Acq_Command_M));
+		SendAcqCommand();
+	}
 
 	/* Read from Ephemeris */
-	bread = read(Ephem_2_Telem_P[READ], &ephemeris_status, sizeof(Ephemeris_Status_M));
+	bread = sizeof(Ephemeris_Status_M);
+	while(bread == sizeof(Ephemeris_Status_M))
+		bread = read(Ephem_2_Telem_P[READ], &ephemeris_status, sizeof(Ephemeris_Status_M));
 
+	/* Read from SV Select */
 	bread = sizeof(SV_Select_2_Telem_S);
 	while(bread == sizeof(SV_Select_2_Telem_S))
 		bread = read(SV_Select_2_Telem_P[READ], &tSelect, sizeof(SV_Select_2_Telem_S));
@@ -226,6 +233,8 @@ void Serial_Telemetry::ExportGUI()
 	SendSPS();
 	SendClock();
 	SendEphemerisStatus();
+	SendSVPrediction();
+	SendAcqCommand();
 
 	/* See if there is any new GEONS data */
 
@@ -496,6 +505,29 @@ void Serial_Telemetry::SendEphemerisStatus()
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
+/*----------------------------------------------------------------------------------------------*/
+void Serial_Telemetry::SendSVPrediction()
+{
+	/* Form the packet */
+	FormCCSDSPacketHeader(&packet_header, SV_PREDICTION_M_ID, 0, sizeof(SV_Prediction_M), 0, packet_tic++);
+
+	/* Emit the packet */
+	EmitCCSDSPacket((void *)&tSelect.sv_predicted[(execution_tic % NUM_CODES)], sizeof(SV_Prediction_M));
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Serial_Telemetry::SendAcqCommand()
+{
+	/* Form the packet */
+	FormCCSDSPacketHeader(&packet_header, ACQ_COMMAND_M_ID, 0, sizeof(Acq_Command_M), 0, packet_tic++);
+
+	/* Emit the packet */
+	EmitCCSDSPacket((void *)&acq_command, sizeof(Acq_Command_M));
+}
+/*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/

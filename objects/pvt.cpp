@@ -201,8 +201,9 @@ void PVT::Export()
 	write(PVT_2_Telem_P[WRITE], &measurements, MAX_CHANNELS*sizeof(Measurement_M));
 
 	/* Dump to SV Select */
-	write(PVT_2_SV_Select_P[WRITE], &master_nav,   sizeof(SPS_M));
-	write(PVT_2_SV_Select_P[WRITE], &master_clock, sizeof(Clock_M));
+	memcpy(&sv_select.master_nav, 	&master_nav, 	sizeof(SPS_M));
+	memcpy(&sv_select.master_clock, &master_clock,	sizeof(Clock_M));
+	write(PVT_2_SV_Select_P[WRITE], &sv_select, 	sizeof(PVT_2_SV_Select_S));
 
 	IncStopTic();
 

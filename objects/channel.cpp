@@ -126,7 +126,7 @@ void Channel::Clear()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Channel::Start(int32 _sv, Acq_Result_S result, int32 _corr_len)
+void Channel::Start(int32 _sv, Acq_Command_M result, int32 _corr_len)
 {
 
 	/* Clear out the channel */

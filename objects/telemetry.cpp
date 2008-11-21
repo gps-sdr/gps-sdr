@@ -143,9 +143,9 @@ void Telemetry::Import()
 
 	read(PVT_2_Telem_P[READ], &tNav, sizeof(PVT_2_Telem_S));
 
-	bread = sizeof(Acq_Result_S);
-	while(bread == sizeof(Acq_Result_S))
-		bread = read(Acq_2_Telem_P[READ],&tAcq,sizeof(Acq_Result_S));
+	bread = sizeof(Acq_Command_M);
+	while(bread == sizeof(Acq_Command_M))
+		bread = read(Acq_2_Telem_P[READ],&tAcq,sizeof(Acq_Command_M));
 
 	bread = sizeof(Ephemeris_Status_M);
 	while(bread == sizeof(Ephemeris_Status_M))
@@ -456,7 +456,7 @@ void Telemetry::PrintAlmanac()
 
 	int32 lcv, nvis, ntrack;
 	float elev, azim;
-	Acq_Predicted_S *psv;
+	SV_Prediction_M *psv;
 	line++;
 
 	nvis = 0;
@@ -483,6 +483,7 @@ void Telemetry::PrintAlmanac()
 	mvwprintw(screen,line++,1,"Mask Angle:\t%6.2f\n",tSelect.mask_angle*(180/PI)-90.0);
 	mvwprintw(screen,line++,1,"Visible:\t%6d\n",nvis);
 	mvwprintw(screen,line++,1,"Tracked:\t%6d\n",ntrack);
+	mvwprintw(screen,line++,1,"Stale Tics:\t%6d\n",tNav.master_nav.stale_ticks);
 
 	line++;
 	mvwprintw(screen,line++,1,"SV        Elev        Azim     Doppler           Delay   Visible    Tracked\n");
@@ -522,7 +523,7 @@ void Telemetry::PrintHistory()
 
 	int32 lcv, nvis, ntrack;
 	float elev, azim;
-	Acq_Predicted_S *psv;
+	SV_Prediction_M *psv;
 	Acq_History_S *phist;
 
 	line++;
@@ -551,6 +552,7 @@ void Telemetry::PrintHistory()
 	mvwprintw(screen,line++,1,"Mask Angle:\t%6.2f\n",tSelect.mask_angle*(180/PI)-(90.0));
 	mvwprintw(screen,line++,1,"Visible:\t%6d\n",nvis);
 	mvwprintw(screen,line++,1,"Tracked:\t%6d\n",ntrack);
+	mvwprintw(screen,line++,1,"Stale Tics:\t%6d\n",tNav.master_nav.stale_ticks);
 
 	line++;
 	mvwprintw(screen,line++,1,"SV  Ant     Type   Attempt   Fail   Success    DoppMin      DoppMax      Doppler      Magnitude\n");

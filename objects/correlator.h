@@ -40,7 +40,7 @@ class Correlator : public Threaded_Object
 		ms_packet			packet;								//!< 1ms of data
 
 		int32 				chan;			 					//!< Which channel is this?
-		Acq_Result_S 		result; 							//!< An acquisition result has been returned!
+		Acq_Command_M 		result; 							//!< An acquisition result has been returned!
 		NCO_Command_S  		feedback;							//!< NCO feedback commands
 		Correlation_S  		corr;								//!< Resulting correlation
 		Correlator_State_S	state;								//!< Correlator states

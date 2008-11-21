@@ -269,65 +269,6 @@ typedef struct _Almanac_Data_S
 /* Structs associated with SV_Select and Acquisition object */
 /*----------------------------------------------------------------------------------------------*/
 /*! \ingroup STRUCTS
- * Get the result of an acquisition
- */
-typedef struct _Acq_Result_S
-{
-
-	uint32 count;		//!< Packet tag
-	uint32 chan;		//!< The channel this SV will be assigned to
-	uint32 sv;			//!< SV number
-	uint32 type;		//!< Strong, medium, or weak
-	uint32 success;		//!< Did we declare detection?
-	uint32 antenna;		//!< antenna number
-	float delay;		//!< Delay in chips
-	float doppler;		//!< Doppler in Hz
-	float magnitude;	//!< Magnitude
-	float nf;			//!< Noise floor
-	float snr;			//!< SNR in dB
-
-} Acq_Result_S;
-
-
-/*! \ingroup STRUCTS
- * Informs the acquisition in what mode to perform the next acquisition
- */
-typedef struct _Acq_Request_S
-{
-
-	int32 corr;			//!< which correlator
-	int32 count;		//!< packet tag
-	int32 state;		//!< request started, IF data collected, request complete
-	int32 sv;			//!< look for this SV
-	int32 mindopp;		//!< minimum Doppler
-	int32 maxdopp;		//!< maximum Doppler
-	int32 type;			//!< type (STRONG/MEDIUM/WEAK)
-	int32 antenna;		//!< antenna number
-
-} Acq_Request_S;
-
-
-/*! \ingroup STRUCTS
- * The predicted state of an SV via the almanac
- */
-typedef struct _Acq_Predicted_S
-{
-
-	int32 sv;					//!< SV number
-	int32 visible;				//!< Should the SV be visible?
-	int32 tracked;				//!< Is it being tracked?
-	float elev;					//!< Predicted elev (degrees)
-	float azim;					//!< Predicted azim (degrees)
-	float v_elev;				//!< Elevation of vehicle relative to SV
-	float v_azim;				//!< Azimuth of vehicle relative to SV
-	float delay;				//!< Predicted delay (seconds)
-	float doppler;				//!< Predicted Doppler (Hz)
-	float doppler_rate;			//!< Predicted Doppler rate (Hz/sec)
-
-} Acq_Predicted_S;
-
-
-/*! \ingroup STRUCTS
  * Keep track of latest acquisition attempts
  */
 typedef struct _Acq_History_S
@@ -354,7 +295,7 @@ typedef struct _Acq_History_S
 /*! \ingroup STRUCTS
  *
  */
-typedef Acq_Result_S Acq_2_Telem_S;
+typedef Acq_Command_M Acq_2_Telem_S;
 
 
 /*! \ingroup STRUCTS
@@ -383,7 +324,7 @@ typedef struct _SV_Select_2_Telem_S
 	int32 type;
 	int32 mode;
 	float mask_angle;
-	Acq_Predicted_S	sv_predicted[NUM_CODES];
+	SV_Prediction_M	sv_predicted[NUM_CODES];
 	Acq_History_S	sv_history[NUM_CODES];
 
 } SV_Select_2_Telem_S;

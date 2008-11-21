@@ -70,21 +70,20 @@ class Acquisition : public Threaded_Object
 		int32 ncross;							//!< Cross corr blocking
 		int32 cross_doppler[MAX_CHANNELS];		//!< Cross corr blocking
 
-		Acq_Request_S request;					//!< An acquisition request
-		Acq_Result_S results[NUM_CODES];		//!< Where to store the results
-
+		Acq_Command_M request;					//!< Acquisition transaction
+		Acq_Command_M results[NUM_CODES];		//!< Where to store the results
 
 	public:
 
 		Acquisition(float _fsample, float _fif);											//!< Create and initialize object, need _fsample as a necessary argument
 		~Acquisition();																		//!< Shutdown gracefully
-		Acq_Result_S doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax); 				//!< Look for this sv in this doppler range using a 1 ms correlation (_buff must be 1 ms long)
-		Acq_Result_S doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax); 				//!< Look for this sv in this doppler range using a 10 ms correlation (_buff must be 20 ms long)
-		Acq_Result_S doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax); 					//!< Look for this sv in this doppler range using a 10 ms correlation and 15 incoherent integrations (_buff must be 310 ms long)
+		Acq_Command_M doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax); 				//!< Look for this sv in this doppler range using a 1 ms correlation (_buff must be 1 ms long)
+		Acq_Command_M doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax); 				//!< Look for this sv in this doppler range using a 10 ms correlation (_buff must be 20 ms long)
+		Acq_Command_M doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax); 				//!< Look for this sv in this doppler range using a 10 ms correlation and 15 incoherent integrations (_buff must be 310 ms long)
 		void doPrepIF(int32 _type, CPX *_buff);												//!< Prep the IF (done once if detecting multiple SVs in same data set)
 		void doDFT(CPX *in);
 		void Import();																		//!< Get a chuck of data to operate on
-		void Export(char *_fname);																		//!< Dump results
+		void Export(char *_fname);															//!< Dump results
 		void Acquire();																		//!< Acquire with respect to current state
 		void Start();																		//!< Start up the thread
 

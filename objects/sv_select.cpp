@@ -64,8 +64,8 @@ SV_Select::SV_Select()
 	mode = WARM_START;
 	mask_angle = PI/2;
 
-	pnav = &master_nav;
-	pclock = &master_clock;
+	pnav = &pvt.master_nav;
+	pclock = &pvt.master_clock;
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -89,8 +89,13 @@ void SV_Select::Import()
 	int32 bread;
 
 	/* Pend on PVT sltn */
-	read(PVT_2_SV_Select_P[READ], &master_nav,   sizeof(SPS_M));
-	read(PVT_2_SV_Select_P[READ], &master_clock, sizeof(Clock_M));
+	bread = sizeof(PVT_2_SV_Select_S);
+	while(bread == sizeof(PVT_2_SV_Select_S))
+	{
+		bread =	read(PVT_2_SV_Select_P[READ], &pvt, sizeof(PVT_2_SV_Select_S));
+	}
+
+	usleep(1000000/ACQS_PER_SECOND);
 
 	IncStartTic();
 
@@ -109,8 +114,6 @@ void SV_Select::Import()
 	{
 		mode = COLD_START;
 	}
-
-	mode = COLD_START;
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -149,15 +152,15 @@ void SV_Select::Acquire()
 	}
 
 	/* Update prediction if the SV is being tracked */
-//	if(already == 666)
-//	{
-//		GetAlmanac(sv);
-//		SV_Position(sv);
-//		SV_LatLong(sv);
-//		SV_Predict(sv);
-//		UpdateState();
-//		return;
-//	}
+	if(already == 666)
+	{
+		GetAlmanac(sv);
+		SV_Position(sv);
+		SV_LatLong(sv);
+		SV_Predict(sv);
+		UpdateState();
+		return;
+	}
 
 	/* Run the SV prediction routine based on Almanac data */
 	GetAlmanac(sv);
@@ -173,10 +176,10 @@ void SV_Select::Acquire()
 		{
 
 			/* Send to the acquisition thread */
-			write(Trak_2_Acq_P[WRITE], &request, sizeof(Acq_Request_S));
+			write(Trak_2_Acq_P[WRITE], &request, sizeof(Acq_Command_M));
 
 			/* Wait for acq to return, do stuff depending on the state */
-			read(Acq_2_Trak_P[READ], &result, sizeof(Acq_Result_S));
+			read(Acq_2_Trak_P[READ], &result, sizeof(Acq_Command_M));
 
 			/* Pass over channel */
 			result.chan = chan;
@@ -203,9 +206,9 @@ void SV_Select::Export()
 	output_s.mode = mode;
 	output_s.type = sv_history[sv].type;
 
-	memcpy(&output_s.sv_predicted[0], &sv_prediction[0], NUM_CODES*sizeof(Acq_Predicted_S));
-	memcpy(&output_s.sv_history[0], &sv_history[0], NUM_CODES*sizeof(Acq_History_S));
-	write(SV_Select_2_Telem_P[WRITE], &output_s, sizeof(SV_Select_2_Telem_S));
+	memcpy(&output_s.sv_predicted[0], 	&sv_prediction[0],	NUM_CODES*sizeof(SV_Prediction_M));
+	memcpy(&output_s.sv_history[0],		&sv_history[0], 	NUM_CODES*sizeof(Acq_History_S));
+	write(SV_Select_2_Telem_P[WRITE], 	&output_s, 			sizeof(SV_Select_2_Telem_S));
 
 	IncStopTic();
 }
@@ -216,7 +219,7 @@ void SV_Select::Export()
 bool SV_Select::SetupRequest()
 {
 
-	Acq_Predicted_S *ppred;
+	SV_Prediction_M *ppred;
 	int32 doppler;
 
 	/* Initialize parameters */
@@ -249,7 +252,7 @@ bool SV_Select::SetupRequest()
 
 		ppred = &sv_prediction[sv];
 
-		if(ppred->visible)
+		//if(ppred->visible)
 		{
 
 			/* Round to a kHz value */
@@ -265,10 +268,10 @@ bool SV_Select::SetupRequest()
 			return(true);
 
 		}
-		else
-		{
-			return(false);
-		}
+//		else
+//		{
+//			return(false);
+//		}
 	}
 
 }
@@ -301,7 +304,7 @@ void SV_Select::ProcessResult()
 		psv->doppler = result.doppler;
 
 		/* Map receiver channels to channels on correlator */
-		write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Result_S));
+		write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Command_M));
 
 	}
 	else
@@ -483,7 +486,7 @@ void SV_Select::SV_Predict(int32 _sv)
 	double a, b;
 
 	SV_Position_M *psv;
-	Acq_Predicted_S *ppred;
+	SV_Prediction_M *ppred;
 
 	if(almanacs[_sv].decoded)
 	{

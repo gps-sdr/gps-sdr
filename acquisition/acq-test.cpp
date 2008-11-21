@@ -15,7 +15,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the: 
+write to the:
 
 Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ************************************************************************************************/
@@ -30,20 +30,20 @@ typedef struct _Acquisition_test_options
 	int32 sv;				//!< search for a single sv
 	int32 type;				//!< strong, medium, or weak
 	int32 doppler_min;		//!< doppler min (Hz)
-	int32 doppler_max;		//!< doppler max (Hz) 
+	int32 doppler_max;		//!< doppler max (Hz)
 	char filename[1024]; 	//!< filename of raw data
 } Acquisition_test_options;
 
 void run_acq(Acquisition_test_options *_opt);
-void print_results(Acq_Result_S *_results);
+void print_results(Acq_Command_M *_results);
 
 void usage(char *_str)
 {
 
     fprintf(stderr, "usage: [-sv] [-s] [-m] [-w] [-min] [-max] [-f] [-r]\n");
-    fprintf(stderr, "[-r] repeat forever \n"); 
+    fprintf(stderr, "[-r] repeat forever \n");
     fprintf(stderr, "[-min] <Doppler> minimum Doppler (Hz) \n");
-    fprintf(stderr, "[-max] <Doppler> maximum Doppler (Hz) \n"); 
+    fprintf(stderr, "[-max] <Doppler> maximum Doppler (Hz) \n");
     fprintf(stderr, "[-f] <filename> GPS signal file\n");
     fprintf(stderr, "[-sv] <SV#> search for an individual SV (1:32)\n");
     fprintf(stderr, "[-s] Strong signal, 1 ms  coherent integration \n");
@@ -61,7 +61,7 @@ void echo_options(Acquisition_test_options *_opt)
     fprintf(stderr, "Filename:\t\t%s\n",_opt->filename);
     fprintf(stderr, "Minimum Doppler (Hz):\t%d\n",_opt->doppler_min);
     fprintf(stderr, "Maximum Doppler (Hz):\t%d\n",_opt->doppler_max);
-    fprintf(stderr, "Type:\t\t\t%d\n",_opt->type); 
+    fprintf(stderr, "Type:\t\t\t%d\n",_opt->type);
     switch(_opt->type)
     {
     	case 0:
@@ -74,22 +74,22 @@ void echo_options(Acquisition_test_options *_opt)
     		fprintf(stderr, "Type:\t\t\tWeak signal\n");
 			break;
     }
-    
+
     fflush(stderr);
 }
 
 int main(int32 argc, char* argv[])
 {
-	
+
 	int32 lcv;
-	
+
 	printf("Acquisition_Test\n");
-	
+
 	Init_SIMD();
-	
+
 	Acquisition_test_options acq_options;
 	char *parse;
-	    
+
 	/* Set default recording options */
 	acq_options.realtime = 0;
 	acq_options.sv = 0;
@@ -97,7 +97,7 @@ int main(int32 argc, char* argv[])
 	acq_options.doppler_min = -10000;
 	acq_options.doppler_max = 10000;
 	strcpy(acq_options.filename, "data.dat");
-	
+
 	for(int lcv = 1; lcv < argc; lcv++)
 	{
 		if(!strcmp(argv[lcv], "-sv"))
@@ -120,16 +120,16 @@ int main(int32 argc, char* argv[])
 		else if(!strcmp(argv[lcv], "-m"))
 		{
 			acq_options.type = 1;
-		}	
+		}
 		else if(!strcmp(argv[lcv], "-w"))
 		{
 			acq_options.type = 2;
-		}	
+		}
 		else if(!strcmp(argv[lcv], "-min"))
 		{
 			lcv++;
 			acq_options.doppler_min = (int32) strtof(argv[lcv], &parse);
-		}	
+		}
 		else if(!strcmp(argv[lcv], "-max"))
 		{
 			lcv++;
@@ -148,13 +148,13 @@ int main(int32 argc, char* argv[])
 			usage(argv[0]);
 	}
 
-	
+
 	/* Echo the record options */
 	echo_options(&acq_options);
-	
+
 	/* Call the recording function */
 	run_acq(&acq_options);
-	
+
 	exit(1);
 
 }
@@ -162,25 +162,25 @@ int main(int32 argc, char* argv[])
 /* Monitor keyboard to kill real-time thread */
 void *key_thread(void *_arg)
 {
-	
+
 	int key;
-		
+
 	printf("Key thread start\n");
-			
+
 	while(grun)
 	{
 		key = getchar();
 		printf("%c",(char)key);
-		
+
 		if((char)key == 'Q')
 			grun = false;
-		
+
 	}
-	
+
 	printf("Key thread stop\n");
-	
+
 	pthread_exit(0);
-		
+
 }
 
 void run_acq(Acquisition_test_options *_opt)
@@ -191,21 +191,21 @@ void run_acq(Acquisition_test_options *_opt)
 	CPX *buff;
 	char *p;
 	int *ip;
-	Acq_Result_S results[NUM_CODES];
+	Acq_Command_M results[NUM_CODES];
 	Acquisition *pAcquisition;
 	int32 sv, lcv, npipe;
 	int32 nbytes, bread, bytes_per_read, ms_per_read, agc_scale;
-	
+
 	agc_scale = 1300;
-	
+
 	clock_t c0, c1;
 	time_t start,end;
     double dif;
 
-	memset(results, 0x0, sizeof(Acq_Result_S)*NUM_CODES);
+	memset(results, 0x0, sizeof(Acq_Command_M)*NUM_CODES);
 	buff = new CPX[310*SAMPS_MS];
 	buff_in = new CPX[310*IF_SAMPS_MS];
-	
+
 	/* Take care of file stuff */
 	if(!_opt->realtime)
 	{
@@ -220,32 +220,32 @@ void run_acq(Acquisition_test_options *_opt)
 
 			fread(buff_in, sizeof(CPX), 310*IF_SAMPS_MS, fp);
 			fclose(fp);
-					
+
 			/* Downsample to 2048 samps/ms */
-			downsample(buff, buff_in, SAMPLE_FREQUENCY, IF_SAMPLE_FREQUENCY, IF_SAMPS_MS*310); 
-	
+			downsample(buff, buff_in, SAMPLE_FREQUENCY, IF_SAMPLE_FREQUENCY, IF_SAMPS_MS*310);
+
 			printf("AGC Scale: %d\n",agc_scale);
-			
+
 			agc_scale = 300;
 
-			/* Init AGC scale value */		
+			/* Init AGC scale value */
 			init_agc(&buff[0], 10*SAMPS_MS, AGC_BITS, &agc_scale);
-		
-			/* Now run it */						
+
+			/* Now run it */
 			for(lcv = 0; lcv < 310; lcv++)
 				run_agc(&buff[lcv*SAMPS_MS], SAMPS_MS, AGC_BITS, &agc_scale);
 		}
-	
+
 		/* Now do the hard work? */
 		pAcquisition = new Acquisition(IF_SAMPLE_FREQUENCY, IF_FREQUENCY);
-	
+
 		pAcquisition->doPrepIF(_opt->type, buff);
-	
+
 		/* A single SV */
-		if(_opt->sv)	
+		if(_opt->sv)
 		{
 			sv = _opt->sv - 1;
-			
+
 			switch(_opt->type)
 			{
 				case 0:
@@ -261,9 +261,9 @@ void run_acq(Acquisition_test_options *_opt)
 					fprintf(stderr, "Bad GPS acquisition type!\n");
 					exit(-1);
 			}
-			
-			printf("SV: %02d\t%02d\t%10.2f\t%10.0f\t%15.0f\n",lcv+1, results[sv].type,results[sv].delay,results[sv].doppler,results[sv].magnitude);				
-			
+
+			printf("SV: %02d\t%02d\t%10.2f\t%10.0f\t%15.0f\n",lcv+1, results[sv].type,results[sv].delay,results[sv].doppler,results[sv].magnitude);
+
 		}
 		else	/* Loop over all SVs */
 		{
@@ -285,35 +285,35 @@ void run_acq(Acquisition_test_options *_opt)
 						fprintf(stderr, "Bad GPS acquisition type!\n");
 						exit(-1);
 				}
-				
-				printf("SV: %02d\t%02d\t%10.2f\t%10.0f\t%15.0f\n",lcv+1, results[sv].type,results[sv].delay,results[sv].doppler,results[sv].magnitude);				
-				
+
+				printf("SV: %02d\t%02d\t%10.2f\t%10.0f\t%15.0f\n",lcv+1, results[sv].type,results[sv].delay,results[sv].doppler,results[sv].magnitude);
+
 			}
 		}
-		
+
 		print_results(&results[0]);
-		
+
 	}
 	else
 	{
 		grun = true;
 		pthread_create(&pkey_thread, NULL, key_thread, (void *)_opt);
-			
+
 		switch(_opt->type)
 		{
 			case 0:
 				ms_per_read = 1;
-				break;			
+				break;
 			case 1:
 				ms_per_read = 20;
-				break;			
+				break;
 			case 2:
 				ms_per_read = 310;
-				break;			
+				break;
 			default:
 				ms_per_read = 310;
 		}
-			
+
 		bytes_per_read = sizeof(CPX)*ms_per_read*IF_SAMPS_MS;
 
 		/* Now do the hard work? */
@@ -321,29 +321,29 @@ void run_acq(Acquisition_test_options *_opt)
 
 		while(grun)
 		{
-			
+
 			npipe = open("/tmp/GPSPIPE",O_RDONLY);
-					
+
 			// Get data from pipe (310 ms)
 			nbytes = 0; p = (char *)&buff[0];
 			while((nbytes < bytes_per_read) && grun)
 			{
 				bread = read(npipe, &p[nbytes], PIPE_BUF);
-				
+
 				if(bread >= 0)
 					nbytes += bread;
 			}
-			
+
 			close(npipe);
 
-			for(lcv = 0; lcv < ms_per_read; lcv++)		
+			for(lcv = 0; lcv < ms_per_read; lcv++)
 				run_agc(&buff[lcv*SAMPS_MS], SAMPS_MS, AGC_BITS, &agc_scale);
-				
+
 			/* Prep the IF Data */
 			pAcquisition->doPrepIF(_opt->type, buff);
-			
+
 			/* A single SV */
-			if(_opt->sv)	
+			if(_opt->sv)
 			{
 				sv = _opt->sv - 1;
 				switch(_opt->type)
@@ -387,28 +387,28 @@ void run_acq(Acquisition_test_options *_opt)
 					if(grun == false)
 						break;
 				}
-				
+
 			}
-			
+
 		}//end while
-		
+
 		close(npipe);
-		
+
 	}
-	
+
 	delete [] buff;
 	delete [] buff_in;
-	delete pAcquisition;	
-	
+	delete pAcquisition;
+
 }
 
 
-void print_results(Acq_Result_S *_results)
+void print_results(Acq_Command_M *_results)
 {
 	int32 lcv;
 	FILE *fp = NULL;
-	Acq_Result_S *p;
-	
+	Acq_Command_M *p;
+
 	fp = fopen("Acq.txt","wa");
 	if(fp != NULL)
 	{

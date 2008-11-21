@@ -16,6 +16,8 @@ class GUI_Toplevel: public iGUI_Toplevel
 		GUI_Commands	*wCommands;
 		GUI_Almanac		*wAlmanac;
 		GUI_Ephemeris	*wEphemeris;
+		GUI_Select		*wSelect;
+		GUI_Acquisition	*wAcquisition;
 		class GUI_Serial*pSerial;
 
 		wxTimer 		*timer;
@@ -62,6 +64,8 @@ class GUI_Toplevel: public iGUI_Toplevel
 		void onEphemeris(wxCommandEvent& event);
 		void onAlmanac(wxCommandEvent& event);
 		void onSpeed(wxCommandEvent& event);
+		void onSelect(wxCommandEvent& event);
+		void onAcquisition(wxCommandEvent& event);
 
 	    void paintEvent(wxPaintEvent& evt);
 	    void paintNow();

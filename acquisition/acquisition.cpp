@@ -239,12 +239,12 @@ void Acquisition::doPrepIF(int32 _type, CPX *_buff)
 /*!
  * doAcqStrong: Acquire using a 1 ms coherent integration
  * */
-Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
+Acq_Command_M Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 {
 
 	FILE *fp;
 	int32 lcv, lcv2, mag, magt, index, indext;
-	Acq_Result_S *result = &results[_sv];
+	Acq_Command_M *result = &results[_sv];
 	CPX *p;
 
 	index = indext = mag = magt = 0;
@@ -303,9 +303,9 @@ Acq_Result_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 /*!
  * doAcqMedium: Acquire using a 10 ms coherent integrationACQ_WEAK
  * */
-Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
+Acq_Command_M Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 {
-	Acq_Result_S *result;
+	Acq_Command_M *result;
 	int32 lcv, lcv2, lcv3, mag, magt, index, indext, j, k, dopp, skip;
 	int32 iaccum, qaccum;
 	CPX temp[10];
@@ -437,10 +437,10 @@ Acq_Result_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 /*!
  * doAcqWeak: Acquire using a 10 ms coherent integration and 15 incoherent integrations
  * */
-Acq_Result_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
+Acq_Command_M Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 {
 
-	Acq_Result_S *result;
+	Acq_Command_M *result;
 	int32 lcv, lcv2, lcv3, mag, magt, index, indext, k, i, j, skip, dopp;
 	int32 iaccum, qaccum;
 	int32 data[32];
@@ -641,7 +641,8 @@ void Acquisition::Import()
 	ret.tv_nsec = 100000;
 
 	/* First wait for a request */
-	bread = read(Trak_2_Acq_P[READ], &request, sizeof(Acq_Request_S));
+	bread = read(Trak_2_Acq_P[READ], &request, sizeof(Acq_Command_M));
+	memcpy(&results[request.sv],&request,sizeof(Acq_Command_M));
 
 	switch(request.type)
 	{
@@ -732,7 +733,7 @@ void Acquisition::Export(char * _fname)
 
 	int32 lcv;
 	FILE *fp;
-	Acq_Result_S *p;
+	Acq_Command_M *p;
 
 	if(_fname == NULL)
 	{
@@ -759,8 +760,8 @@ void Acquisition::Export(char * _fname)
 
 	/* Write result to the tracking task */
 	results[request.sv].count = request.count;
-	write(Acq_2_Trak_P[WRITE], &results[request.sv], sizeof(Acq_Result_S));
-	write(Acq_2_Telem_P[WRITE], &results[request.sv], sizeof(Acq_Result_S));
+	write(Acq_2_Trak_P[WRITE], &results[request.sv], sizeof(Acq_Command_M));
+	write(Acq_2_Telem_P[WRITE], &results[request.sv], sizeof(Acq_Command_M));
 
 }
 /*----------------------------------------------------------------------------------------------*/

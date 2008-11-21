@@ -1001,7 +1001,7 @@ void GUI::PrintAlmanac(wxTextCtrl* _text)
 
 	int32 lcv, nvis, ntrack;
 	float elev, azim;
-	Acq_Predicted_S *psv;
+	SV_Prediction_M *psv;
 
 	wxString str;
 
@@ -1084,7 +1084,7 @@ void GUI::PrintHistory(wxTextCtrl* _text)
 
 	int32 lcv, nvis, ntrack;
 	float elev, azim;
-	Acq_Predicted_S *psv;
+	SV_Prediction_M *psv;
 	Acq_History_S *phist;
 	wxString str;
 

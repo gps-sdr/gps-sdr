@@ -64,7 +64,7 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	bAcquisition = new wxToggleButton( this, ID_ACQUISITION_B, wxT("Acquisition"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bAcquisition, 0, wxALL|wxEXPAND, 5 );
 	
-	bSV_Select = new wxToggleButton( this, ID_SV_SELECT_B, wxT("SV_Select"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSV_Select = new wxToggleButton( this, ID_SELECT_B, wxT("SV_Select"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bSV_Select, 0, wxALL|wxEXPAND, 5 );
 	
 	bEphemeris = new wxToggleButton( this, ID_EPHEMERIS_B, wxT("Ephemeris"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -457,5 +457,49 @@ iGUI_Acquisition::iGUI_Acquisition( wxWindow* parent, wxWindowID id, const wxStr
 }
 
 iGUI_Acquisition::~iGUI_Acquisition()
+{
+}
+
+iGUI_Select::iGUI_Select( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxBoxSizer* bSizer26;
+	bSizer26 = new wxBoxSizer( wxHORIZONTAL );
+	
+	wxStaticBoxSizer* sbSizer13;
+	sbSizer13 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Doppler") ), wxVERTICAL );
+	
+	pDoppler = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer13->Add( pDoppler, 1, wxEXPAND, 5 );
+	
+	bSizer26->Add( sbSizer13, 2, wxALL|wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer28;
+	bSizer28 = new wxBoxSizer( wxVERTICAL );
+	
+	wxStaticBoxSizer* sbSizer11;
+	sbSizer11 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("SV---Receiver Sky Plot") ), wxVERTICAL );
+	
+	pSV = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer11->Add( pSV, 1, wxEXPAND, 5 );
+	
+	bSizer28->Add( sbSizer11, 1, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer12;
+	sbSizer12 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Receiver---SV Sky Plot") ), wxVERTICAL );
+	
+	pRec = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer12->Add( pRec, 1, wxEXPAND, 5 );
+	
+	bSizer28->Add( sbSizer12, 1, wxALL|wxEXPAND, 5 );
+	
+	bSizer26->Add( bSizer28, 1, wxEXPAND, 5 );
+	
+	this->SetSizer( bSizer26 );
+	this->Layout();
+}
+
+iGUI_Select::~iGUI_Select()
 {
 }

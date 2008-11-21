@@ -331,6 +331,16 @@ void GUI_Serial::readPipe()
 			case FIFO_M_ID:
 				pipeRead(&m->fifo, sizeof(FIFO_M));
 				break;
+			case SV_PREDICTION_M_ID:
+				pipeRead(&m->sv_predictions[NUM_CODES], sizeof(SV_Prediction_M));
+				chan = m->sv_predictions[NUM_CODES].sv;
+				memcpy(&m->sv_predictions[chan], &m->sv_predictions[NUM_CODES], sizeof(SV_Prediction_M));
+				break;
+			case ACQ_COMMAND_M_ID:
+				pipeRead(&m->acq_command[NUM_CODES], sizeof(Acq_Command_M));
+				chan = m->acq_command[NUM_CODES].sv;
+				memcpy(&m->acq_command[chan], &m->acq_command[NUM_CODES], sizeof(Acq_Command_M));
+				break;
 			case COMMAND_ACK_M_ID:
 				pipeRead(&m->command_ack, sizeof(Command_Ack_M));
 				break;

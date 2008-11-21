@@ -24,6 +24,8 @@ BEGIN_EVENT_TABLE(GUI_Toplevel, wxFrame)
     EVT_TOGGLEBUTTON(ID_COMMANDS_B,	GUI_Toplevel::onCommands)
     EVT_TOGGLEBUTTON(ID_ALMANAC_B,	GUI_Toplevel::onAlmanac)
     EVT_TOGGLEBUTTON(ID_EPHEMERIS_B,GUI_Toplevel::onEphemeris)
+    EVT_TOGGLEBUTTON(ID_SELECT_B,	GUI_Toplevel::onSelect)
+    EVT_TOGGLEBUTTON(ID_ACQUISITION_B,	GUI_Toplevel::onAcquisition)
     EVT_PAINT(GUI_Toplevel::paintEvent)
     EVT_CLOSE(GUI_Toplevel::onClose)
 END_EVENT_TABLE()
@@ -64,6 +66,12 @@ GUI_Toplevel::~GUI_Toplevel()
 
 	if(wCommands)
 		delete wCommands;
+
+	if(wSelect)
+		delete wSelect;
+
+	if(wAcquisition)
+		delete wAcquisition;
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -333,6 +341,14 @@ void GUI_Toplevel::render(wxDC& dc)
 	if(wEphemeris != NULL)
 		wEphemeris->paintNow();
 
+	/* Render SV Select window */
+	if(wSelect != NULL)
+		wSelect->paintNow();
+
+	/* Display acquisition */
+	if(wAcquisition != NULL)
+		wAcquisition->paintNow();
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -542,6 +558,46 @@ void GUI_Toplevel::onEphemeris(wxCommandEvent& WXUNUSED(event))
 		wEphemeris->setPointer(&messages);
 		wEphemeris->setSerial(pSerial);
 		wEphemeris->Show(TRUE);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onSelect(wxCommandEvent& WXUNUSED(event))
+{
+
+	if(wSelect)
+	{
+		delete wSelect;
+		wSelect = NULL;
+	}
+	else
+	{
+		wSelect = new GUI_Select();
+		wSelect->setPointer(&messages);
+		wSelect->setSerial(pSerial);
+		wSelect->Show(TRUE);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onAcquisition(wxCommandEvent& WXUNUSED(event))
+{
+
+	if(wAcquisition)
+	{
+		delete wAcquisition;
+		wAcquisition = NULL;
+	}
+	else
+	{
+		wAcquisition = new GUI_Acquisition();
+		wAcquisition->setPointer(&messages);
+		wAcquisition->setSerial(pSerial);
+		wAcquisition->Show(TRUE);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/

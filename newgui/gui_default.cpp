@@ -103,7 +103,7 @@ void GUI_Default::renderCN0()
 			bar[3].x = 0;		bar[3].y = -dY;
 
 			gval = 255.0*(pchan->CN0 - 20.0)/40.0;
-			rval = 255.0 - 255.0*(pchan->CN0 - 20.0)/40.0;
+			rval = 122.0 - 122.0*(pchan->CN0 - 20.0)/40.0;
 			dc.SetBrush(wxBrush(wxColor(rval,gval,0)));
 			dc.SetPen(wxPen(wxColor(0,0,0), 1));
 			dc.DrawPolygon(4, bar, lcv*dX + 150*scaleX, h-600*scaleY);
@@ -140,7 +140,7 @@ void GUI_Default::renderSkyPlot()
 	dc.Clear();
 
 	wxCoord w, h;
-	dc.GetSize(&w, &h);
+	pSkyPlot->GetClientSize(&w, &h);
 
 	scaleX = .5*w/maxX; scaleY = .5*h/maxY;
 

@@ -68,7 +68,7 @@ class Serial_Telemetry : public Threaded_Object
 		Ephemeris_Status_M	ephemeris_status;				//!< Status of ephemeris
 		FIFO_M				fifo_status;
 
-		Acq_Result_S		tAcq;
+		Acq_Command_M		acq_command;
 		SV_Select_2_Telem_S tSelect;
 
 		int32 active[MAX_CHANNELS];
@@ -101,6 +101,8 @@ class Serial_Telemetry : public Threaded_Object
 		void SendSVPosition();						//!< Send the SV Position
 		void SendFIFO();							//!< Send the FIFO status
 		void SendEphemerisStatus();					//!< Decoded ephemerides, etc
+		void SendSVPrediction();					//!< Send SV prediction
+		void SendAcqCommand();						//!< Send a recent acquisition attempt
 };
 
 #endif /* Serial_Telemetry_H */

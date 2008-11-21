@@ -124,7 +124,7 @@ class Channel : public Threaded_Object
 
 		Channel(int32 _chan);
 		~Channel();
-		void Start(int32 sv, Acq_Result_S result, int32 _corr_len);
+		void Start(int32 sv, Acq_Command_M result, int32 _corr_len);
 		void Clear();
 		void Kill();									//!< Shutdown the channel
 		void DumpAccum();								//!< Dump the accumulation and do rest of processing
