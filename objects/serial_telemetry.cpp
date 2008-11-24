@@ -263,23 +263,27 @@ void Serial_Telemetry::ImportGUI()
 {
 
 	uint32 preamble;
-	uint32 bread;
-	uint32 bwrote;
+	int32 bread;
+	int32 bwrote;
 
 	preamble = 0x0;
 
-	bread = read(npipe[READ], &preamble, sizeof(uint32));
-	if(bread == sizeof(uint32))
+	bread = 1;
+	while(bread > 0)
 	{
-		if(preamble == 0xAAAAAAAA)
+		bread = read(npipe[READ], &preamble, sizeof(uint32));
+		if(bread == sizeof(uint32))
 		{
-			bread = read(npipe[READ], &command_header, sizeof(CCSDS_Packet_Header));//!< Read in the head
-			DecodeCCSDSPacketHeader(&decoded_header, &command_header);				//!< Decode the packet
-			bread = read(npipe[READ], &command_body, decoded_header.length);		//!< Read in the body
+			if(preamble == 0xAAAAAAAA)
+			{
+				bread = read(npipe[READ], &command_header, sizeof(CCSDS_Packet_Header));//!< Read in the head
+				DecodeCCSDSPacketHeader(&decoded_header, &command_header);				//!< Decode the packet
+				bread = read(npipe[READ], &command_body, decoded_header.length);		//!< Read in the body
 
-			/* Forward the command to Commando */
-			bwrote = write(Telem_2_Cmd_P[WRITE], &command_header, sizeof(CCSDS_Packet_Header));
-			bwrote = write(Telem_2_Cmd_P[WRITE], &command_body, decoded_header.length);
+				/* Forward the command to Commando */
+				bwrote = write(Telem_2_Cmd_P[WRITE], &command_header, sizeof(CCSDS_Packet_Header));
+				bwrote = write(Telem_2_Cmd_P[WRITE], &command_body, decoded_header.length);
+			}
 		}
 	}
 

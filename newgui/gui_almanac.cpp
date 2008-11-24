@@ -33,7 +33,6 @@ GUI_Almanac::~GUI_Almanac()
 void GUI_Almanac::paintNow()
 {
     wxClientDC dc(this);
-	//wxBufferedPaintDC dc(this, wxBUFFER_CLIENT_AREA);
     render(dc);
 }
 
@@ -139,7 +138,7 @@ void GUI_Almanac::renderSV()
 
 	Almanac_M *a;
 	a = &p->almanacs[sv];
-	str.Printf(wxT("************* Week %d almanac for PRN-%02d *************\n"),a->week,sv+1);
+	str.Printf(wxT("*********** Week %d almanac for PRN-%02d ***********\n"),a->week,sv+1);
 	tDisplay->AppendText(str);
 	str.Printf(wxT("ID:                        %02d\n"),sv+1);
 	tDisplay->AppendText(str);
@@ -187,6 +186,7 @@ void GUI_Almanac::onSave(wxCommandEvent& event)
 		{
 			lcv = NUM_CODES;
 			pSerial->formCommand(GET_ALMANAC_C_ID, &lcv);
+			sleep(1);
 
 			for(lcv = 0; lcv < NUM_CODES; lcv++)
 			{

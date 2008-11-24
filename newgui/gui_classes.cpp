@@ -165,7 +165,7 @@ iGUI_Default::iGUI_Default( wxWindow* parent, wxWindowID id, const wxString& tit
 	sbSizer13 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("PVT") ), wxVERTICAL );
 	
 	sbSizer13->SetMinSize( wxSize( -1,180 ) ); 
-	tPVT = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_LEFT|wxTE_MULTILINE );
+	tPVT = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
 	tPVT->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	sbSizer13->Add( tPVT, 1, wxEXPAND, 5 );

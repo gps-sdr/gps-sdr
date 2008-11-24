@@ -22,6 +22,7 @@ GUI_Ephemeris::GUI_Ephemeris():iGUI_Ephemeris(NULL, wxID_ANY, wxT("Ephemeris"), 
 {
 
 	sv = 0;
+	loaded = 0;
 
 }
 
@@ -124,6 +125,12 @@ void GUI_Ephemeris::renderDecoded()
 		dc.DrawText(str, (lcv%(NUM_CODES>>2))*dX + dX/3, (lcv/(NUM_CODES>>2))*dY + dY/5);
 	}
 
+	if(loaded == 0)
+	{
+		loaded = NUM_CODES;
+		pSerial->formCommand(GET_EPHEMERIS_C_ID, &loaded);
+	}
+
 }
 
 void GUI_Ephemeris::renderSV()
@@ -188,12 +195,31 @@ void GUI_Ephemeris::renderSV()
 void GUI_Ephemeris::onSave(wxCommandEvent& event)
 {
 
-	wxFileDialog * openFileDialog = new wxFileDialog(this);
+	int32 prn, week, lcv;
+	wxString fileName, str;
+	Ephemeris_M *e;
+	FILE *fp;
+
+	wxFileDialog * openFileDialog = new wxFileDialog(this, wxT("Save Ephemeris"), wxT(""), wxT(""), wxT("*.*"), wxSAVE);
 
 	if(openFileDialog->ShowModal() == wxID_OK)
 	{
-		wxString fileName = openFileDialog->GetPath();
-		/* Now do something here! */
+		fileName = openFileDialog->GetPath();
+		FILE *fp;
+
+		fp = fopen(fileName.mb_str(),"w");
+
+		if(fp != NULL)
+		{
+			lcv = NUM_CODES;
+			pSerial->formCommand(GET_EPHEMERIS_C_ID, &lcv);
+			sleep(1);
+
+			e = &p->ephemerides[0];
+			fwrite(e, sizeof(Ephemeris_M), NUM_CODES, fp);
+			fflush(fp);
+			fclose(fp);
+		}
 	}
 
 }
@@ -201,12 +227,30 @@ void GUI_Ephemeris::onSave(wxCommandEvent& event)
 void GUI_Ephemeris::onLoad(wxCommandEvent& event)
 {
 
-	wxFileDialog * openFileDialog = new wxFileDialog(this);
+	int32 prn, week, lcv;
+	wxString fileName, str;
+	Set_Ephemeris_C c;
+	FILE *fp;
+
+	wxFileDialog * openFileDialog = new wxFileDialog(this, wxT("Load Ephemeris"), wxT(""), wxT(""), wxT("*.*"), wxOPEN);
 
 	if(openFileDialog->ShowModal() == wxID_OK)
 	{
-		wxString fileName = openFileDialog->GetPath();
-		/* Now do something here! */
+		fileName = openFileDialog->GetPath();
+		FILE *fp;
+
+		fp = fopen(fileName.mb_str(),"r");
+
+		if(fp != NULL)
+		{
+			for(lcv = 0; lcv < NUM_CODES; lcv++)
+			{
+				c.sv = lcv;
+				fread(&c.ephemeris, sizeof(Ephemeris_M), 1, fp);
+				pSerial->formCommand(SET_EPHEMERIS_C_ID, &c);
+			}
+			fclose(fp);
+		}
 	}
 
 }

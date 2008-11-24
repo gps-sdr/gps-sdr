@@ -397,13 +397,14 @@ void GUI_Toplevel::renderRS422()
 		str += wxT("closed\n");
 	tRS422->AppendText(str);
 
+	str.Printf(wxT("Commands Free:\t\t%d\n"),pSerial->GetCommandFree());
+	tRS422->AppendText(str);
 	str.Printf(wxT("Synchronized Count:\t%d\n"),pSerial->message_sync);
 	tRS422->AppendText(str);
 	str.Printf(wxT("Last Message Tic:\t%d\n"),pSerial->decoded_packet.tic);
 	tRS422->AppendText(str);
 	str.Printf(wxT("Failed Messages:\t%d\n"),pSerial->packet_count[LAST_M_ID]);
 	tRS422->AppendText(str);
-
 	kB_sec = (float)bytes_sec / 1024.0;
 	str.Printf(wxT("Serial Bandwidth:\t%.2f "),kB_sec);
 	str += wxT("kB/sec\n");

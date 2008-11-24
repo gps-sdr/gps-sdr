@@ -152,7 +152,7 @@ void SV_Select::Acquire()
 	}
 
 	/* Update prediction if the SV is being tracked */
-	if(already == 666)
+	if((already == 666) || (chan == 666))
 	{
 		GetAlmanac(sv);
 		SV_Position(sv);
@@ -191,7 +191,6 @@ void SV_Select::Acquire()
 		}
 
 		UpdateState();
-
 	}
 
 }
@@ -547,6 +546,18 @@ void SV_Select::SV_Predict(int32 _sv)
 		ppred->doppler = relvel - pnav->clock_rate - psv->frequency_bias*SPEED_OF_LIGHT;/* meters/second */
 		ppred->doppler = ppred->doppler*L1/SPEED_OF_LIGHT;								/* Hz */
 
+		/* SV -> Vehicle elev/azim */
+		theta = psv->longitude; phi = psv->latitude;
+		ct = cos(theta); st = sin(theta);
+		cp = cos(phi);   sp = sin(phi);
+
+		e = -st*dx    +  ct*dy;
+		n = -sp*ct*dx + -sp*st*dy + cp*dz;
+		u =  cp*ct*dx +  cp*st*dy + sp*dz;
+
+		rho = sqrt(n*n + e*e);
+		ppred->v_elev = atan2(u, rho);
+		ppred->v_azim = atan2(e, n);
 
 	}
 

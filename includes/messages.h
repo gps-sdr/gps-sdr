@@ -189,8 +189,8 @@ typedef struct SPS_M
 	uint32 converged;	//!< declare convergence
 	uint32 tic;			//!< global_tic associated with this solution
 
-	uint32 stale_ticks;			//!< count the number of tics since the last good sltn
-	uint32 converged_ticks;		//!< count number of converged tics
+	uint32 stale_ticks;			//!< count the number of ticks since the last good sltn
+	uint32 converged_ticks;		//!< count number of converged ticks
 	uint32 nav_channels;		//!< count number of SVs used in last PVT estimation
 	uint32 initial_convergence;	//!< Flag set ONCE if the first convergence has occured
 
@@ -222,7 +222,7 @@ typedef struct Clock_M
 */
 typedef struct SV_Position_M
 {
-	uint32 chan;
+
 	double x;				//!< ECEF x coordinate (meters)
 	double y;				//!< ECEF y coordinate (meters)
 	double z;				//!< ECEF z coordinate (meters)
@@ -234,13 +234,14 @@ typedef struct SV_Position_M
 	double az;				//!< ECEF x acceleration (meters/sec/sec)
 	double elev;			//!< Satellite elevation (radians)
 	double azim;			//!< Satellite azimuth (radians)
-	double clock_bias;		//!< SV clock bias
-	double frequency_bias;	//!< SV clock rate bias
-	double transit_time;	//!< Time of flight from SV to receiver
-	double time;			//!< Time used in SV position calculation
-	double latitude;		//!< Latitude using WGS-84 ellipsoid in decimal radians
-	double longitude;		//!< Longitude using WGS-84 ellipsoid in decimal radians
-	double altitude;		//!< height in meters
+	double clock_bias;		//!< SV clock bias (seconds)
+	double frequency_bias;	//!< SV clock rate bias (seconds/second)
+	double transit_time;	//!< Time of flight from SV to receiver (seconds)
+	double time;			//!< Time used in SV position calculation (seconds)
+	double latitude;		//!< Latitude using WGS-84 ellipsoid in decimal (radians)
+	double longitude;		//!< Longitude using WGS-84 ellipsoid in decimal (radians)
+	double altitude;		//!< height (meters)
+	uint32 chan;			//!< Corresponding channel
 
 } SV_Position_M;
 
@@ -329,8 +330,8 @@ typedef struct Pseudorange_M
 	double rate_residual;	//!< rate residual (m/s)
 	double time_uncorrected;//!< raw pseudorange measurements
 	double previous;		//!< from previous step, used for err check
-
-	uint32 chan;
+	uint32 chan;			//!< For this channel
+	uint32 count;			//!< Corresponds to this tic
 
 } Pseudorange_M;
 
@@ -340,46 +341,46 @@ typedef struct Pseudorange_M
 */
 typedef struct Ephemeris_M
 {
-	double	tgd;                    //!< Group delay parameter.
-	double	toc;					//!< Reference time of clock data parameter set.
-	double	af0;					//!< Clock correction polynomial coefficient.
-	double	af1;					//!< Clock correction polynomial coefficient.
-	double	af2;					//!< Clock correction polynomial coefficient.
-	double	crs;					//!< Sine harmonic correction to orbital radius.
-	double	deltan;					//!< Mean motion delta from computed value.
-	double	m0;                     //!< Mean anomaly at TOE.
-	double	cuc;					//!< Cosine harmonic correction to orbital radius.
-	double	ecc;                    //!< Eccentricity.
-	double	cus;					//!< Sine harmonic corr to argument of latitude.
-	double	sqrta;                  //!< Square root of semimajor axis.
-	double	toe;					//!< Reference time of ephemeris data set.
-	double	cic;					//!< Cosine harmonic corr to inclination.
-	double	om0;                    //!< Right ascension at TOE.
-	double	cis;					//!< Sine harmonic corr to inclination.
-	double	in0;                    //!< Inclination at TOE.
-	double	crc;					//!< Cosine harmonic correction to orbital radius.
-	double	argp;                   //!< Argument of perigee at TOE.
-	double	omd;                    //!< Rate of right ascension.
-	double	idot;                   //!< Rate of inclination.
-	double	a;						//!< Derived qty: a = sqrta**2.
-	double	n0;						//!< Derived qty: n0 = sqrt(GravConstant/(a*a*a)).
-	double	relativistic;			//!< Relativistic correction
+	double tgd;					//!< Group delay parameter.
+	double toc;					//!< Reference time of clock data parameter set.
+	double af0;					//!< Clock correction polynomial coefficient.
+	double af1;					//!< Clock correction polynomial coefficient.
+	double af2;					//!< Clock correction polynomial coefficient.
+	double crs;					//!< Sine harmonic correction to orbital radius.
+	double deltan;				//!< Mean motion delta from computed value.
+	double m0;					//!< Mean anomaly at TOE.
+	double cuc;					//!< Cosine harmonic correction to orbital radius.
+	double ecc;					//!< Eccentricity.
+	double cus;					//!< Sine harmonic corr to argument of latitude.
+	double sqrta;				//!< Square root of semimajor axis.
+	double toe;					//!< Reference time of ephemeris data set.
+	double cic; 				//!< Cosine harmonic corr to inclination.
+	double om0; 				//!< Right ascension at TOE.
+	double cis;					//!< Sine harmonic corr to inclination.
+	double in0; 				//!< Inclination at TOE.
+	double crc; 				//!< Cosine harmonic correction to orbital radius.
+	double argp; 				//!< Argument of perigee at TOE.
+	double omd; 				//!< Rate of right ascension.
+	double idot; 				//!< Rate of inclination.
+	double a; 					//!< Derived qty: a = sqrta**2.
+	double n0; 					//!< Derived qty: n0 = sqrt(GravConstant/(a*a*a)).
+	double relativistic; 		//!< Relativistic correction
 
-	uint32	sv;						//!< SV #
-	uint32	zcount;					//!< zcount?
-	uint32	toewk;                  //!< GPS week corresponding to toe.
-	uint32	fti;                    //!< Fit interval.
-	uint32	iode;                   //!< Issue of data, ephemeris.
-	uint32	tocwk;					//!< GPS week corresponding to toc.
-	uint32	valid;					//!< 0=No valid data.
-	uint32	tofxmission;			//!< Time of subframe 1 transmission, sec of week.
-	uint32	tow;					//!< Truncated TOW count
-	uint32	subframe_1_health;      //!< Subframe 1 health code.
-	uint32	code_on_L2;             //!< Code on L2 flag.
-	uint32	week_number;			//!< GPS week at time of subframe 1 reception.
-	uint32	L2pdata;                //!< L2 P data flag.
-	uint32	ura;                    //!< Satellite's URA code.
-	uint32	iodc;                   //!< Issue of data, clock.
+	uint32 sv; 					//!< SV #
+	uint32 zcount; 				//!< zcount?
+	uint32 toewk; 				//!< GPS week corresponding to toe.
+	uint32 fti; 				//!< Fit interval.
+	uint32 iode; 				//!< Issue of data, ephemeris.
+	uint32 tocwk; 				//!< GPS week corresponding to toc.
+	uint32 valid; 				//!< 0=No valid data.
+	uint32 tofxmission; 		//!< Time of subframe 1 transmission, sec of week.
+	uint32 tow; 				//!< Truncated TOW count
+	uint32 subframe_1_health; 	//!< Subframe 1 health code.
+	uint32 code_on_L2; 			//!< Code on L2 flag.
+	uint32 week_number; 		//!< GPS week at time of subframe 1 reception.
+	uint32 L2pdata; 			//!< L2 P data flag.
+	uint32 ura; 				//!< Satellite's URA code.
+	uint32 iodc; 				//!< Issue of data, clock.
 
 
 } Ephemeris_M;
@@ -391,21 +392,21 @@ typedef struct Ephemeris_M
 typedef struct Almanac_M
 {
 
-	double	ecc;					//!< Eccentricity
-	double	toa;					//!< Time of Almanac
-	double	in0;					//!< Inclination
-	double	omd;					//!< Rate of right ascention
-	double	sqrta;					//!< Sqrt of Semi-Major Axis
-	double	om0;					//!< Longitude of Ascending Node
-	double	argp;					//!< Argument of perigee
-	double	m0;						//!< Mean Anomaly
-	double	af0;					//!< Clock parameter 0
-	double	af1;					//!< Clock parameter 1
+	double ecc;					//!< Eccentricity
+	double toa; 				//!< Time of Almanac
+	double in0; 				//!< Inclination
+	double omd; 				//!< Rate of right ascention
+	double sqrta; 				//!< Sqrt of Semi-Major Axis
+	double om0; 				//!< Longitude of Ascending Node
+	double argp; 				//!< Argument of perigee
+	double m0; 					//!< Mean Anomaly
+	double af0; 				//!< Clock parameter 0
+	double af1; 				//!< Clock parameter 1
 
-	uint32	sv;
-	uint32	week;					//!< Week number
-	uint32	decoded;				//!< Has this been decoded yet
-	uint32	health;					//!< Health code
+	uint32 sv;					//!< SV #
+	uint32 week; 				//!< Week number
+	uint32 decoded; 			//!< Has this been decoded yet
+	uint32 health; 				//!< Health code
 
 } Almanac_M;
 
@@ -416,7 +417,7 @@ typedef struct Almanac_M
 typedef struct Ephemeris_Status_M
 {
 
-	uint32 valid[NUM_CODES];		//!< Valid ephemeris
+	uint32 valid[NUM_CODES];	//!< Valid ephemeris
 	uint32 iode[NUM_CODES];		//!< Corresponding IODE
 	uint32 avalid[NUM_CODES];	//!< Valid almanac
 
@@ -520,6 +521,7 @@ typedef struct Message_Struct
 /* Unionize the structures */
 typedef union Union_M
 {
+
 	Board_Health_M		board_health;
 	Task_Health_M		task_health;
 	Channel_Health_M	channel_health;
@@ -536,6 +538,7 @@ typedef union Union_M
 	Acq_Command_M		acq_command;
 	SV_Prediction_M		sv_prediction;
 	Command_Ack_M		command_ack;
+
 } Union_M;
 
 

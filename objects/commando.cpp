@@ -349,6 +349,7 @@ void Commando::Set_Almanac()
 
 	pEphemeris->Lock();
 	pEphemeris->setAlmanac(&command_body.set_almanac.almanac);
+	pEphemeris->Export();
 	pEphemeris->Unlock();
 
 	Send_Ack();
@@ -362,6 +363,7 @@ void Commando::Set_Ephemeris()
 
 	pEphemeris->Lock();
 	pEphemeris->setEphemeris(&command_body.set_ephemeris.ephemeris);
+	pEphemeris->Export();
 	pEphemeris->Unlock();
 
 	Send_Ack();

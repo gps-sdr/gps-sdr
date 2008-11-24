@@ -50,7 +50,7 @@ enum CCSDS_COMMAND_IDS
 */
 typedef struct Reset_PVT_C
 {
-	uint32 flag;		//!< Flag for no reason
+	int32 flag;		//!< Flag for no reason
 } Reset_PVT_C;
 
 
@@ -59,7 +59,7 @@ typedef struct Reset_PVT_C
 */
 typedef struct Reset_EKF_C
 {
-	uint32 flag;		//!< Flag for no reason
+	int32 flag;		//!< Flag for no reason
 } Reset_EKF_C;
 
 
@@ -68,7 +68,7 @@ typedef struct Reset_EKF_C
 */
 typedef struct Reset_Channel_C
 {
-	uint32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
+	int32 chan;		//!< Channel #, or all if chan >= MAX_CHANNELS
 } Reset_Channel_C;
 
 
@@ -77,7 +77,7 @@ typedef struct Reset_Channel_C
 */
 typedef struct Reset_Ephemeris_C
 {
-	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
+	int32 sv;		//!< SV #, or all if sv >= NUM_CODES
 } Reset_Ephemeris_C;
 
 
@@ -86,7 +86,7 @@ typedef struct Reset_Ephemeris_C
 */
 typedef struct Reset_Almanac_C
 {
-	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
+	int32 sv;		//!< SV #, or all if sv >= NUM_CODES
 } Reset_Almanac_C;
 
 
@@ -95,7 +95,7 @@ typedef struct Reset_Almanac_C
 */
 typedef struct Get_Measurement_C
 {
-	uint32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
+	int32 chan;		//!< Channel #, or all if chan >= MAX_CHANNELS, stop with chan < 0
 } Get_Measurement_C;
 
 
@@ -104,7 +104,7 @@ typedef struct Get_Measurement_C
 */
 typedef struct Get_Pseudorange_C
 {
-	uint32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
+	int32 chan;		//!< Channel #, or all if chan >= MAX_CHANNELS, stop with chan < 0
 } Get_Pseudorange_C;
 
 
@@ -113,7 +113,7 @@ typedef struct Get_Pseudorange_C
 */
 typedef struct Get_Ephemeris_C
 {
-	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
+	int32 sv;		//!< SV #, or all if sv >= NUM_CODES || sv < 0
 } Get_Ephemeris_C;
 
 
@@ -122,7 +122,7 @@ typedef struct Get_Ephemeris_C
 */
 typedef struct Get_Almanac_C
 {
-	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
+	int32 sv;		//!< SV #, or all if sv >= NUM_CODES || sv < 0
 } Get_Almanac_C;
 
 
@@ -131,7 +131,7 @@ typedef struct Get_Almanac_C
 */
 typedef struct Set_Almanac_C
 {
-	uint32 sv;				//!< SV #
+	int32 sv;				//!< SV #
 	Almanac_M almanac;		//!< Data to load
 } Set_Almanac_C;
 
@@ -141,7 +141,7 @@ typedef struct Set_Almanac_C
 */
 typedef struct Set_Ephemeris_C
 {
-	uint32 sv;				//!< SV #
+	int32 sv;				//!< SV #
 	Ephemeris_M ephemeris;	//!< Data to load
 } Set_Ephemeris_C;
 
@@ -151,12 +151,12 @@ typedef struct Set_Ephemeris_C
 */
 typedef struct _Acquisition_Config_C
 {
-	int32 min_doppler;			//!< Minimum doppler
-	int32 max_doppler;			//!< Maximum doppler
-	uint32 doppler_range;		//!< Doppler range to search when almanac is valid
-	uint32 acq_strong;			//!< 0 for off, 1 for on, 2 for on IF almanac is valid
-	uint32 acq_medium;			//!< 0 for off, 1 for on, 2 for on IF almanac is valid
-	uint32 acq_weak;			//!< 0 for off, 1 for on, 2 for on IF almanac is valid
+	int32 min_doppler;		//!< Minimum doppler
+	int32 max_doppler;		//!< Maximum doppler
+	int32 doppler_range;	//!< Doppler range to search when almanac is valid
+	int32 acq_strong;		//!< 0 for off, 1 for on, 2 for on IF almanac is valid
+	int32 acq_medium;		//!< 0 for off, 1 for on, 2 for on IF almanac is valid
+	int32 acq_weak;			//!< 0 for off, 1 for on, 2 for on IF almanac is valid
 } Acquisition_Config_C;
 
 
@@ -165,8 +165,8 @@ typedef struct _Acquisition_Config_C
 */
 typedef struct _Clock_Config_C
 {
-	double second;				//!< Stuff the gps second
-	double week;				//!< Stuff the gps week
+	double second;			//!< Stuff the gps second
+	double week;			//!< Stuff the gps week
 } Clock_Config_C;
 
 typedef union Union_C

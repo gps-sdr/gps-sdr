@@ -25,7 +25,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "gui.h"
 
-#define COMMAND_DEPTH	(256)
+#define COMMAND_BUFFER_DEPTH	(256)
 
 /*! \ingroup CLASSES
  *
@@ -49,23 +49,22 @@ class GUI_Serial : public Threaded_Object
 
 		/* Headers for CCSDC packets */
 		CCSDS_Packet_Header  packet_header;					//!< CCSDS Packet header
-		CCSDS_Packet_Header  command_header;				//!< CCSDS Command header
 		CCSDS_Decoded_Header decoded_packet;				//!< Decoded header
-		CCSDS_Decoded_Header decoded_command;				//!< Decoded header
-
 		int32 				packet_count[LAST_M_ID+1];		//!< Count the packets
 		int32				byte_count;						//!< Count the bytes
 
 		Union_M				message_body;					//!< Union for messages
 
 		/* Buffer for commands */
-		Union_C				command_body[COMMAND_DEPTH];	//!< Union for commands
-		uint32				command_ready[COMMAND_DEPTH];	//!< Flag to indicate command needs to be sent
-		uint32				command_sent[COMMAND_DEPTH];	//!< Flag to indicate command was transmitted
-		uint32				command_ack[COMMAND_DEPTH];		//!< Flag to indicate command was executed
-		uint32				command_head;					//!< Command head
-		uint32				command_tail;					//!< Command tail
-
+		Union_C				 	command_body[COMMAND_BUFFER_DEPTH];		//!< Union for commands
+		CCSDS_Packet_Header		command_header[COMMAND_BUFFER_DEPTH];	//!< CCSDS Command header
+		CCSDS_Decoded_Header	decoded_command[COMMAND_BUFFER_DEPTH];	//!< Decoded header
+		uint32					command_ready[COMMAND_BUFFER_DEPTH];	//!< Flag to indicate command needs to be sent
+		uint32					command_sent[COMMAND_BUFFER_DEPTH];		//!< Flag to indicate command was transmitted
+		uint32					command_ack[COMMAND_BUFFER_DEPTH];		//!< Flag to indicate command was executed
+		uint32					command_head;							//!< Command head
+		uint32					command_tail;							//!< Command tail
+		int32					command_free;							//!< Commands free
 
 		Message_Struct		messages;						//!< Hold all the messages
 		char buff[2048];									//!< Dump wasted data
@@ -83,6 +82,7 @@ class GUI_Serial : public Threaded_Object
 		uint32 GetByteCount(){return(byte_count);};
 		uint32 GetPacketTic(){return(packet_tic);};
 		uint32 GetCommandTic(){return(command_tic);};
+		uint32 GetCommandFree(){return(command_free);};
 		Message_Struct *GetMessages(){return(&messages);};	//!< Dump the messages
 
 		/* Nondefault methods */

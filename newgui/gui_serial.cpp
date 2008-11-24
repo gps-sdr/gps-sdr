@@ -135,15 +135,23 @@ GUI_Serial::GUI_Serial()
 	message_sync = 0;
 	pipe_open = 0;
 	byte_count = 0;
-	command_ready = 0;
-	command_sent = 0;
-	command_ack = 0;
+	command_head = 0;
+	command_tail = 0;
+	command_free = COMMAND_BUFFER_DEPTH;
 	gpipe_open[READ] = false;
 	gpipe_open[WRITE] = false;
 	packet_count[LAST_M_ID] = 0;
 	decoded_packet.tic = decoded_packet.id = decoded_packet.length = 0;
 	memset(&packet_count[0], 0x0, (LAST_M_ID+1)*sizeof(int));
 	memset(&messages.fifo, 0x0, sizeof(FIFO_M));
+	memset(&command_ready[0], 0x0, COMMAND_BUFFER_DEPTH*sizeof(uint32));
+	memset(&command_sent[0], 0x0, COMMAND_BUFFER_DEPTH*sizeof(uint32));
+	memset(&command_ack[0], 0x0, COMMAND_BUFFER_DEPTH*sizeof(uint32));
+	memset(&command_body[0], 0x0, COMMAND_BUFFER_DEPTH*sizeof(Union_C));
+	memset(&command_header[0], 0x0, COMMAND_BUFFER_DEPTH*sizeof(CCSDS_Packet_Header));
+	memset(&decoded_command[0], 0x0, COMMAND_BUFFER_DEPTH*sizeof(CCSDS_Decoded_Header));
+
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -387,16 +395,30 @@ void GUI_Serial::readPipe()
 void GUI_Serial::writePipe()
 {
 
+	uint32 preamble = 0xAAAAAAAA;
+	Union_C *cb;
+	CCSDS_Packet_Header *ch;
+	CCSDS_Decoded_Header *dc;
+
 	Lock();
 
-	uint32 preamble = 0xAAAAAAAA;
-
-	if(command_ready && (command_sent == 0))
+	while(command_free < COMMAND_BUFFER_DEPTH)
 	{
-		pipeWrite(&preamble, sizeof(uint32));
-		pipeWrite(&command_header, sizeof(CCSDS_Packet_Header));
-		pipeWrite(&command_body, decoded_command.length);
-		command_sent = 1;
+
+		cb = &command_body[command_tail];
+		ch = &command_header[command_tail];
+		dc = &decoded_command[command_tail];
+
+		if(command_ready[command_tail] && (command_sent[command_tail] == 0))
+		{
+			pipeWrite(&preamble, sizeof(uint32));
+			pipeWrite(ch, sizeof(CCSDS_Packet_Header));
+			pipeWrite(cb, dc->length);
+			command_sent[command_tail] = 1;
+			command_tail++;
+			command_tail %= COMMAND_BUFFER_DEPTH;
+			command_free++;
+		}
 	}
 
 	Unlock();
@@ -410,76 +432,87 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 {
 
 	int32 pend;
+	Union_C *cb;
+	CCSDS_Packet_Header *ch;
+	CCSDS_Decoded_Header *dc;
 
-	Lock();
-
-	memset(&command_body, 0x0, sizeof(Union_C));
-
-	command_ready = 1;
-	command_sent = 0;
-	command_ack = 0;
-
-	switch(_id)
-	{
-		case RESET_PVT_C_ID:
-			command_body.reset_pvt.flag = 1;
-			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Reset_PVT_C), 1, command_tic++);
-			break;
-		case RESET_CHANNEL_C_ID:
-			command_body.reset_channel.chan = *(int32 *)_p;
-			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Reset_Channel_C), 1, command_tic++);
-			break;
-		case RESET_EPHEMERIS_C_ID:
-			command_body.reset_ephemeris.sv = *(int32 *)_p;
-			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Reset_Ephemeris_C), 1, command_tic++);
-			break;
-		case RESET_ALMANAC_C_ID:
-			command_body.reset_almanac.sv = *(int32 *)_p;
-			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Reset_Almanac_C), 1, command_tic++);
-			break;
-		case GET_MEASUREMENT_C_ID:
-			command_body.get_measurement.chan = *(int32 *)_p;
-			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Get_Measurement_C), 1, command_tic++);
-			break;
-		case GET_PSEUDORANGE_C_ID:
-			command_body.get_pseudorange.chan = *(int32 *)_p;
-			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Get_Pseudorange_C), 1, command_tic++);
-			break;
-		case GET_EPHEMERIS_C_ID:
-			command_body.get_ephemeris.sv = *(int32 *)_p;
-			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Get_Ephemeris_C), 1, command_tic++);
-			break;
-		case GET_ALMANAC_C_ID:
-			command_body.get_almanac.sv = *(int32 *)_p;
-			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Get_Almanac_C), 1, command_tic++);
-			break;
-		case SET_EPHEMERIS_C_ID:
-			memcpy(&command_body.set_ephemeris, _p, sizeof(Set_Ephemeris_C));
-			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Set_Ephemeris_C), 1, command_tic++);
-			break;
-		case SET_ALMANAC_C_ID:
-			memcpy(&command_body.set_almanac, _p, sizeof(Set_Almanac_C));
-			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Set_Almanac_C), 1, command_tic++);
-			break;
-		default:
-			command_ready = 0;
-			command_sent = 0;
-			command_ack = 0;
-			break;
-	}
-
-	DecodeCCSDSPacketHeader(&decoded_command, &command_header);
-
-	Unlock();
-
+	/* Wait for a free node */
 	pend = 0;
 	while(pend == 0)
 	{
 		Lock();
-		pend = command_sent;
+		pend = command_free > 0;
 		Unlock();
 		usleep(1000);
 	}
+
+	Lock();
+
+	command_ready[command_head] = 1;
+	command_sent[command_head] = 0;
+	command_ack[command_head] = command_tic;
+	dc = &decoded_command[command_head];
+	ch = &command_header[command_head];
+	cb = &command_body[command_head];
+	memset(cb, 0x0, sizeof(Union_C));
+
+	switch(_id)
+	{
+		case RESET_PVT_C_ID:
+			cb->reset_pvt.flag = 1;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_PVT_C), 1, command_tic++);
+			break;
+		case RESET_CHANNEL_C_ID:
+			cb->reset_channel.chan = *(int32 *)_p;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_Channel_C), 1, command_tic++);
+			break;
+		case RESET_EPHEMERIS_C_ID:
+			cb->reset_ephemeris.sv = *(int32 *)_p;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_Ephemeris_C), 1, command_tic++);
+			break;
+		case RESET_ALMANAC_C_ID:
+			cb->reset_almanac.sv = *(int32 *)_p;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_Almanac_C), 1, command_tic++);
+			break;
+		case GET_MEASUREMENT_C_ID:
+			cb->get_measurement.chan = *(int32 *)_p;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Measurement_C), 1, command_tic++);
+			break;
+		case GET_PSEUDORANGE_C_ID:
+			cb->get_pseudorange.chan = *(int32 *)_p;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Pseudorange_C), 1, command_tic++);
+			break;
+		case GET_EPHEMERIS_C_ID:
+			cb->get_ephemeris.sv = *(int32 *)_p;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Ephemeris_C), 1, command_tic++);
+			break;
+		case GET_ALMANAC_C_ID:
+			cb->get_almanac.sv = *(int32 *)_p;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Almanac_C), 1, command_tic++);
+			break;
+		case SET_EPHEMERIS_C_ID:
+			memcpy(&cb->set_ephemeris, _p, sizeof(Set_Ephemeris_C));
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Set_Ephemeris_C), 1, command_tic++);
+			break;
+		case SET_ALMANAC_C_ID:
+			memcpy(&cb->set_almanac, _p, sizeof(Set_Almanac_C));
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Set_Almanac_C), 1, command_tic++);
+			break;
+		default:
+			command_ready[command_head] = 0;
+			command_sent[command_head] = 0;
+			command_ack[command_head] = 0;
+			Unlock();
+			return;
+	}
+
+	DecodeCCSDSPacketHeader(dc, ch);
+
+	command_head++;
+	command_head %= COMMAND_BUFFER_DEPTH;
+	command_free--;
+
+	Unlock();
 
 }
 /*----------------------------------------------------------------------------------------------*/

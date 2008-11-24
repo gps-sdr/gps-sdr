@@ -13,6 +13,7 @@ class GUI_Ephemeris: public iGUI_Ephemeris
 		Message_Struct *p;
 		class GUI_Serial *pSerial;
 		int32 sv;
+		int32 loaded;
 
 	public:
 

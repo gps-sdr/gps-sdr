@@ -58,7 +58,7 @@ void GUI_Default::renderCN0()
 	maxX = maxY = 1000;
 
 	wxCoord w, h;
-	dc.GetSize(&w, &h);
+	pCN0->GetClientSize(&w, &h);
 
 	scaleX = w/maxX; scaleY = h/maxY;
 	mX = w/2; mY = h/2;
@@ -124,7 +124,7 @@ void GUI_Default::renderCN0()
 void GUI_Default::renderSkyPlot()
 {
 
-	int mX, mY, lcv;
+	int mX, mY, lcv, rval, gval;
 	double maxX, maxY, svX, svY;
 	double scaleX, scaleY;
 	wxString str;
@@ -151,11 +151,21 @@ void GUI_Default::renderSkyPlot()
     dc.SetPen(wxPen(wxColor(0,0,0), 1 ));
     dc.DrawCircle(mX, mY, 900*scaleY);
     dc.SetPen(wxPen(wxColor(0,0,0), 1, wxLONG_DASH ));
-    dc.DrawCircle(mX, mY, 750*scaleY);
-    dc.DrawCircle(mX, mY, 600*scaleY);
-    dc.DrawCircle(mX, mY, 450*scaleY);
-    dc.DrawCircle(mX, mY, 300*scaleY);
-    dc.DrawCircle(mX, mY, 150*scaleY);
+    /* Draw the circles */
+    for(lcv = 5; lcv > 0; lcv--)
+    {
+    	dc.DrawCircle(mX, mY, lcv*150*scaleY);
+    }
+
+    /* Draw the 30 deg lines */
+    for(lcv = 0; lcv < 6; lcv++)
+    {
+    	dc.DrawLine(mX-900*scaleY*cos(lcv*30*DEG_2_RAD),
+					mY-900*scaleY*sin(lcv*30*DEG_2_RAD),
+					mX+900*scaleY*cos(lcv*30*DEG_2_RAD),
+					mY+900*scaleY*sin(lcv*30*DEG_2_RAD));
+    }
+
     dc.SetPen(wxPen(wxColor(0,0,0), 1 ));
     dc.DrawLine(mX, mY-900*scaleY, mX, mY+900*scaleY);
     dc.DrawLine(mX-900*scaleY, mY, mX+900*scaleY, mY);
@@ -176,6 +186,10 @@ void GUI_Default::renderSkyPlot()
     	psv = &p->sv_positions[lcv];
     	if((pNav->nsvs >> lcv) & 0x1)
     	{
+			gval = 255.0*(pchan->CN0 - 20.0)/40.0;
+			rval = 122.0 - 122.0*(pchan->CN0 - 20.0)/40.0;
+			dc.SetBrush(wxBrush(wxColor(rval,gval,0)));
+
     		str.Printf(wxT("%02d"),(int)pchan->sv+1);
 
     		svX = scaleY*(900 - 10.0*RAD_2_DEG*psv->elev) * cos(psv->azim);
@@ -197,7 +211,7 @@ void GUI_Default::renderPVT()
 
 
 	tPVT->Clear();
-	tPVT->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Monospace")));
+	tPVT->SetFont(wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Monospace")));
 
 
 //	str.Printf(wxT("Nav SVs:\t%-2d\n"),pNav->nav_channels);

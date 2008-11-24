@@ -70,8 +70,8 @@ Ephemeris::Ephemeris()
 
 	/* Read in stored ephem/almanac on bootup */
 	//ReadEphemeris();
-	ReadAlmanac();
-	Export();
+	//ReadAlmanac();
+	//Export();
 
 	if(gopt.verbose)
 		printf("Creating Ephemeris\n");
@@ -505,6 +505,9 @@ void Ephemeris::setEphemeris(Ephemeris_M *_e)
 	if((sv >= 0) && (sv < NUM_CODES))
 	{
 		memcpy(&ephemerides[sv], _e, sizeof(Ephemeris_M));
+		iode_master[sv] = ephemerides[sv].iode;
+		output_s.valid[sv] = ephemerides[sv].valid;
+		output_s.iode[sv] = iode_master[sv];
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -518,6 +521,7 @@ void Ephemeris::setAlmanac(Almanac_M *_a)
 	if((sv >= 0) && (sv < NUM_CODES))
 	{
 		memcpy(&almanacs[sv], _a, sizeof(Almanac_M));
+		almanacs[sv].decoded = true;
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
