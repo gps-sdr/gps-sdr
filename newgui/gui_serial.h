@@ -25,6 +25,8 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "gui.h"
 
+#define COMMAND_DEPTH	(256)
+
 /*! \ingroup CLASSES
  *
  */
@@ -54,11 +56,16 @@ class GUI_Serial : public Threaded_Object
 		int32 				packet_count[LAST_M_ID+1];		//!< Count the packets
 		int32				byte_count;						//!< Count the bytes
 
-		Union_C				command_body;					//!< Union for commands
 		Union_M				message_body;					//!< Union for messages
-		uint32				command_ready;					//!< Flag to indicate command needs to be sent
-		uint32				command_sent;					//!< Flag to indicate command was transmitted
-		uint32				command_ack;					//!< Flag to indicate command was executed
+
+		/* Buffer for commands */
+		Union_C				command_body[COMMAND_DEPTH];	//!< Union for commands
+		uint32				command_ready[COMMAND_DEPTH];	//!< Flag to indicate command needs to be sent
+		uint32				command_sent[COMMAND_DEPTH];	//!< Flag to indicate command was transmitted
+		uint32				command_ack[COMMAND_DEPTH];		//!< Flag to indicate command was executed
+		uint32				command_head;					//!< Command head
+		uint32				command_tail;					//!< Command tail
+
 
 		Message_Struct		messages;						//!< Hold all the messages
 		char buff[2048];									//!< Dump wasted data

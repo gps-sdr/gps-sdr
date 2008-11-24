@@ -480,7 +480,6 @@ typedef struct _SV_Prediction_M
 
 } SV_Prediction_M;
 
-
 /*! \ingroup MESSAGES
 	Acknowledge processing of command
 */
@@ -491,7 +490,6 @@ typedef struct Command_Ack_M
 	uint32 command_tic;
 
 } Command_Ack_M;
-
 
 /* Holds all the relevant messages */
 typedef struct Message_Struct

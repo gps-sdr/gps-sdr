@@ -54,6 +54,8 @@ class Ephemeris : public Threaded_Object
 		void ReadAlmanac();						//!< Write alamanacs from a YUMA file
 		Ephemeris_M getEphemeris(int32 _sv){return(ephemerides[_sv]);}	//!< Get this SV's ephemeris values
 		Almanac_M getAlmanac(int32 _sv){return(almanacs[_sv]);}			//!< Get this SV's almanac values
+		void setEphemeris(Ephemeris_M *_e);
+		void setAlmanac(Almanac_M *_a);
 		int32 getIODE(int32 _sv){return(iode_master[_sv]);}				//!< Get the current IODE for this SV
 };
 

@@ -25,6 +25,8 @@ class GUI_Ephemeris: public iGUI_Ephemeris
 		void setPointer(Message_Struct *_p){p = _p;};
 		void onMouse(wxMouseEvent& event);
 		void onClose(wxCloseEvent& evt){evt.Veto();};
+		void onSave(wxCommandEvent& event);
+		void onLoad(wxCommandEvent& event);
 		void renderDecoded();
 		void renderSV();
 

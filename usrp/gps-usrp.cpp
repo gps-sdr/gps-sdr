@@ -7,6 +7,7 @@
 #include <iostream>
 #include <signal.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include <pthread.h>
 #include <semaphore.h>

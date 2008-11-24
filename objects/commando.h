@@ -62,7 +62,10 @@ class Commando : public Threaded_Object
 		void Get_Measurement();
 		void Get_Pseudorange();
 		void Get_Ephemeris();
-		void Get_Alamanc();
+		void Get_Almanac();
+
+		void Set_Ephemeris();
+		void Set_Almanac();
 
 		void EmitCCSDSPacket(void *_buff, uint32 _len);
 

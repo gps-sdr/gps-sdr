@@ -205,6 +205,7 @@ void Serial_Telemetry::Export()
 void lost_gui_pipe(int _sig)
 {
 	pSerial_Telemetry->SetGUIPipe(false);
+	printf("GUI disconnected\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -283,11 +284,14 @@ void Serial_Telemetry::ImportGUI()
 	}
 
 	/* Bent pipe anything coming from Commando */
-	bread = read(Cmd_2_Telem_P[READ], &commando_buff, COMMANDO_BUFF_SIZE);
-	if(bread > 0)
+	if(npipe_open)
 	{
-		signal(SIGPIPE, lost_gui_pipe);
-		write(npipe[WRITE], &commando_buff, bread);
+		bread = read(Cmd_2_Telem_P[READ], &commando_buff, COMMANDO_BUFF_SIZE);
+		if(bread > 0)
+		{
+			signal(SIGPIPE, lost_gui_pipe);
+			write(npipe[WRITE], &commando_buff, bread);
+		}
 	}
 
 }
@@ -572,6 +576,8 @@ void Serial_Telemetry::EmitCCSDSPacket(void *_buff, uint32 _len)
 			bwrote = write(npipe[WRITE], &packet_header, sizeof(CCSDS_Packet_Header)); 	//!< Stuff the CCSDS header
 			bwrote = write(npipe[WRITE], _buff, _len);									//!< Stuff the body
 		}
+		else
+			OpenGUIPipe();
 	}
 
 }

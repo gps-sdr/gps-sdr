@@ -40,66 +40,134 @@ enum CCSDS_COMMAND_IDS
 	GET_ALMANAC_C_ID,
 	SET_ALMANAC_C_ID,
 	SET_EPHEMERIS_C_ID,
+	ACQ_CONFIG_C_ID,
+	CLOCK_CONFIG_C_ID,
 	LAST_C_ID
 };
 
+/*! \ingroup COMMANDS
+	Reset the PVT
+*/
 typedef struct Reset_PVT_C
 {
 	uint32 flag;		//!< Flag for no reason
 } Reset_PVT_C;
 
+
+/*! \ingroup COMMANDS
+	Reset the EKF
+*/
 typedef struct Reset_EKF_C
 {
 	uint32 flag;		//!< Flag for no reason
 } Reset_EKF_C;
 
+
+/*! \ingroup COMMANDS
+	Dump the desired channel
+*/
 typedef struct Reset_Channel_C
 {
 	uint32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
 } Reset_Channel_C;
 
+
+/*! \ingroup COMMANDS
+	Clear the given ephemeris
+*/
 typedef struct Reset_Ephemeris_C
 {
 	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
 } Reset_Ephemeris_C;
 
+
+/*! \ingroup COMMANDS
+	Clear the given almanac
+*/
 typedef struct Reset_Almanac_C
 {
 	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
 } Reset_Almanac_C;
 
+
+/*! \ingroup COMMANDS
+	Get a raw measurement
+*/
 typedef struct Get_Measurement_C
 {
 	uint32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
 } Get_Measurement_C;
 
+
+/*! \ingroup COMMANDS
+	Get a pseudorange
+*/
 typedef struct Get_Pseudorange_C
 {
 	uint32 chan;		//!< Channel #, or all if chan > MAX_CHANNELS
 } Get_Pseudorange_C;
 
+
+/*! \ingroup COMMANDS
+	Emit the given ephemerides
+*/
 typedef struct Get_Ephemeris_C
 {
 	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
 } Get_Ephemeris_C;
 
+
+/*! \ingroup COMMANDS
+	Emit the given almanac
+*/
 typedef struct Get_Almanac_C
 {
 	uint32 sv;		//!< SV #, or all if sv > NUM_CODES
 } Get_Almanac_C;
 
+
+/*! \ingroup COMMANDS
+	Stuff the given almanac
+*/
 typedef struct Set_Almanac_C
 {
 	uint32 sv;				//!< SV #
 	Almanac_M almanac;		//!< Data to load
 } Set_Almanac_C;
 
+
+/*! \ingroup COMMANDS
+	Stuff the given ephemeris
+*/
 typedef struct Set_Ephemeris_C
 {
 	uint32 sv;				//!< SV #
 	Ephemeris_M ephemeris;	//!< Data to load
 } Set_Ephemeris_C;
 
+
+/*! \ingroup COMMANDS
+	Configure the acquisition
+*/
+typedef struct _Acquisition_Config_C
+{
+	int32 min_doppler;			//!< Minimum doppler
+	int32 max_doppler;			//!< Maximum doppler
+	uint32 doppler_range;		//!< Doppler range to search when almanac is valid
+	uint32 acq_strong;			//!< 0 for off, 1 for on, 2 for on IF almanac is valid
+	uint32 acq_medium;			//!< 0 for off, 1 for on, 2 for on IF almanac is valid
+	uint32 acq_weak;			//!< 0 for off, 1 for on, 2 for on IF almanac is valid
+} Acquisition_Config_C;
+
+
+/*! \ingroup COMMANDS
+	Stuff the Clock
+*/
+typedef struct _Clock_Config_C
+{
+	double second;				//!< Stuff the gps second
+	double week;				//!< Stuff the gps week
+} Clock_Config_C;
 
 typedef union Union_C
 {
@@ -112,8 +180,9 @@ typedef union Union_C
 	Get_Pseudorange_C	get_pseudorange;
 	Get_Ephemeris_C		get_ephemeris;
 	Get_Almanac_C		get_almanac;
-	Set_Almanac_C		set_almanac;
 	Set_Ephemeris_C		set_ephemeris;
+	Set_Almanac_C		set_almanac;
+
 } Union_C;
 
 #endif /* COMMANDS_H_ */

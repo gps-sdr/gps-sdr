@@ -409,6 +409,8 @@ void GUI_Serial::writePipe()
 void GUI_Serial::formCommand(int32 _id, void *_p)
 {
 
+	int32 pend;
+
 	Lock();
 
 	memset(&command_body, 0x0, sizeof(Union_C));
@@ -451,6 +453,14 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 			command_body.get_almanac.sv = *(int32 *)_p;
 			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Get_Almanac_C), 1, command_tic++);
 			break;
+		case SET_EPHEMERIS_C_ID:
+			memcpy(&command_body.set_ephemeris, _p, sizeof(Set_Ephemeris_C));
+			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Set_Ephemeris_C), 1, command_tic++);
+			break;
+		case SET_ALMANAC_C_ID:
+			memcpy(&command_body.set_almanac, _p, sizeof(Set_Almanac_C));
+			FormCCSDSPacketHeader(&command_header, _id, 0, sizeof(Set_Almanac_C), 1, command_tic++);
+			break;
 		default:
 			command_ready = 0;
 			command_sent = 0;
@@ -461,6 +471,15 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 	DecodeCCSDSPacketHeader(&decoded_command, &command_header);
 
 	Unlock();
+
+	pend = 0;
+	while(pend == 0)
+	{
+		Lock();
+		pend = command_sent;
+		Unlock();
+		usleep(1000);
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/

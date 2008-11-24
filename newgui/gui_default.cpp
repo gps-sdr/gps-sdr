@@ -18,7 +18,6 @@ END_EVENT_TABLE()
 GUI_Default::GUI_Default():iGUI_Default(NULL, wxID_ANY, wxT("Main"), wxDefaultPosition, wxSize(980,600), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL)
 {
 
-
 }
 
 GUI_Default::~GUI_Default()
@@ -63,6 +62,8 @@ void GUI_Default::renderCN0()
 
 	scaleX = w/maxX; scaleY = h/maxY;
 	mX = w/2; mY = h/2;
+
+	dc.SetFont(wxFont(12, wxDEFAULT, wxNORMAL, wxNORMAL));
 
 	dc.SetPen(wxPen(wxColor(0,0,0), 1, wxLONG_DASH ));
     dc.DrawLine(mX-500*scaleX, h-800*scaleY, mX+500*scaleX, h-800*scaleY);
@@ -196,6 +197,8 @@ void GUI_Default::renderPVT()
 
 
 	tPVT->Clear();
+	tPVT->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Monospace")));
+
 
 //	str.Printf(wxT("Nav SVs:\t%-2d\n"),pNav->nav_channels);
 //	tPVT->AppendText(str);

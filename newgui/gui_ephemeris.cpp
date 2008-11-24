@@ -13,6 +13,8 @@ DECLARE_APP(GUI_App)
 BEGIN_EVENT_TABLE(GUI_Ephemeris, wxFrame)
     EVT_CLOSE(GUI_Ephemeris::onClose)
     EVT_LEFT_DOWN(GUI_Ephemeris::onMouse)
+    EVT_BUTTON(ID_EPHEMERIS_SAVE, GUI_Ephemeris::onSave)
+    EVT_BUTTON(ID_EPHEMERIS_LOAD, GUI_Ephemeris::onLoad)
 END_EVENT_TABLE()
 /*----------------------------------------------------------------------------------------------*/
 
@@ -179,5 +181,32 @@ void GUI_Ephemeris::renderSV()
 	str.Printf(wxT("CRS:                       %.10g\n"),e->crs);
 	tDisplay->AppendText(str);
 
+
+}
+
+
+void GUI_Ephemeris::onSave(wxCommandEvent& event)
+{
+
+	wxFileDialog * openFileDialog = new wxFileDialog(this);
+
+	if(openFileDialog->ShowModal() == wxID_OK)
+	{
+		wxString fileName = openFileDialog->GetPath();
+		/* Now do something here! */
+	}
+
+}
+
+void GUI_Ephemeris::onLoad(wxCommandEvent& event)
+{
+
+	wxFileDialog * openFileDialog = new wxFileDialog(this);
+
+	if(openFileDialog->ShowModal() == wxID_OK)
+	{
+		wxString fileName = openFileDialog->GetPath();
+		/* Now do something here! */
+	}
 
 }

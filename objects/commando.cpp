@@ -116,7 +116,13 @@ void Commando::Import()
 			Get_Ephemeris();
 			break;
 		case GET_ALMANAC_C_ID:
-			Get_Alamanc();
+			Get_Almanac();
+			break;
+		case SET_EPHEMERIS_C_ID:
+			Set_Ephemeris();
+			break;
+		case SET_ALMANAC_C_ID:
+			Set_Almanac();
 			break;
 		default:
 			break;
@@ -295,7 +301,7 @@ void Commando::Get_Ephemeris()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Commando::Get_Alamanc()
+void Commando::Get_Almanac()
 {
 
 	int32 lcv;
@@ -333,6 +339,32 @@ void Commando::Get_Alamanc()
 		Send_Ack();
 	}
 
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Commando::Set_Almanac()
+{
+
+	pEphemeris->Lock();
+	pEphemeris->setAlmanac(&command_body.set_almanac.almanac);
+	pEphemeris->Unlock();
+
+	Send_Ack();
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Commando::Set_Ephemeris()
+{
+
+	pEphemeris->Lock();
+	pEphemeris->setEphemeris(&command_body.set_ephemeris.ephemeris);
+	pEphemeris->Unlock();
+
+	Send_Ack();
 }
 /*----------------------------------------------------------------------------------------------*/
 
