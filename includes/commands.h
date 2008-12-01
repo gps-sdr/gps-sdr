@@ -25,7 +25,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #define CCSDS_APID_BASE	(0x0)	//!< The CCSDS APID Base number for our receiver
 
-/* Enum the command #s */
+/* Enum the command #s, DO NOT REORDER, ONLY APPEND! */
 enum CCSDS_COMMAND_IDS
 {
 	FIRST_C_ID,

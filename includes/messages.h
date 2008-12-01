@@ -25,8 +25,8 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #define CCSDS_APID_BASE	(0x0)	//!< The CCSDS APID Base number for our receiver
 
-/* Enum the packet ID #s */
-enum CCSDS_PACKET_IDS
+/* Enum the packet ID #s, DO NOT REORDER */
+enum CCSDS_MESSAGES_IDS
 {
 	FIRST_M_ID,
 	BOARD_HEALTH_M_ID,
@@ -85,19 +85,19 @@ typedef struct Board_Health_M
 	uint32 acq_version;		//!< Acquisition FPGA version
 
 	//!< DSA Info
-	uint32 dsa0;			//!< Current state of RF DSA on RF chain 0
-	uint32 dsa1;			//!< Current state of IF DSA on RF chain 0
-	uint32 dsa2;			//!< Current state of RF DSA on RF chain 1
-	uint32 dsa3;			//!< Current state of IF DSA on RF chain 1
-
-	//!< LO lock indicator
-	uint32 lo_locked;		//!< Is the LO (1.54 GHz downmix clock) locked to the synthesizer
+	uint32 dsa0;			//!< Current state of DSA 0
+	uint32 dsa1;			//!< Current state of DSA 1
+	uint32 dsa2;			//!< Current state of DSA 2
+	uint32 dsa3;			//!< Current state of DSA 3
 
 	//!< Overflows on A/Ds
 	uint32 ovrflw0;			//!< Overflow counter on A/D 0
 	uint32 ovrflw1;			//!< Overflow counter on A/D 1
 	uint32 ovrflw2;			//!< Overflow counter on A/D 2
 	uint32 ovrflw3;			//!< Overflow counter on A/D 3
+
+	//!< LO lock indicator
+	uint32 lo_locked;		//!< Is the LO locked to the synthesizer
 
 	//!< Acquisition SRAM
 	uint32 sram_bad_mem;	//!< Debug info from Steve's POST
@@ -194,7 +194,7 @@ typedef struct SPS_M
 	uint32 nav_channels;		//!< count number of SVs used in last PVT estimation
 	uint32 initial_convergence;	//!< Flag set ONCE if the first convergence has occured
 
-	uint32 chanmap[MAX_CHANNELS];
+	uint32 chanmap[MAX_CHANNELS]; //!< Map of channels->sv
 
 } SPS_M;
 
@@ -487,8 +487,9 @@ typedef struct _SV_Prediction_M
 typedef struct Command_Ack_M
 {
 
-	uint32 command_id;
-	uint32 command_tic;
+	uint32 command_id;			//!< ID of command received
+	uint32 command_tic;			//!< Command sequence count
+	uint32 command_status;		//!< Status (0 for FAIL, 1 for SUCCESS)
 
 } Command_Ack_M;
 
