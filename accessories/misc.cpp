@@ -590,3 +590,32 @@ void DecodeCCSDSPacketHeader(CCSDS_Decoded_Header *_d, CCSDS_Packet_Header *_p)
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
+/*----------------------------------------------------------------------------------------------*/
+#define MOD_ADLER 65521
+/* Data is input buffer, len is in bytes! */
+uint32 adler(uint8 *data, int32 len)
+{
+
+    uint32 a, b;
+    int32 tlen;
+
+    a = 1; b = 0;
+
+    if(len < 5552)
+    {
+        do
+        {
+            a += *data++;
+            b += a;
+        } while (--len);
+
+        a %= MOD_ADLER;
+        b %= MOD_ADLER;
+    }
+
+    return (b << 16) | a;
+
+}
+/*----------------------------------------------------------------------------------------------*/
+

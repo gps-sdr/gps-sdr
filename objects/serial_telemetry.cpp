@@ -230,18 +230,14 @@ void Serial_Telemetry::ExportGUI()
 	SendBoardHealth();
 	SendTaskHealth();
 	SendChannelHealth();
-	SendSVPosition();
 	SendSPS();
 	SendClock();
-	SendEphemerisStatus();
-	SendSVPrediction();
-	SendAcqCommand();
 
 	/* See if there is any new GEONS data */
 
 
 	/* If so write out that message */
-	//SendEKF();
+	SendEKF();
 
 
 	/* Now, get any data from GUI */
@@ -542,9 +538,10 @@ void Serial_Telemetry::SendAcqCommand()
 void Serial_Telemetry::EmitCCSDSPacket(void *_buff, uint32 _len)
 {
 
-	uint32 lcv, bwrote;
+	uint32 lcv, bwrote, preamble;
 	uint8 *sbuff;
-	uint32 preamble = 0xAAAAAAAA;
+
+	preamble = 0xAAAAAAAA;
 
 	if(serial)
 	{
@@ -576,6 +573,11 @@ void Serial_Telemetry::EmitCCSDSPacket(void *_buff, uint32 _len)
 		/* Only write if the client is connected */
 		if(npipe_open)
 		{
+//			packet.preamble = 0xAAAAAAAA;						//!< Preamble
+//			packet.header = packet_header;						//!< Set the header
+//			memcpy(&packet.payload[0], _buff, len);				//!< Copy in the payload
+//			packet.checksum = adler(&packet.header, len + 12);	//!< Compute the checksum
+//			bwrote = write(npipe[WRITE], &packet, len + 20);	//!< Export
 			bwrote = write(npipe[WRITE], &preamble, sizeof(uint32));  					//!< Stuff the preamble
 			bwrote = write(npipe[WRITE], &packet_header, sizeof(CCSDS_Packet_Header)); 	//!< Stuff the CCSDS header
 			bwrote = write(npipe[WRITE], _buff, _len);									//!< Stuff the body

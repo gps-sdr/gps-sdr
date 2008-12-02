@@ -49,5 +49,6 @@ int32 Atan2Approx(int32 y, int32 x);
 int32 Invert4x4(double A[4][4], double B[4][4]);
 void FormCCSDSPacketHeader(CCSDS_Packet_Header *_p, uint32 _apid, uint32 _sf, uint32 _pl, uint32 _cm, uint32 _tic);
 void DecodeCCSDSPacketHeader(CCSDS_Decoded_Header *_d, CCSDS_Packet_Header *_p);
+uint32 adler(uint8 *data, int32 len);
 /*----------------------------------------------------------------------------------------------*/
 

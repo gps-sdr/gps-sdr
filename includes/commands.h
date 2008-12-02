@@ -40,8 +40,13 @@ enum CCSDS_COMMAND_IDS
 	GET_ALMANAC_C_ID,
 	SET_ALMANAC_C_ID,
 	SET_EPHEMERIS_C_ID,
-	ACQ_CONFIG_C_ID,
-	CLOCK_CONFIG_C_ID,
+	SET_ACQ_CONFIG_C_ID,
+	WARM_START_C_ID,
+	GET_ACQ_CONFIG_C_ID,
+	GET_SV_PREDICTION_C_ID,
+	GET_EPHEMERIS_VALID_C_ID,
+	GET_BOARD_HEALTH_C_ID,
+	GET_ACQ_COMMAND_C_ID,
 	LAST_C_ID
 };
 
@@ -149,25 +154,72 @@ typedef struct Set_Ephemeris_C
 /*! \ingroup COMMANDS
 	Configure the acquisition
 */
-typedef struct _Acquisition_Config_C
+typedef struct _Set_Acq_Config_C
 {
-	int32 min_doppler;		//!< Minimum doppler
-	int32 max_doppler;		//!< Maximum doppler
-	int32 doppler_range;	//!< Doppler range to search when almanac is valid
-	int32 acq_strong;		//!< 0 for off, 1 for on, 2 for on IF almanac is valid
-	int32 acq_medium;		//!< 0 for off, 1 for on, 2 for on IF almanac is valid
-	int32 acq_weak;			//!< 0 for off, 1 for on, 2 for on IF almanac is valid
-} Acquisition_Config_C;
+	Acq_Config_C	acq_config;
+} Set_Acq_Config_C;
 
 
 /*! \ingroup COMMANDS
-	Stuff the Clock
+	Do a warm start.
 */
-typedef struct _Clock_Config_C
+typedef struct _Warm_Start_C
 {
-	double second;			//!< Stuff the gps second
-	double week;			//!< Stuff the gps week
-} Clock_Config_C;
+	double x;				//!< ECEF X position (meters)
+	double y;				//!< ECEF Y position (meters)
+	double z;				//!< ECEF Z position (meters)
+	double vx;				//!< ECEF X velocity (meters/second)
+	double vy;				//!< ECEF Y velocity (meters/second)
+	double vz;				//!< ECEF Z velocity (meters/second)
+	double second;			//!< GPS second
+	double week;			//!< GPS week
+} Warm_Start_C;
+
+
+/*! \ingroup COMMANDS
+	Emit an acquisition config message.
+*/
+typedef struct _Get_Acq_Config_C
+{
+	int32 flag; 			//!< Not used
+} Get_Acq_Config_C;
+
+
+/*! \ingroup COMMANDS
+	Emit a SV prediction from SV_Select
+*/
+typedef struct _Get_SV_Prediction_C
+{
+	int32 sv; 				//!< SV $
+} Get_SV_Prediction_C;
+
+
+/*! \ingroup COMMANDS
+	Emit ephemeris/acquisition decode status
+*/
+typedef struct _Get_Ephemeris_Valid_C
+{
+	int32 flag; 			//!< Not used
+} Get_Ephemeris_Valid_C;
+
+
+/*! \ingroup COMMANDS
+	Emit a board health message
+*/
+typedef struct _Get_Board_Health_C
+{
+	int32 flag; 			//!< Not used
+} Get_Board_Health_C;
+
+
+/*! \ingroup COMMANDS
+	Emit an acquisition result
+*/
+typedef struct _Get_Acq_Command_C
+{
+	int32 sv; 			//!< SV #
+} Get_Acq_Command_C;
+
 
 typedef union Union_C
 {
@@ -182,7 +234,12 @@ typedef union Union_C
 	Get_Almanac_C		get_almanac;
 	Set_Ephemeris_C		set_ephemeris;
 	Set_Almanac_C		set_almanac;
-
+	Set_Acq_Config_C	set_acq_config;
+	Get_Acq_Config_C	get_acq_config;
+	Get_SV_Prediction_C 	get_sv_prediction;
+	Get_Ephemeris_Valid_C 	get_ephemeris_valid;
+	Get_Board_Health_C 		get_board_health;
+	Get_Acq_Command_C		get_acq_command;
 } Union_C;
 
 #endif /* COMMANDS_H_ */

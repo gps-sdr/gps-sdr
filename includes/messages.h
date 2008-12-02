@@ -45,6 +45,7 @@ enum CCSDS_MESSAGES_IDS
 	COMMAND_ACK_M_ID,
 	SV_PREDICTION_M_ID,
 	ACQ_COMMAND_M_ID,
+	ACQ_CONFIG_M_ID,
 	LAST_M_ID
 };
 
@@ -73,6 +74,16 @@ typedef struct CCSDS_Decoded_Header
 	uint32 length;
 } CCSDS_Decoded_Header;
 
+/*! \ingroup MESSAGES
+ * Packet format
+ */
+typedef struct CCSDS_Packet
+{
+	uint32 preamble;			//!< Preamble, should ALWAYS be 0xAAAAAAAA
+	uint32 checksum;			//!< Checksum, using Adler-32 algorithm
+	CCSDS_Packet_Header header; //!< CCSDS header
+	uint32 payload[123];		//!< Payload, up to 492 bytes
+} CCSDS_Packet;
 
 /*! \ingroup MESSAGES
  * Packet dumped to telemetry and to disk to keep track of each channel
@@ -481,6 +492,7 @@ typedef struct _SV_Prediction_M
 
 } SV_Prediction_M;
 
+
 /*! \ingroup MESSAGES
 	Acknowledge processing of command
 */
@@ -492,6 +504,21 @@ typedef struct Command_Ack_M
 	uint32 command_status;		//!< Status (0 for FAIL, 1 for SUCCESS)
 
 } Command_Ack_M;
+
+
+/*! \ingroup MESSAGES
+	Configure acquisition
+*/
+typedef struct Acq_Config_M
+{
+	int32 min_doppler;		//!< Minimum doppler
+	int32 max_doppler;		//!< Maximum doppler
+	int32 doppler_range;	//!< Doppler range to search when almanac is valid
+	int32 acq_strong;		//!< 0 for off, 1 for on, 2 for on IF almanac is valid
+	int32 acq_medium;		//!< 0 for off, 1 for on, 2 for on IF almanac is valid
+	int32 acq_weak;			//!< 0 for off, 1 for on, 2 for on IF almanac is valid
+} Acq_Config_M;
+
 
 /* Holds all the relevant messages */
 typedef struct Message_Struct
@@ -515,6 +542,7 @@ typedef struct Message_Struct
 	Acq_Command_M		acq_command[NUM_CODES+1];		//!< Last command acquisition
 	SV_Prediction_M		sv_predictions[NUM_CODES+1];	//!< SV Prediction
 	Command_Ack_M		command_ack;
+	Acq_Config_M		acq_config;
 
 } Message_Struct;
 
@@ -522,7 +550,6 @@ typedef struct Message_Struct
 /* Unionize the structures */
 typedef union Union_M
 {
-
 	Board_Health_M		board_health;
 	Task_Health_M		task_health;
 	Channel_Health_M	channel_health;
@@ -539,7 +566,7 @@ typedef union Union_M
 	Acq_Command_M		acq_command;
 	SV_Prediction_M		sv_prediction;
 	Command_Ack_M		command_ack;
-
+	Acq_Config_M		acq_config;
 } Union_M;
 
 
