@@ -34,10 +34,19 @@ void GUI_Acquisition::paintNow()
 
 void GUI_Acquisition::render(wxDC& dc)
 {
+	int32 val;
+
 	copyBuff();
 	renderBars(ACQ_STRONG);
 	renderBars(ACQ_MEDIUM);
 	renderBars(ACQ_WEAK);
+
+	if((tic++ % 10) == 0)
+	{
+		val = NUM_CODES;
+		pSerial->formCommand(GET_ACQ_COMMAND_C_ID, &val);
+	}
+
 }
 
 void GUI_Acquisition::copyBuff()

@@ -117,7 +117,7 @@ Telemetry::~Telemetry()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::Import()
 {
-	Channel_Health_M temp;
+	Channel_M temp;
 	int32 bread, lcv, num_chans;
 
 	read(FIFO_2_Telem_P[READ], &tFIFO, sizeof(FIFO_M));
@@ -258,7 +258,7 @@ void Telemetry::EndScreen(void)
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::PrintChan()
 {
-	Channel_Health_M *p;
+	Channel_M *p;
 	SPS_M		*pNav		= &tNav.master_nav;				/* Navigation Solution */
 	Clock_M				*pClock		= &tNav.master_clock;			/* Clock solution */
 
@@ -320,7 +320,7 @@ void Telemetry::PrintSV()
 {
 	SV_Position_M 	*pPos;
 	Pseudorange_M 	*pPseudo;
-	Channel_Health_M 	*pChan;
+	Channel_M 	*pChan;
 	SPS_M	*pNav	= &tNav.master_nav;				/* Navigation Solution */
 	Clock_M			*pClock	= &tNav.master_clock;			/* Clock solution */
 
@@ -335,7 +335,7 @@ void Telemetry::PrintSV()
 	for(lcv	= 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		pPos    = (SV_Position_M *)	&tNav.sv_positions[lcv];
-		pChan   = (Channel_Health_M *)	&tChan[lcv];
+		pChan   = (Channel_M *)	&tChan[lcv];
 		pPseudo = (Pseudorange_M *)	&tNav.pseudoranges[lcv];
 
 
@@ -670,12 +670,12 @@ void Telemetry::LogTracking()
 {
 
 	int32 lcv;
-	Channel_Health_M *pChan;
+	Channel_M *pChan;
 
 	/* Pseudo ranges */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		pChan = (Channel_Health_M *) &tChan[lcv];
+		pChan = (Channel_M *) &tChan[lcv];
 
 		fprintf(fp_chan,"%02d,%02d,%08d,%01d,%01d,%01d,%02d,%.16e,%.16e\n",
 		lcv,
@@ -699,13 +699,13 @@ void Telemetry::LogSV()
 
 	int32 lcv;
 	SV_Position_M *pSV;
-	Channel_Health_M *pChan;
+	Channel_M *pChan;
 
 	/* Pseudo ranges */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		pSV = (SV_Position_M *) &tNav.sv_positions[lcv];
-		pChan = (Channel_Health_M *) &tChan[lcv];
+		pChan = (Channel_M *) &tChan[lcv];
 
 		fprintf(fp_sv,"%02d,%02d,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n",
 		lcv,

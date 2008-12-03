@@ -47,7 +47,7 @@ class Channel : public Threaded_Object
 		int32 sv;				//!< current SV
 		int32 state;
 		int32 antenna;
-		Channel_Health_M	packet;			//!< dump to named pipe
+		Channel_M	packet;			//!< dump to named pipe
 		Chan_2_Ephem_S  	ephem_packet;	//!< dump to ephemeris
 		/*----------------------------------------------------------------------------------------------*/
 
@@ -142,7 +142,7 @@ class Channel : public Threaded_Object
 			bool ValidFrameFormat(uint32 *subframe);	//!< valid frame
 		void Error();									//!< look for errors in tracking, killing channel if necessary
 		void Export();									//!< Return NCO command to correlator
-		Channel_Health_M getPacket();
+		Channel_M getPacket();
 		void Accum(Correlation_S *corr, NCO_Command_S *_feedback);	//!< Process an accumulation
 		float getCN0(){return(CN0);};
 		float getNCO(){return(carrier_nco);};

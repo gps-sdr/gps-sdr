@@ -44,7 +44,9 @@ class Serial_Telemetry : public Threaded_Object
 		int32	  			npipe[2];		//!< Named pipe to import/export data with the GUI
 		int32				npipe_open;		//!< Is this named pipe connected?
 
-		int32				serial_open;	//!< Has the serial port been configured
+		int32				serial_open;	//!< Has the serial port been configured?
+
+		int32				stream[LAST_M_ID];				//!< Control the streaming messages
 
 		CCSDS_Packet_Header  packet_header;					//!< CCSDS Packet header
 		CCSDS_Packet_Header  command_header;				//!< CCSDS Command header
@@ -55,7 +57,7 @@ class Serial_Telemetry : public Threaded_Object
 
 		Board_Health_M 		board_health;					//!< Board health message
 		Task_Health_M		task_health;					//!< Task health message
-		Channel_Health_M 	channel_health[MAX_CHANNELS]; 	//!< Channel health message
+		Channel_M 	channel_health[MAX_CHANNELS]; 	//!< Channel health message
 
 		SPS_M				sps;							//!< SPS message
 		Clock_M				clock;							//!< Clock message
@@ -90,7 +92,7 @@ class Serial_Telemetry : public Threaded_Object
 		void ImportSerial();
 
 		/* Object specific methods */
-		void EmitCCSDSPacket(void *_buff, uint32 _len);						//!< Emit a CCSDS packet
+		void EmitCCSDSPacket(void *_buff, uint32 _len);	//!< Emit a CCSDS packet
 
 		/* Types of output messages */
 		void SendBoardHealth();						//!< Emit hardware health values
@@ -98,11 +100,16 @@ class Serial_Telemetry : public Threaded_Object
 		void SendChannelHealth();					//!< Emit channel health
 		void SendSPS();								//!< Emit a PVT
 		void SendClock();							//!< Emit a Clock state
-		void SendSVPosition();						//!< Send the SV Position
+		void SendSVPositions();						//!< Send the SV Position
 		void SendFIFO();							//!< Send the FIFO status
 		void SendEphemerisStatus();					//!< Decoded ephemerides, etc
 		void SendSVPrediction();					//!< Send SV prediction
 		void SendAcqCommand();						//!< Send a recent acquisition attempt
+		void SendPseudoranges();					//!< Send the pseudoranges
+		void SendMeasurements();					//!< Send the raw measurements
+
+		void stopStream(int32 _id){stream[_id] = 0;};
+		void startStream(int32 _id){stream[_id] = 1;};
 };
 
 #endif /* Serial_Telemetry_H */

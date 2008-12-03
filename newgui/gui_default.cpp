@@ -44,7 +44,7 @@ void GUI_Default::render(wxDC& dc)
 void GUI_Default::renderCN0()
 {
 
-	Channel_Health_M *pchan;
+	Channel_M *pchan;
 	int mX, mY, lcv, gval, rval;
 	double maxX, maxY, svX, svY, dX, dY;
 	double scaleX, scaleY;
@@ -131,7 +131,7 @@ void GUI_Default::renderSkyPlot()
 
 	SPS_M *pNav = &p->sps;
 	SV_Position_M *psv;
-	Channel_Health_M *pchan;
+	Channel_M *pchan;
 
 	maxX = maxY = 1100;
 

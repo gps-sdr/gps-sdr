@@ -43,6 +43,8 @@ class GUI_Toplevel: public iGUI_Toplevel
 
 		Message_Struct	messages;						//!< Hold all the messages
 
+		float kB_sec;
+
 	public:
 
 		GUI_Toplevel();

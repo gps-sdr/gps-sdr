@@ -108,10 +108,10 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 /* Associate each task with a enum */
 /*----------------------------------------------------------------------------------------------*/
-#define	MAX_TASKS				(32)		//!< Max task number (used to allocate arrays)
+#define	MAX_TASKS				(16)		//!< Max task number (used to allocate arrays)
 enum TASK_IDS
 {
-	CORRELATOR_TASK_ID = MAX_CHANNELS,		//!< Bottom tasks are the correlators, which is a variable
+	CORRELATOR_TASK_ID = CPU_CORES,			//!< Bottom tasks are the correlators, which is a variable
 	POST_PROCESS_TASK_ID,
 	FIFO_TASK_ID,
 	COMMANDO_TASK_ID,

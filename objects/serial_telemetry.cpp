@@ -63,6 +63,8 @@ Serial_Telemetry::Serial_Telemetry(int32 _serial)
 	serial_open = npipe_open;
 	serial = _serial;
 
+	memset(&stream[0], 0x0, LAST_M_ID*sizeof(int32));
+
 	/* Communicate over the serial port */
 	if(serial)
 	{
@@ -108,7 +110,7 @@ Serial_Telemetry::~Serial_Telemetry()
 /*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::Import()
 {
-	Channel_Health_M temp;
+	Channel_M temp;
 	int32 bread, lcv, num_chans;
 
 	/* Pend on this pipe */
@@ -143,10 +145,7 @@ void Serial_Telemetry::Import()
 	/* Read from actual acquisition */
 	bread = sizeof(Acq_Command_M);
 	while(bread == sizeof(Acq_Command_M))
-	{
 		bread = read(Acq_2_Telem_P[READ],&acq_command, sizeof(Acq_Command_M));
-		SendAcqCommand();
-	}
 
 	/* Read from Ephemeris */
 	bread = sizeof(Ephemeris_Status_M);
@@ -179,7 +178,11 @@ void Serial_Telemetry::Import()
 void Serial_Telemetry::Export()
 {
 
-	if(execution_tic % gopt.log_decimate == 0)
+	Lock();
+
+	IncStopTic();
+
+	if((execution_tic % gopt.log_decimate) == 0)
 	{
 		if(serial)
 		{
@@ -197,6 +200,9 @@ void Serial_Telemetry::Export()
 		}
 	}
 
+	IncStartTic();
+
+	Unlock();
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -222,33 +228,30 @@ void Serial_Telemetry::SetGUIPipe(bool _status)
 void Serial_Telemetry::ExportGUI()
 {
 
-	int32 nbytes, bwrote;
-	char *pbuff;
-
 	/* Now transmit the normal once/pvt stuff */
 	SendFIFO();
-	SendBoardHealth();
 	SendTaskHealth();
-	SendChannelHealth();
 	SendSPS();
 	SendClock();
+
+	/* If the streaming stuff is on/off emit that */
+	if(stream[SV_POSITION_M_ID])
+		SendSVPositions();
+
+	if(stream[PSEUDORANGE_M_ID])
+		SendPseudoranges();
+
+	if(stream[MEASUREMENT_M_ID])
+		SendMeasurements();
+
+	if(stream[CHANNEL_M_ID])
+		SendChannelHealth();
 
 	/* See if there is any new GEONS data */
 
 
 	/* If so write out that message */
-	SendEKF();
-
-
-	/* Now, get any data from GUI */
-
-
-
-	/* Process any incoming data */
-
-
-
-	/* Get the stop of execution */
+	//SendEKF();
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -341,6 +344,7 @@ void Serial_Telemetry::OpenSerial()
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
 /*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::SendBoardHealth()
 {
@@ -426,11 +430,11 @@ void Serial_Telemetry::SendChannelHealth()
 	{
 
 		/* Form the packet */
-		FormCCSDSPacketHeader(&packet_header, CHANNEL_HEALTH_M_ID, 0, sizeof(Channel_Health_M), 0, packet_tic++);
+		FormCCSDSPacketHeader(&packet_header, CHANNEL_M_ID, 0, sizeof(Channel_M), 0, packet_tic++);
 
 		/* Emit the packet */
 		channel_health[lcv].chan = lcv;
-		EmitCCSDSPacket((void *)&channel_health[lcv], sizeof(Channel_Health_M));
+		EmitCCSDSPacket((void *)&channel_health[lcv], sizeof(Channel_M));
 	}
 
 }
@@ -480,7 +484,7 @@ void Serial_Telemetry::SendClock()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Serial_Telemetry::SendSVPosition()
+void Serial_Telemetry::SendSVPositions()
 {
 	int32 lcv;
 
@@ -494,6 +498,48 @@ void Serial_Telemetry::SendSVPosition()
 		sv_positions[lcv].chan = lcv;
 		EmitCCSDSPacket((void *)&sv_positions[lcv], sizeof(SV_Position_M));
 	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Serial_Telemetry::SendPseudoranges()
+{
+
+	int32 lcv;
+
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	{
+
+		/* Form the packet */
+		FormCCSDSPacketHeader(&packet_header, PSEUDORANGE_M_ID, 0, sizeof(Pseudorange_M), 0, packet_tic++);
+
+		/* Emit the packet */
+		pseudoranges[lcv].chan = lcv;
+		EmitCCSDSPacket((void *)&pseudoranges[lcv], sizeof(Pseudorange_M));
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Serial_Telemetry::SendMeasurements()
+{
+
+	int32 lcv;
+
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	{
+
+		/* Form the packet */
+		FormCCSDSPacketHeader(&packet_header, MEASUREMENT_M_ID, 0, sizeof(Measurement_M), 0, packet_tic++);
+
+		/* Emit the packet */
+		measurements[lcv].chan = lcv;
+		EmitCCSDSPacket((void *)&measurements[lcv], sizeof(Measurement_M));
+	}
+
 }
 /*----------------------------------------------------------------------------------------------*/
 

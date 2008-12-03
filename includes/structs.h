@@ -301,7 +301,7 @@ typedef Acq_Command_M Acq_2_Telem_S;
 /*! \ingroup STRUCTS
  *
  */
-typedef Channel_Health_M Trak_2_Telem_S;
+typedef Channel_M Trak_2_Telem_S;
 
 /*! \ingroup STRUCTS
  * Information sent from PVT to SV_Select to drive warm and hot starts

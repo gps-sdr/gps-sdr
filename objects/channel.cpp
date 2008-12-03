@@ -164,7 +164,7 @@ void Channel::Start(int32 _sv, Acq_Command_M result, int32 _corr_len)
 
 
 /*----------------------------------------------------------------------------------------------*/
-Channel_Health_M Channel::getPacket()
+Channel_M Channel::getPacket()
 {
 	return(packet);
 }
@@ -967,7 +967,7 @@ void Channel::Export()
 	packet.carrier_nco 	= (float)carrier_nco;
 
 	if(gopt.log_channel && (fp != NULL))
-		fwrite(&packet, sizeof(Channel_Health_M), 1,  fp);
+		fwrite(&packet, sizeof(Channel_M), 1,  fp);
 }
 /*----------------------------------------------------------------------------------------------*/
 

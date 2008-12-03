@@ -14,6 +14,7 @@ class GUI_Acquisition: public iGUI_Acquisition
 		Acq_Command_M acq_command[3][NUM_CODES];
 		int32 sv;
 		float scale[3];
+		int32 tic;
 
 	public:
 

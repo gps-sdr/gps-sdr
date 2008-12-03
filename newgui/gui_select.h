@@ -12,6 +12,7 @@ class GUI_Select: public iGUI_Select
 		Message_Struct *p;
 		class GUI_Serial *pSerial;
 		int32 sv;
+		int32 tic;
 
 	public:
 

@@ -38,8 +38,16 @@ void GUI_Almanac::paintNow()
 
 void GUI_Almanac::render(wxDC& dc)
 {
+	int32 val;
+
 	renderDecoded();
 	renderSV();
+
+	if((tic++ % 10) == 0)
+	{
+		val = NUM_CODES;
+		pSerial->formCommand(GET_EPHEMERIS_VALID_C_ID, &val);
+	}
 }
 
 void GUI_Almanac::onMouse(wxMouseEvent& event)

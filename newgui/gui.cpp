@@ -29,7 +29,7 @@ bool GUI_App::OnInit()
     SetTopWindow(pMain);
 
 	/* Start up the render loop */
-    activateRenderLoop(true);
+    //activateRenderLoop(true);
     return TRUE;
 }
 /*----------------------------------------------------------------------------------------------*/

@@ -83,6 +83,14 @@ SV_Select::~SV_Select()
 
 
 /*----------------------------------------------------------------------------------------------*/
+void SV_Select::setConfig(Acq_Config_M *cfg)
+{
+	memcpy(&config, cfg, sizeof(Acq_Config_M));
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void SV_Select::Import()
 {
 
@@ -96,8 +104,6 @@ void SV_Select::Import()
 	}
 
 	usleep(1000000/ACQS_PER_SECOND);
-
-	IncStartTic();
 
 	/* If the PVT is less than 1 minutes old, still use it */
 	if((pnav->stale_ticks < (60*TICS_PER_SECOND)) && pnav->initial_convergence)
@@ -127,6 +133,7 @@ void SV_Select::Acquire()
 	chan = 666;
 	already = 0;
 
+	IncStartTic();
 
 	/* If an empty channel exists, ask for an acquisition */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
@@ -159,6 +166,7 @@ void SV_Select::Acquire()
 		SV_LatLong(sv);
 		SV_Predict(sv);
 		UpdateState();
+		IncStopTic();
 		return;
 	}
 
@@ -167,6 +175,8 @@ void SV_Select::Acquire()
 	SV_Position(sv);
 	SV_LatLong(sv);
 	SV_Predict(sv);
+
+	IncStopTic();
 
 	/* Do something with acquisition */
 	if(chan != 666)
@@ -180,6 +190,9 @@ void SV_Select::Acquire()
 
 			/* Wait for acq to return, do stuff depending on the state */
 			read(Acq_2_Trak_P[READ], &result, sizeof(Acq_Command_M));
+
+			memcpy(&result_history[sv], &result, sizeof(Acq_Command_M));
+			result_history[sv].sv = sv;
 
 			/* Pass over channel */
 			result.chan = chan;
@@ -209,7 +222,6 @@ void SV_Select::Export()
 	memcpy(&output_s.sv_history[0],		&sv_history[0], 	NUM_CODES*sizeof(Acq_History_S));
 	write(SV_Select_2_Telem_P[WRITE], 	&output_s, 			sizeof(SV_Select_2_Telem_S));
 
-	IncStopTic();
 }
 /*----------------------------------------------------------------------------------------------*/
 

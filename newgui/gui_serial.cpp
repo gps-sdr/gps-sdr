@@ -294,10 +294,10 @@ void GUI_Serial::readPipe()
 			case TASK_HEALTH_M_ID:
 				pipeRead(&m->task_health, sizeof(Task_Health_M));
 				break;
-			case CHANNEL_HEALTH_M_ID:
-				pipeRead(&m->channel_health[MAX_CHANNELS], sizeof(Channel_Health_M));
+			case CHANNEL_M_ID:
+				pipeRead(&m->channel_health[MAX_CHANNELS], sizeof(Channel_M));
 				chan = m->channel_health[MAX_CHANNELS].chan;
-				memcpy(&m->channel_health[chan], &m->channel_health[MAX_CHANNELS], sizeof(Channel_Health_M));
+				memcpy(&m->channel_health[chan], &m->channel_health[MAX_CHANNELS], sizeof(Channel_M));
 				break;
 			case SPS_M_ID:
 				pipeRead(&m->sps, sizeof(SPS_M));
@@ -475,11 +475,11 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_Almanac_C), 1, command_tic++);
 			break;
 		case GET_MEASUREMENT_C_ID:
-			cb->get_measurement.chan = *(int32 *)_p;
+			cb->get_measurement.flag = *(int32 *)_p;
 			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Measurement_C), 1, command_tic++);
 			break;
 		case GET_PSEUDORANGE_C_ID:
-			cb->get_pseudorange.chan = *(int32 *)_p;
+			cb->get_pseudorange.flag = *(int32 *)_p;
 			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Pseudorange_C), 1, command_tic++);
 			break;
 		case GET_EPHEMERIS_C_ID:
@@ -497,6 +497,42 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 		case SET_ALMANAC_C_ID:
 			memcpy(&cb->set_almanac, _p, sizeof(Set_Almanac_C));
 			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Set_Almanac_C), 1, command_tic++);
+			break;
+		case SET_ACQ_CONFIG_C_ID:
+			memcpy(&cb->set_acq_config, _p, sizeof(Set_Acq_Config_C));
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Set_Acq_Config_C), 1, command_tic++);
+			break;
+		case SET_PVT_C_ID:
+			memcpy(&cb->set_pvt, _p, sizeof(Set_PVT_C));
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Set_PVT_C), 1, command_tic++);
+			break;
+		case GET_ACQ_CONFIG_C_ID:
+			cb->get_acq_config.flag = 1;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Acq_Config_C), 1, command_tic++);
+			break;
+		case GET_SV_PREDICTION_C_ID:
+			cb->get_sv_prediction.sv = *(int32 *)_p;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_SV_Prediction_C), 1, command_tic++);
+			break;
+		case GET_EPHEMERIS_VALID_C_ID:
+			cb->get_ephemeris_valid.flag = 1;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Ephemeris_Valid_C), 1, command_tic++);
+			break;
+		case GET_BOARD_HEALTH_C_ID:
+			cb->get_board_health.flag = 1;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Board_Health_C), 1, command_tic++);
+			break;
+		case GET_ACQ_COMMAND_C_ID:
+			cb->get_acq_command.sv = *(int32 *)_p;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Acq_Command_C), 1, command_tic++);
+			break;
+		case GET_SV_POSITION_C_ID:
+			cb->get_sv_position.flag = *(int32 *)_p;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_SV_Position_C), 1, command_tic++);
+			break;
+		case GET_CHANNEL_C_ID:
+			cb->get_channel.flag = *(int32 *)_p;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Channel_C), 1, command_tic++);
 			break;
 		default:
 			command_ready[command_head] = 0;
@@ -516,3 +552,4 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 
 }
 /*----------------------------------------------------------------------------------------------*/
+

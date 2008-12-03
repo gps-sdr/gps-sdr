@@ -54,21 +54,34 @@ class Commando : public Threaded_Object
 
 		/* Nondefault methods */
 		void Send_Ack();
-		void Reset_PVT();
-		void Reset_EKF();
-		void Reset_Channel();
-		void Reset_Ephemeris();
-		void Reset_Almanac();
-		void Get_Measurement();
-		void Get_Pseudorange();
-		void Get_Ephemeris();
-		void Get_Almanac();
 
-		void Set_Ephemeris();
-		void Set_Almanac();
+		void resetReset();
+		void resetPVT();
+		void resetEKF();
+		void resetChannel();
+		void resetEphemeris();
+		void resetAlmanac();
+
+		void setPVT();
+		void setEphemeris();
+		void setAlmanac();
+		void setAcq_Config();
+
+		void getMeasurement();
+		void getPseudorange();
+		void getSV_Position();
+		void getEphemeris();
+		void getAlmanac();
+		void getAcq_Config();
+		void getSV_Prediction();
+		void getEphemeris_Valid();
+		void getBoard_Health();
+		void getAcq_Command();
+		void getChannel();
 
 		void EmitCCSDSPacket(void *_buff, uint32 _len);
 
 };
 
 #endif /* COMMANDO_H */
+

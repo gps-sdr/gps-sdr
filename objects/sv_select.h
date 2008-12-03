@@ -43,6 +43,8 @@ class SV_Select : public Threaded_Object
 		PVT_2_SV_Select_S	pvt;
 		Acq_Command_M		request;						//!< Acquisition transaction
 		Acq_Command_M		result;							//!< Acquisition transaction
+		Acq_Command_M		result_history[NUM_CODES];		//!< Acquisition transaction history per SV
+		Acq_Config_M		config;							//!< How does the acquisition behave
 		SPS_M		 		*pnav;							//!< Pointer to nav sltn
 		Clock_M 			*pclock;						//!< Point to clock sltn
 		Almanac_M			almanacs[NUM_CODES];			//!< The decoded almanacs
@@ -66,12 +68,18 @@ class SV_Select : public Threaded_Object
  		void UpdateState();							//!< Update acq type
  		void Acquire();								//!< Run the acquisition
 		void GetAlmanac(int32 _sv);					//!< Get the most up-to-date almanacs from the ephemeris
+
 		void SV_Predict(int32 _sv);					//!< Predict states of SVs
 		void SV_Position(int32 _sv);				//!< Compute SV positions from almanac
 		void SV_LatLong(int32 _sv);					//!< Compute SV's lat and long
  		bool SetupRequest();						//!< Setup the acq request
  		void ProcessResult();						//!< Take the result and do something with it!
 		void MaskAngle();							//!< Calculate elevation mask angle
+
+		void setConfig(Acq_Config_M *_cfg);			//!< Set the acquisition behaviour
+		Acq_Config_M getConfig(){return(config);};	//!< Return the acquisition behaviour
+		SV_Prediction_M getSVPrediction(int32 _sv){return(sv_prediction[_sv]);};	//!< Return given SV predicition
+		Acq_Command_M getAcqCommand(int32 _sv){return(result_history[_sv]);};		//!< Return acquisition result per sv
 
 };
 

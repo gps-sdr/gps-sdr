@@ -40,8 +40,16 @@ void GUI_Ephemeris::paintNow()
 
 void GUI_Ephemeris::render(wxDC& dc)
 {
+	int32 val;
+
 	renderDecoded();
 	renderSV();
+
+	if((tic++ % 10) == 0)
+	{
+		val = NUM_CODES;
+		pSerial->formCommand(GET_EPHEMERIS_VALID_C_ID, &val);
+	}
 }
 
 

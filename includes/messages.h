@@ -29,23 +29,23 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 enum CCSDS_MESSAGES_IDS
 {
 	FIRST_M_ID,
-	BOARD_HEALTH_M_ID,
+	FIFO_M_ID,
 	TASK_HEALTH_M_ID,
-	CHANNEL_HEALTH_M_ID,
 	SPS_M_ID,
 	CLOCK_M_ID,
-	SV_POSITION_M_ID,
 	EKF_M_ID,
+	CHANNEL_M_ID,
+	SV_POSITION_M_ID,
 	MEASUREMENT_M_ID,
 	PSEUDORANGE_M_ID,
 	EPHEMERIS_M_ID,
 	ALMANAC_M_ID,
 	EPHEMERIS_VALID_M_ID,
-	FIFO_M_ID,
-	COMMAND_ACK_M_ID,
 	SV_PREDICTION_M_ID,
 	ACQ_COMMAND_M_ID,
 	ACQ_CONFIG_M_ID,
+	BOARD_HEALTH_M_ID,
+	COMMAND_ACK_M_ID,
 	LAST_M_ID
 };
 
@@ -142,7 +142,7 @@ typedef struct Task_Health_M
 /*! \ingroup MESSAGES
  * Packet dumped to telemetry and to disk to keep track of each channel
  */
-typedef struct Channel_Health_M
+typedef struct Channel_M
 {
 
 	float chan;			//!< The channel number
@@ -164,7 +164,7 @@ typedef struct Channel_Health_M
 	float subframe;		//!< Current subframe number
 	float best_epoch;	//!< Best estimate of bit edge position
 
-} Channel_Health_M;
+} Channel_M;
 
 
 /*! \ingroup MESSAGES
@@ -527,7 +527,7 @@ typedef struct Message_Struct
 	/* Data gets stored here! */
 	Board_Health_M 		board_health;					//!< Board health message
 	Task_Health_M		task_health;					//!< Task health message
-	Channel_Health_M 	channel_health[MAX_CHANNELS+1]; //!< Channel health message, last element is used as a buffer
+	Channel_M 	channel_health[MAX_CHANNELS+1]; //!< Channel health message, last element is used as a buffer
 
 	SPS_M				sps;							//!< SPS message
 	Clock_M				clock;							//!< Clock message
@@ -552,7 +552,7 @@ typedef union Union_M
 {
 	Board_Health_M		board_health;
 	Task_Health_M		task_health;
-	Channel_Health_M	channel_health;
+	Channel_M	channel_health;
 	SPS_M				sps;
 	Clock_M				clock;
 	SV_Position_M		sv_position;

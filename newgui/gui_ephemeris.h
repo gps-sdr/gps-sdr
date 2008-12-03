@@ -14,6 +14,7 @@ class GUI_Ephemeris: public iGUI_Ephemeris
 		class GUI_Serial *pSerial;
 		int32 sv;
 		int32 loaded;
+		int32 tic;
 
 	public:
 

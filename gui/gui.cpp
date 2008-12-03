@@ -784,7 +784,7 @@ void GUI::PrintChan(wxTextCtrl* _text)
 {
 
 	SPS_M	*pNav = &tGUI.tNav.master_nav;				/* Navigation Solution */
-	Channel_Health_M *p;
+	Channel_M *p;
 
 
     wxString str, str2;
@@ -854,7 +854,7 @@ void GUI::PrintSV(wxTextCtrl* _text)
 	SPS_M	*pNav = &tGUI.tNav.master_nav;				/* Navigation Solution */
 	SV_Position_M 	*pPos;
 	Pseudorange_M 	*pPseudo;
-	Channel_Health_M 	*pChan;
+	Channel_M 	*pChan;
 
 	int32 lcv;
 	wxString str;
@@ -868,7 +868,7 @@ void GUI::PrintSV(wxTextCtrl* _text)
 	for(lcv	= 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		pPos    = (SV_Position_M *)	&tGUI.tNav.sv_positions[lcv];
-		pChan   = (Channel_Health_M *)	&tGUI.tChan[lcv];
+		pChan   = (Channel_M *)	&tGUI.tChan[lcv];
 		pPseudo = (Pseudorange_M *)	&tGUI.tNav.pseudoranges[lcv];
 
 		if((pNav->nsvs >> lcv) & 0x1)

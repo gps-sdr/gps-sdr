@@ -35,13 +35,15 @@ END_EVENT_TABLE()
 GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS-SDR"), wxDefaultPosition, wxSize( 600,600 ), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL, wxT("GPS-SDR") )
 {
 
-//    timer = new wxTimer(this, ID_TIMER);
-//    timer->Start(75, wxTIMER_CONTINUOUS); //Shoot for 20 fps
+    timer = new wxTimer(this, ID_TIMER);
+    timer->Start(100, wxTIMER_CONTINUOUS); //Shoot for 20 fps
 
     wDefault = NULL;
 
     pSerial = new GUI_Serial;
     pSerial->Start();
+
+    kB_sec = 0;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -384,7 +386,7 @@ void GUI_Toplevel::renderFIFO()
 void GUI_Toplevel::renderRS422()
 {
 
-	float kB_sec;
+
 	wxString str;
 
 	tRS422->Clear();
@@ -405,12 +407,12 @@ void GUI_Toplevel::renderRS422()
 	tRS422->AppendText(str);
 	str.Printf(wxT("Failed Messages:\t%d\n"),pSerial->packet_count[LAST_M_ID]);
 	tRS422->AppendText(str);
-	kB_sec = (float)bytes_sec / 1024.0;
+	kB_sec += .25 * (((float)bytes_sec/1024.0) - kB_sec);
 	str.Printf(wxT("Serial Bandwidth:\t%.2f "),kB_sec);
 	str += wxT("kB/sec\n");
 	tRS422->AppendText(str);
 
-	if(count % 20 == 0)
+	if(count % 10 == 0)
 	{
 		bytes_pres = pSerial->GetByteCount();
 		bytes_sec = bytes_pres - bytes_prev;
@@ -423,43 +425,43 @@ void GUI_Toplevel::renderRS422()
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Toplevel::renderTask()
 {
-
+	int32 lcv;
 	Task_Health_M *pTask;
 
-	tTask->Clear();
 	wxString str;
+	wxString names[MAX_TASKS];
+
+	names[FIFO_TASK_ID] 			= wxT("FIFO        ");
+	names[COMMANDO_TASK_ID]		 	= wxT("COMMANDO    ");
+	names[SERIAL_TELEMETRY_TASK_ID] = wxT("TELEMETRY   ");
+	names[KEYBOARD_TASK_ID] 		= wxT("KEYBOARD    ");
+	names[EPHEMERIS_TASK_ID] 		= wxT("EPHEMERIS   ");
+	names[SV_SELECT_TASK_ID] 		= wxT("SV_SELECT   ");
+	names[ACQUISITION_TASK_ID] 		= wxT("ACQUISITION ");
+	names[PVT_TASK_ID] 				= wxT("PVT         ");
+
+	tTask->Clear();
 
 	pTask = &messages.task_health;
 
-		 str = wxT("Task            Execution Tic   Start Tic    Stop Tic\n");
+		 str = wxT("Task        Execution Tic   Delta     Start Tic    Stop Tic\n");
 	tTask->AppendText(str);
-	     str = wxT("-----------------------------------------------------\n");
+	     str = wxT("-----------------------------------------------------------\n");
 	tTask->AppendText(str);
 
-	str.Printf(wxT("FIFO               %10d  %10d  %10d\n"),
-			pTask->execution_tic[FIFO_TASK_ID],pTask->start_tic[FIFO_TASK_ID],pTask->stop_tic[FIFO_TASK_ID]);
-	tTask->AppendText(str);
-	str.Printf(wxT("COMMANDO           %10d  %10d  %10d\n"),
-			pTask->execution_tic[COMMANDO_TASK_ID],pTask->start_tic[COMMANDO_TASK_ID],pTask->stop_tic[COMMANDO_TASK_ID]);
-	tTask->AppendText(str);
-	str.Printf(wxT("TELEMETRY          %10d  %10d  %10d\n"),
-			pTask->execution_tic[SERIAL_TELEMETRY_TASK_ID],pTask->start_tic[SERIAL_TELEMETRY_TASK_ID],pTask->stop_tic[SERIAL_TELEMETRY_TASK_ID]);
-		tTask->AppendText(str);
-	str.Printf(wxT("KEYBOARD           %10d  %10d  %10d\n"),
-			pTask->execution_tic[KEYBOARD_TASK_ID],pTask->start_tic[KEYBOARD_TASK_ID],pTask->stop_tic[KEYBOARD_TASK_ID]);
-	tTask->AppendText(str);
-	str.Printf(wxT("EPHEMERIS          %10d  %10d  %10d\n"),
-			pTask->execution_tic[EPHEMERIS_TASK_ID],pTask->start_tic[EPHEMERIS_TASK_ID],pTask->stop_tic[EPHEMERIS_TASK_ID]);
-	tTask->AppendText(str);
-	str.Printf(wxT("SV_SELECT          %10d  %10d  %10d\n"),
-			pTask->execution_tic[SV_SELECT_TASK_ID],pTask->start_tic[SV_SELECT_TASK_ID],pTask->stop_tic[SV_SELECT_TASK_ID]);
-	tTask->AppendText(str);
-	str.Printf(wxT("ACQUISITION        %10d  %10d  %10d\n"),
-			pTask->execution_tic[ACQUISITION_TASK_ID],pTask->start_tic[ACQUISITION_TASK_ID],pTask->stop_tic[ACQUISITION_TASK_ID]);
-	tTask->AppendText(str);
-	str.Printf(wxT("PVT                %10d  %10d  %10d\n"),
-			pTask->execution_tic[PVT_TASK_ID],pTask->start_tic[PVT_TASK_ID],pTask->stop_tic[PVT_TASK_ID]);
-	tTask->AppendText(str);
+	for(lcv = 0; lcv < MAX_TASKS; lcv++)
+	{
+		if(names[lcv].Len())
+		{
+			str.Printf(wxT("%s   %10d  %6d    %9d    %9d\n"),
+				names[lcv].c_str(),
+				pTask->execution_tic[lcv],
+				pTask->stop_tic[lcv]-pTask->start_tic[lcv],
+				pTask->start_tic[lcv],
+				pTask->stop_tic[lcv]);
+			tTask->AppendText(str);
+		}
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -470,16 +472,33 @@ void GUI_Toplevel::renderTask()
 void GUI_Toplevel::onMain(wxCommandEvent& WXUNUSED(event))
 {
 
+	int32 val;
+
 	if(wDefault)
 	{
 		delete wDefault;
 		wDefault = NULL;
+
+		val = 0;
+		pSerial->formCommand(GET_SV_POSITION_C_ID, &val);
+
+		if(wChannel == NULL)
+		{
+			val = 0;
+			pSerial->formCommand(GET_CHANNEL_C_ID, &val);
+		}
 	}
 	else
 	{
 		wDefault = new GUI_Default();
 		wDefault->setPointer(&messages);
 		wDefault->Show(TRUE);
+
+		val = 1;
+		pSerial->formCommand(GET_SV_POSITION_C_ID, &val);
+
+		val = 1;
+		pSerial->formCommand(GET_CHANNEL_C_ID, &val);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -488,17 +507,27 @@ void GUI_Toplevel::onMain(wxCommandEvent& WXUNUSED(event))
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Toplevel::onChannel(wxCommandEvent& WXUNUSED(event))
 {
+	int32 val;
 
 	if(wChannel)
 	{
 		delete wChannel;
 		wChannel = NULL;
+
+		if(wDefault == NULL)
+		{
+			val = 0;
+			pSerial->formCommand(GET_CHANNEL_C_ID, &val);
+		}
 	}
 	else
 	{
 		wChannel = new GUI_Channel();
 		wChannel->setPointer(&messages);
 		wChannel->Show(TRUE);
+
+		val = 1;
+		pSerial->formCommand(GET_CHANNEL_C_ID, &val);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/

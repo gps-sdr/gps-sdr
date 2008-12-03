@@ -34,9 +34,18 @@ void GUI_Select::paintNow()
 
 void GUI_Select::render(wxDC& dc)
 {
+	int32 val;
+
 	renderDoppler();
 	renderSV();
 	renderRec();
+
+	if((tic++ % 10) == 0)
+	{
+		val = NUM_CODES;
+		pSerial->formCommand(GET_SV_PREDICTION_C_ID, &val);
+	}
+
 }
 
 
@@ -110,9 +119,9 @@ void GUI_Select::renderDoppler()
     	//dc.DrawLine(dX*lcv+100*scaleX, pY+bar[2].y, dX*(lcv+1)+100*scaleX, pY+bar[2].y);
 
     	if(psv->visible)
-    		dc.SetPen(wxPen(wxColor(0,0,0), 2));
+    		dc.SetPen(wxPen(wxColor(0,255,0), 4));
     	else
-    		dc.SetPen(wxPen(wxColor(200,200,200), 2));
+    		dc.SetPen(wxPen(wxColor(200,200,200), 4));
 
     	pY = -1000*psv->doppler/MAX_DOPPLER;
     	pY += 1000;

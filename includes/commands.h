@@ -29,26 +29,37 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 enum CCSDS_COMMAND_IDS
 {
 	FIRST_C_ID,
+	RESET_RESET_C_ID,
 	RESET_PVT_C_ID,
 	RESET_EKF_C_ID,
 	RESET_CHANNEL_C_ID,
-	RESET_EPHEMERIS_C_ID,
 	RESET_ALMANAC_C_ID,
-	GET_MEASUREMENT_C_ID,
-	GET_PSEUDORANGE_C_ID,
-	GET_EPHEMERIS_C_ID,
-	GET_ALMANAC_C_ID,
+	RESET_EPHEMERIS_C_ID,
+	SET_PVT_C_ID,
 	SET_ALMANAC_C_ID,
 	SET_EPHEMERIS_C_ID,
 	SET_ACQ_CONFIG_C_ID,
-	WARM_START_C_ID,
+	GET_MEASUREMENT_C_ID,
+	GET_PSEUDORANGE_C_ID,
+	GET_ALMANAC_C_ID,
+	GET_EPHEMERIS_C_ID,
 	GET_ACQ_CONFIG_C_ID,
 	GET_SV_PREDICTION_C_ID,
 	GET_EPHEMERIS_VALID_C_ID,
 	GET_BOARD_HEALTH_C_ID,
 	GET_ACQ_COMMAND_C_ID,
+	GET_SV_POSITION_C_ID,
+	GET_CHANNEL_C_ID,
 	LAST_C_ID
 };
+
+/*! \ingroup COMMANDS
+	Dump everything (PVT/Ephemeris/Almanac/Channels/EKF)
+*/
+typedef struct Reset_Reset_C
+{
+	int32 flag;		//!< Flag for no reason
+} Reset_Reset_C;
 
 /*! \ingroup COMMANDS
 	Reset the PVT
@@ -100,7 +111,7 @@ typedef struct Reset_Almanac_C
 */
 typedef struct Get_Measurement_C
 {
-	int32 chan;		//!< Channel #, or all if chan >= MAX_CHANNELS, stop with chan < 0
+	int32 flag;		//!< On/off
 } Get_Measurement_C;
 
 
@@ -109,7 +120,7 @@ typedef struct Get_Measurement_C
 */
 typedef struct Get_Pseudorange_C
 {
-	int32 chan;		//!< Channel #, or all if chan >= MAX_CHANNELS, stop with chan < 0
+	int32 flag;		//!< On/off
 } Get_Pseudorange_C;
 
 
@@ -154,16 +165,16 @@ typedef struct Set_Ephemeris_C
 /*! \ingroup COMMANDS
 	Configure the acquisition
 */
-typedef struct _Set_Acq_Config_C
+typedef struct Set_Acq_Config_C
 {
-	Acq_Config_C	acq_config;
+	Acq_Config_M acq_config;
 } Set_Acq_Config_C;
 
 
 /*! \ingroup COMMANDS
 	Do a warm start.
 */
-typedef struct _Warm_Start_C
+typedef struct Set_PVT_C
 {
 	double x;				//!< ECEF X position (meters)
 	double y;				//!< ECEF Y position (meters)
@@ -173,13 +184,13 @@ typedef struct _Warm_Start_C
 	double vz;				//!< ECEF Z velocity (meters/second)
 	double second;			//!< GPS second
 	double week;			//!< GPS week
-} Warm_Start_C;
+} Set_PVT_C;
 
 
 /*! \ingroup COMMANDS
 	Emit an acquisition config message.
 */
-typedef struct _Get_Acq_Config_C
+typedef struct Get_Acq_Config_C
 {
 	int32 flag; 			//!< Not used
 } Get_Acq_Config_C;
@@ -188,7 +199,7 @@ typedef struct _Get_Acq_Config_C
 /*! \ingroup COMMANDS
 	Emit a SV prediction from SV_Select
 */
-typedef struct _Get_SV_Prediction_C
+typedef struct Get_SV_Prediction_C
 {
 	int32 sv; 				//!< SV $
 } Get_SV_Prediction_C;
@@ -197,7 +208,7 @@ typedef struct _Get_SV_Prediction_C
 /*! \ingroup COMMANDS
 	Emit ephemeris/acquisition decode status
 */
-typedef struct _Get_Ephemeris_Valid_C
+typedef struct Get_Ephemeris_Valid_C
 {
 	int32 flag; 			//!< Not used
 } Get_Ephemeris_Valid_C;
@@ -206,7 +217,7 @@ typedef struct _Get_Ephemeris_Valid_C
 /*! \ingroup COMMANDS
 	Emit a board health message
 */
-typedef struct _Get_Board_Health_C
+typedef struct Get_Board_Health_C
 {
 	int32 flag; 			//!< Not used
 } Get_Board_Health_C;
@@ -215,10 +226,28 @@ typedef struct _Get_Board_Health_C
 /*! \ingroup COMMANDS
 	Emit an acquisition result
 */
-typedef struct _Get_Acq_Command_C
+typedef struct Get_Acq_Command_C
 {
 	int32 sv; 			//!< SV #
 } Get_Acq_Command_C;
+
+
+/*! \ingroup COMMANDS
+	Emit an acquisition result
+*/
+typedef struct Get_SV_Position_C
+{
+	int32 flag; 		//!< On/off
+} Get_SV_Position_C;
+
+
+/*! \ingroup COMMANDS
+	Emit the channel status
+*/
+typedef struct Get_Channel_C
+{
+	int32 flag; 		//!< On/off
+} Get_Channel_C;
 
 
 typedef union Union_C
@@ -228,18 +257,21 @@ typedef union Union_C
 	Reset_Channel_C		reset_channel;
 	Reset_Ephemeris_C	reset_ephemeris;
 	Reset_Almanac_C		reset_almanac;
+	Set_PVT_C			set_pvt;
+	Set_Almanac_C		set_almanac;
+	Set_Ephemeris_C		set_ephemeris;
+	Set_Acq_Config_C	set_acq_config;
 	Get_Measurement_C	get_measurement;
 	Get_Pseudorange_C	get_pseudorange;
 	Get_Ephemeris_C		get_ephemeris;
 	Get_Almanac_C		get_almanac;
-	Set_Ephemeris_C		set_ephemeris;
-	Set_Almanac_C		set_almanac;
-	Set_Acq_Config_C	set_acq_config;
 	Get_Acq_Config_C	get_acq_config;
 	Get_SV_Prediction_C 	get_sv_prediction;
 	Get_Ephemeris_Valid_C 	get_ephemeris_valid;
 	Get_Board_Health_C 		get_board_health;
 	Get_Acq_Command_C		get_acq_command;
+	Get_SV_Position_C		get_sv_position;
+	Get_Channel_C			get_channel;
 } Union_C;
 
 #endif /* COMMANDS_H_ */

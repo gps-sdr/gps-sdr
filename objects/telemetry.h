@@ -40,7 +40,7 @@ class Telemetry : public Threaded_Object
 
 		FIFO_M 		tFIFO;
 		PVT_2_Telem_S 		tNav;
-		Channel_Health_M 	tChan[MAX_CHANNELS];
+		Channel_M 	tChan[MAX_CHANNELS];
 		Acq_Command_M		tAcq;
 		Ephemeris_Status_M 	tEphem;
 		SV_Select_2_Telem_S tSelect;

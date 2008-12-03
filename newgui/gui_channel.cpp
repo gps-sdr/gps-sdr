@@ -52,7 +52,7 @@ void GUI_Channel::renderChannel()
 {
 
 	SPS_M *pNav = &p->sps;
-	Channel_Health_M *pchan;
+	Channel_M *pchan;
     wxString str, str2;
 	int32 lcv, lcv2;
 	float cn0;
