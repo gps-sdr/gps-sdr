@@ -25,8 +25,12 @@
 #include <wx/statusbr.h>
 #include <wx/frame.h>
 #include <wx/panel.h>
+#include <wx/stattext.h>
 #include <wx/button.h>
 #include <wx/choice.h>
+#include <wx/filepicker.h>
+#include <wx/checkbox.h>
+#include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -36,23 +40,29 @@
 #define ID_GPS_Stop 1003
 #define ID_USRP_Start 1004
 #define ID_USRP_Stop 1005
-#define ID_MAIN_B 1006
-#define ID_CHANNEL_B 1007
-#define ID_ACQUISITION_B 1008
-#define ID_SELECT_B 1009
-#define ID_EPHEMERIS_B 1010
-#define ID_ALMANAC_B 1011
-#define ID_LOG_B 1012
-#define ID_COMMANDS_B 1013
-#define ID_SPEED_B 1014
-#define ID_RESET_PVT 1015
-#define ID_RESET_CHANNEL 1016
-#define ID_RESET_EPHEMERIS 1017
-#define ID_RESET_ALMANAC 1018
-#define ID_EPHEMERIS_SAVE 1019
-#define ID_EPHEMERIS_LOAD 1020
-#define ID_ALMANAC_SAVE 1021
-#define ID_ALMANAC_LOAD 1022
+#define ID_LOG_CONFIG 1006
+#define ID_LOG_START 1007
+#define ID_LOG_STOP 1008
+#define ID_LOG_CLEAR 1009
+#define ID_MAIN_B 1010
+#define ID_CHANNEL_B 1011
+#define ID_PSEUDO_B 1012
+#define ID_ACQUISITION_B 1013
+#define ID_SELECT_B 1014
+#define ID_EPHEMERIS_B 1015
+#define ID_ALMANAC_B 1016
+#define ID_COMMANDS_B 1017
+#define ID_CONFIG_B 1018
+#define ID_SPEED_B 1019
+#define ID_RESET_ALL 1020
+#define ID_RESET_PVT 1021
+#define ID_RESET_CHANNEL 1022
+#define ID_RESET_EPHEMERIS 1023
+#define ID_RESET_ALMANAC 1024
+#define ID_EPHEMERIS_SAVE 1025
+#define ID_EPHEMERIS_LOAD 1026
+#define ID_ALMANAC_SAVE 1027
+#define ID_ALMANAC_LOAD 1028
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Toplevel
@@ -66,14 +76,16 @@ class iGUI_Toplevel : public wxFrame
 		wxMenu* mFile;
 		wxMenu* mReceiver;
 		wxMenu* mUSRP;
+		wxMenu* mLogging;
 		wxToggleButton* bMain;
 		wxToggleButton* bChannel;
+		wxToggleButton* bPseudo;
 		wxToggleButton* bAcquisition;
 		wxToggleButton* bSV_Select;
 		wxToggleButton* bEphemeris;
 		wxToggleButton* bAlmanac;
-		wxToggleButton* bLog;
 		wxToggleButton* bCommands;
+		wxToggleButton* bConfig;
 		wxToggleButton* bSpeed;
 		wxGauge* gUSRP;
 		wxTextCtrl* tUSRP;
@@ -97,7 +109,38 @@ class iGUI_Default : public wxFrame
 	protected:
 		wxPanel* pCN0;
 		wxPanel* pSkyPlot;
-		wxTextCtrl* tPVT;
+		
+		wxStaticText* m_staticText2;
+		wxStaticText* m_staticText3;
+		wxStaticText* m_staticText4;
+		wxStaticText* m_staticText5;
+		wxStaticText* px;
+		wxStaticText* py;
+		wxStaticText* pz;
+		wxStaticText* m_staticText9;
+		wxStaticText* vx;
+		wxStaticText* vy;
+		wxStaticText* vz;
+		
+		wxStaticText* m_staticText18;
+		wxStaticText* m_staticText19;
+		wxStaticText* m_staticText21;
+		
+		wxStaticText* lat;
+		wxStaticText* lon;
+		wxStaticText* alt;
+		
+		wxStaticText* m_staticText26;
+		wxStaticText* m_staticText27;
+		wxStaticText* m_staticText28;
+		
+		wxStaticText* cb;
+		wxStaticText* cr;
+		wxStaticText* gpst;
+		wxStaticText* m_staticText33;
+		wxStaticText* day;
+		wxStaticText* month;
+		wxStaticText* time;
 		
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
@@ -133,6 +176,7 @@ class iGUI_Commands : public wxFrame
 	private:
 	
 	protected:
+		wxButton* bResetAll;
 		wxButton* bReset_PVT;
 		wxChoice* mReset_PVT;
 		wxButton* bReset_Channel;
@@ -229,6 +273,62 @@ class iGUI_Select : public wxFrame
 	public:
 		iGUI_Select( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("SV Select"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Select();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class iGUI_Config
+///////////////////////////////////////////////////////////////////////////////
+class iGUI_Config : public wxFrame 
+{
+	private:
+	
+	protected:
+	
+	public:
+		iGUI_Config( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~iGUI_Config();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class iGUI_Pseudo
+///////////////////////////////////////////////////////////////////////////////
+class iGUI_Pseudo : public wxFrame 
+{
+	private:
+	
+	protected:
+		wxTextCtrl* tPseudos;
+	
+	public:
+		iGUI_Pseudo( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Pseudoranges"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~iGUI_Pseudo();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class iGUI_Log
+///////////////////////////////////////////////////////////////////////////////
+class iGUI_Log : public wxDialog 
+{
+	private:
+	
+	protected:
+		
+		wxButton* bCancel;
+		wxButton* bOK;
+	
+	public:
+		wxFilePickerCtrl* mFile;
+		wxCheckBox* cChan;
+		wxCheckBox* cClock;
+		wxCheckBox* cPseudo;
+		wxCheckBox* cTask;
+		wxCheckBox* cEKF;
+		wxCheckBox* cPVT;
+		iGUI_Log( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Logging Config"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE );
+		~iGUI_Log();
 	
 };
 

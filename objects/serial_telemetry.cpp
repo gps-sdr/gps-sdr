@@ -22,6 +22,16 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "serial_telemetry.h"
 
+
+/*----------------------------------------------------------------------------------------------*/
+void lost_gui_pipe(int _sig)
+{
+	pSerial_Telemetry->SetGUIPipe(false);
+	printf("GUI disconnected\n");
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
 /*----------------------------------------------------------------------------------------------*/
 void *Serial_Telemetry_Thread(void *_arg)
 {
@@ -88,6 +98,9 @@ Serial_Telemetry::Serial_Telemetry(int32 _serial)
 	if(gopt.verbose)
 		printf("Creating Serial_Telemetry\n");
 
+
+	signal(SIGPIPE, lost_gui_pipe);
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -122,12 +135,12 @@ void Serial_Telemetry::Import()
 		pChannels[lcv]->Lock();
 		if(pChannels[lcv]->getActive())
 		{
-			channel_health[lcv] = pChannels[lcv]->getPacket();
+			channel[lcv] = pChannels[lcv]->getPacket();
 			active[lcv] = 1;
 		}
 		else
 		{
-			channel_health[lcv].count = 0;
+			channel[lcv].count = 0;
 			active[lcv] = 0;
 		}
 		pChannels[lcv]->Unlock();
@@ -208,15 +221,6 @@ void Serial_Telemetry::Export()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void lost_gui_pipe(int _sig)
-{
-	pSerial_Telemetry->SetGUIPipe(false);
-	printf("GUI disconnected\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::SetGUIPipe(bool _status)
 {
 	npipe_open = _status;
@@ -292,7 +296,6 @@ void Serial_Telemetry::ImportGUI()
 		bread = read(Cmd_2_Telem_P[READ], &commando_buff, COMMANDO_BUFF_SIZE);
 		if(bread > 0)
 		{
-			signal(SIGPIPE, lost_gui_pipe);
 			write(npipe[WRITE], &commando_buff, bread);
 		}
 	}
@@ -433,8 +436,8 @@ void Serial_Telemetry::SendChannelHealth()
 		FormCCSDSPacketHeader(&packet_header, CHANNEL_M_ID, 0, sizeof(Channel_M), 0, packet_tic++);
 
 		/* Emit the packet */
-		channel_health[lcv].chan = lcv;
-		EmitCCSDSPacket((void *)&channel_health[lcv], sizeof(Channel_M));
+		channel[lcv].chan = lcv;
+		EmitCCSDSPacket((void *)&channel[lcv], sizeof(Channel_M));
 	}
 
 }
@@ -614,7 +617,6 @@ void Serial_Telemetry::EmitCCSDSPacket(void *_buff, uint32 _len)
 	else
 	{
 
-		signal(SIGPIPE, lost_gui_pipe);
 
 		/* Only write if the client is connected */
 		if(npipe_open)
@@ -624,9 +626,14 @@ void Serial_Telemetry::EmitCCSDSPacket(void *_buff, uint32 _len)
 //			memcpy(&packet.payload[0], _buff, len);				//!< Copy in the payload
 //			packet.checksum = adler(&packet.header, len + 12);	//!< Compute the checksum
 //			bwrote = write(npipe[WRITE], &packet, len + 20);	//!< Export
-			bwrote = write(npipe[WRITE], &preamble, sizeof(uint32));  					//!< Stuff the preamble
-			bwrote = write(npipe[WRITE], &packet_header, sizeof(CCSDS_Packet_Header)); 	//!< Stuff the CCSDS header
-			bwrote = write(npipe[WRITE], _buff, _len);									//!< Stuff the body
+			if(npipe_open)
+				write(npipe[WRITE], &preamble, sizeof(uint32));  					//!< Stuff the preamble
+
+			if(npipe_open)
+				write(npipe[WRITE], &packet_header, sizeof(CCSDS_Packet_Header)); 	//!< Stuff the CCSDS header
+
+			if(npipe_open)
+				write(npipe[WRITE], _buff, _len);									//!< Stuff the body
 		}
 		else
 			OpenGUIPipe();

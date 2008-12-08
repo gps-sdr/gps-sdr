@@ -67,12 +67,17 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define ACQ_STRONG				(0)			//!< Acq strong type
 #define ACQ_MEDIUM				(1)			//!< Acq medium type
 #define ACQ_WEAK 				(2)			//!< Acq weak type
-#define ACQ_MAX					(ACQ_MEDIUM)//!< Cap acquisition type to this
+
+#define ACQ_STRONG_STATE		(1)			//!< 0 for off, 1 for on, 2 for hot acquisition only
+#define ACQ_MEDIUM_STATE		(2)			//!< 0 for off, 1 for on, 2 for hot acquisition only
+#define ACQ_WEAK_STATE			(0)			//!< 0 for off, 1 for on, 2 for hot acquisition only
+
 #define ACQ_ITERATIONS			(1)			//!< Do this many acqs at a given type before moving to next type
 #define THRESH_STRONG			(1.3e7)		//!< Threshold for strong signal detection
 #define THRESH_MEDIUM			(1.5e7)		//!< Threshold for medium signal detection
-#define THRESH_WEAK				(1.0e7)		//!< Threshold for weak signal detection
-#define MAX_DOPPLER				(15000)		//!< Set the maximum Doppler frequency
+#define THRESH_WEAK				(1.5e7)		//!< Threshold for weak signal detection
+#define MAX_DOPPLER				(45000)		//!< Set the maximum Doppler frequency
+#define DOPPLER_RANGE			(1000)		//!< Search this Doppler range for hot acquisitions
 /*----------------------------------------------------------------------------------------------*/
 
 

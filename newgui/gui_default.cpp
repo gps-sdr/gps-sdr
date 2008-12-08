@@ -88,7 +88,7 @@ void GUI_Default::renderCN0()
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		pchan = &p->channel_health[lcv];
+		pchan = &p->channel[lcv];
 		if(pchan->count > 2000.0)
 		{
 			str.Printf(wxT("%02d"),(int)pchan->sv+1);
@@ -182,7 +182,7 @@ void GUI_Default::renderSkyPlot()
     /* Now place the SVs */
     for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
     {
-    	pchan = &p->channel_health[lcv];
+    	pchan = &p->channel[lcv];
     	psv = &p->sv_positions[lcv];
     	if((pNav->nsvs >> lcv) & 0x1)
     	{
@@ -190,11 +190,22 @@ void GUI_Default::renderSkyPlot()
 			rval = 122.0 - 122.0*(pchan->CN0 - 20.0)/40.0;
 			dc.SetBrush(wxBrush(wxColor(rval,gval,0)));
 
+    		if(psv->elev > 0.0)
+    		{
+    			svX = scaleY*(900 - 10.0*RAD_2_DEG*psv->elev) * cos(psv->azim - PI_OVER_2);
+    			svY = scaleY*(900 - 10.0*RAD_2_DEG*psv->elev) * sin(psv->azim - PI_OVER_2);
+    			dc.SetPen(wxPen(wxColor(0,0,0), 1 ));
+    			dc.SetTextForeground(wxColor(0,0,0));
+    		}
+    		else
+    		{
+    			svX = scaleY*(900 + 10.0*RAD_2_DEG*psv->elev) * cos(psv->azim - PI_OVER_2);
+    			svY = scaleY*(900 + 10.0*RAD_2_DEG*psv->elev) * sin(psv->azim - PI_OVER_2);
+    			dc.SetPen(wxPen(wxColor(200,200,200), 1 ));
+    			dc.SetTextForeground(wxColor(200,200,200));
+    		}
+
     		str.Printf(wxT("%02d"),(int)pchan->sv+1);
-
-    		svX = scaleY*(900 - 10.0*RAD_2_DEG*psv->elev) * cos(psv->azim);
-    		svY = scaleY*(900 - 10.0*RAD_2_DEG*psv->elev) * sin(psv->azim);
-
     		dc.DrawCircle(mX + svX, mY + svY, 3);
     		dc.DrawText(str, mX + svX, mY + svY);
     	}
@@ -210,30 +221,45 @@ void GUI_Default::renderPVT()
 	Clock_M *pClock = &p->clock;
 
 
-	tPVT->Clear();
-	tPVT->SetFont(wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Monospace")));
+//	tPVT->Clear();
+	//tPVT->SetFont(wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Monospace")));
 
 
 //	str.Printf(wxT("Nav SVs:\t%-2d\n"),pNav->nav_channels);
 //	tPVT->AppendText(str);
 //	str.Printf(wxT("Receiver Time:\t%10.2f\n"),(float)pNav->tic/(float)TICS_PER_SECOND);
 //	tPVT->AppendText(str);
-	str.Printf(wxT("\t\t\t      X\t\t      Y\t\t      Z\n"));
-	tPVT->AppendText(str);
-	str.Printf(wxT("Position (m):\t%15.2f\t%15.2f\t%15.2f\n"),pNav->x,pNav->y,pNav->z);
-	tPVT->AppendText(str);
-	str.Printf(wxT("Vel (cm/s):\t%15.2f\t%15.2f\t%15.2f\n"),100.0*pNav->vx,100.0*pNav->vy,100.0*pNav->vz);
-	tPVT->AppendText(str);
-	str.Printf(wxT("\n"));
-	tPVT->AppendText(str);
-	str.Printf(wxT("\t\t\t    Lat\t\t   Long\t\t    Alt\n"));
-	tPVT->AppendText(str);
-	str.Printf(wxT("\t\t%15.9f\t%15.9f\t%15.4f\n"),pNav->latitude*RAD_2_DEG,pNav->longitude*RAD_2_DEG,pNav->altitude);
-	tPVT->AppendText(str);
-	str.Printf(wxT("\n"));
-	tPVT->AppendText(str);
-	str.Printf(wxT("\t\t     Clock Bias\t     Clock Rate\t       GPS Time\n"));
-	tPVT->AppendText(str);
-	str.Printf(wxT("\t\t%15.6f\t%15.7f\t%15.6f\n"),pClock->bias,pClock->rate,pClock->time);
-	tPVT->AppendText(str);
+	str.Printf(wxT("% 15.2f"),pNav->x);						px->SetLabel(str);
+	str.Printf(wxT("% 15.2f"),pNav->y);						py->SetLabel(str);
+	str.Printf(wxT("% 15.2f"),pNav->z);						pz->SetLabel(str);
+	str.Printf(wxT("%15.2f"),100*pNav->vx);					vx->SetLabel(str);
+	str.Printf(wxT("%15.2f"),100*pNav->vy);					vy->SetLabel(str);
+	str.Printf(wxT("%15.2f"),100*pNav->vz);					vz->SetLabel(str);
+	str.Printf(wxT("%15.9f"),pNav->latitude*RAD_2_DEG);		lat->SetLabel(str);
+	str.Printf(wxT("%15.9f"),pNav->longitude*RAD_2_DEG);	lon->SetLabel(str);
+	str.Printf(wxT("%15.2f"),pNav->altitude);				alt->SetLabel(str);
+	str.Printf(wxT("%15.6f"),pClock->bias);					cb->SetLabel(str);
+	str.Printf(wxT("%15.6f"),pClock->rate);					cr->SetLabel(str);
+	str.Printf(wxT("%15.6f"),pClock->time);					gpst->SetLabel(str);
+
+
+//
+//	str.Printf(wxT("\t\t\t      X\t\t      Y\t\t      Z\n"));
+//	tPVT->AppendText(str);
+//	str.Printf(wxT("Position (m):\t%15.2f\t%15.2f\t%15.2f\n"),pNav->x,pNav->y,pNav->z);
+//	tPVT->AppendText(str);
+//	str.Printf(wxT("Vel (cm/s):\t%15.2f\t%15.2f\t%15.2f\n"),100.0*pNav->vx,100.0*pNav->vy,100.0*pNav->vz);
+//	tPVT->AppendText(str);
+//	str.Printf(wxT("\n"));
+//	tPVT->AppendText(str);
+//	str.Printf(wxT("\t\t\t    Lat\t\t   Long\t\t    Alt\n"));
+//	tPVT->AppendText(str);
+//	str.Printf(wxT("\t\t%15.9f\t%15.9f\t%15.4f\n"),pNav->latitude*RAD_2_DEG,pNav->longitude*RAD_2_DEG,pNav->altitude);
+//	tPVT->AppendText(str);
+//	str.Printf(wxT("\n"));
+//	tPVT->AppendText(str);
+//	str.Printf(wxT("\t\t     Clock Bias\t     Clock Rate\t       GPS Time\n"));
+//	tPVT->AppendText(str);
+//	str.Printf(wxT("\t\t%15.6f\t%15.7f\t%15.6f\n"),pClock->bias,pClock->rate,pClock->time);
+//	tPVT->AppendText(str);
 }

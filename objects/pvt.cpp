@@ -314,6 +314,8 @@ void PVT::Update_Time()
 		master_clock.time 		= master_clock.time_raw - master_clock.bias;
 	}
 
+	master_nav.time = master_clock.time;
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -1135,16 +1137,16 @@ bool PVT::Converged()
 void PVT::LatLong()
 {
 
-	float a = 6378137;
-	float b = 6356752.314;
-	float eprime2 = 0.00673949681994;
-	float e2 = 0.00669438006676;
-	float p;
-	float theta;
-	float N;
-	float latitude;
-	float longitude;
-	float altitude;
+	double a = 6378137;
+	double b = 6356752.314;
+	double eprime2 = 0.00673949681994;
+	double e2 = 0.00669438006676;
+	double p;
+	double theta;
+	double N;
+	double latitude;
+	double longitude;
+	double altitude;
 
 	p			= sqrt(master_nav.x*master_nav.x + master_nav.y*master_nav.y);
 
@@ -1237,6 +1239,8 @@ void PVT::Reset()
 	/* Reset Each Channel */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		Reset(lcv);
+
+	master_nav.stale_ticks = 360*TICS_PER_SECOND;
 
 }
 /*----------------------------------------------------------------------------------------------*/

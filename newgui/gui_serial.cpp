@@ -58,28 +58,14 @@ void openPipe(int32 _pipe)
 	gpipe[_pipe] = -1;
 
 	if(_pipe == WRITE)
-	{
-
-		while((gpipe[_pipe] == -1) && grun)
-		{
-			gpipe[_pipe] = open("/tmp/GUI2GPS",O_WRONLY);
-			usleep(100000);
-		}
-
-		gpipe_open[_pipe] = true;
-
-	}
+		gpipe[_pipe] = open("/tmp/GUI2GPS",O_WRONLY | O_NONBLOCK);
 	else
-	{
+		gpipe[_pipe] = open("/tmp/GPS2GUI",O_RDONLY | O_NONBLOCK);
 
-		while((gpipe[_pipe] == -1) && grun)
-		{
-			gpipe[_pipe] = open("/tmp/GPS2GUI",O_RDONLY);
-			usleep(100000);
-		}
-
+	if(gpipe[_pipe] != -1)
 		gpipe_open[_pipe] = true;
-	}
+
+	usleep(1000000);
 
 }
 
@@ -87,13 +73,7 @@ void openPipe(int32 _pipe)
 void gps_2_gui_pipe_close(int _sig)
 {
 	gpipe_open[READ] = false;
-	openPipe(READ);
-}
-
-void gui_2_gps_pipe_close(int _sig)
-{
 	gpipe_open[WRITE] = false;
-	openPipe(WRITE);
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -141,6 +121,7 @@ GUI_Serial::GUI_Serial()
 	gpipe_open[READ] = false;
 	gpipe_open[WRITE] = false;
 	packet_count[LAST_M_ID] = 0;
+	lfile = NULL;
 	decoded_packet.tic = decoded_packet.id = decoded_packet.length = 0;
 	memset(&packet_count[0], 0x0, (LAST_M_ID+1)*sizeof(int));
 	memset(&messages.fifo, 0x0, sizeof(FIFO_M));
@@ -150,7 +131,10 @@ GUI_Serial::GUI_Serial()
 	memset(&command_body[0], 0x0, COMMAND_BUFFER_DEPTH*sizeof(Union_C));
 	memset(&command_header[0], 0x0, COMMAND_BUFFER_DEPTH*sizeof(CCSDS_Packet_Header));
 	memset(&decoded_command[0], 0x0, COMMAND_BUFFER_DEPTH*sizeof(CCSDS_Decoded_Header));
+	memset(&filename[0], 0x0, 1024*sizeof(char));
+	memset(&log_flag[0], 0x0, LAST_M_ID*sizeof(char));
 
+	signal(SIGPIPE, gps_2_gui_pipe_close);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -160,6 +144,7 @@ GUI_Serial::GUI_Serial()
 GUI_Serial::~GUI_Serial()
 {
 
+	if(lfile) fclose(lfile);
 	close(gpipe[READ]);
 	close(gpipe[WRITE]);
 	grun = false;
@@ -174,7 +159,7 @@ void GUI_Serial::Import()
 	pipe_open = gpipe_open[READ];
 
 	/* Open the pipe */
-	if(!gpipe_open[READ])
+	if(gpipe_open[READ] == false)
 		openPipe(READ);
 	else
 		readPipe();
@@ -189,7 +174,7 @@ void GUI_Serial::Export()
 {
 
 	/* Open the pipe */
-	if(!gpipe_open[WRITE])
+	if(gpipe_open[WRITE] == false)
 		openPipe(WRITE);
 	else
 		writePipe();
@@ -209,10 +194,15 @@ int GUI_Serial::pipeRead(void *_b, int32 _bytes)
 	buff = (uint8 *)_b;
 	while((nbytes < _bytes) && grun)
 	{
-		signal(SIGPIPE, gps_2_gui_pipe_close);
-		bread = read(gpipe[READ], &buff[nbytes], _bytes - nbytes);
+		if(gpipe_open[READ] == true)
+			bread = read(gpipe[READ], &buff[nbytes], _bytes - nbytes);
+		else
+			nbytes = _bytes;
+
 		if(bread > 0)
 			nbytes += bread;
+
+		usleep(1000);
 	}
 
 	return(nbytes);
@@ -293,17 +283,21 @@ void GUI_Serial::readPipe()
 				break;
 			case TASK_HEALTH_M_ID:
 				pipeRead(&m->task_health, sizeof(Task_Health_M));
+				if(log_flag[PSEUDORANGE_M_ID]) printTask();
 				break;
 			case CHANNEL_M_ID:
-				pipeRead(&m->channel_health[MAX_CHANNELS], sizeof(Channel_M));
-				chan = m->channel_health[MAX_CHANNELS].chan;
-				memcpy(&m->channel_health[chan], &m->channel_health[MAX_CHANNELS], sizeof(Channel_M));
+				pipeRead(&m->channel[MAX_CHANNELS], sizeof(Channel_M));
+				chan = m->channel[MAX_CHANNELS].chan;
+				memcpy(&m->channel[chan], &m->channel[MAX_CHANNELS], sizeof(Channel_M));
+				if(log_flag[CHANNEL_M_ID]) printChan(chan);
 				break;
 			case SPS_M_ID:
 				pipeRead(&m->sps, sizeof(SPS_M));
+				if(log_flag[SPS_M_ID]) printPVT();
 				break;
 			case CLOCK_M_ID:
 				pipeRead(&m->clock, sizeof(Clock_M));
+				if(log_flag[CLOCK_M_ID]) printClock();
 				break;
 			case SV_POSITION_M_ID:
 				pipeRead(&m->sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
@@ -312,6 +306,7 @@ void GUI_Serial::readPipe()
 				break;
 			case EKF_M_ID:
 				pipeRead(&m->task_health, sizeof(Task_Health_M));
+				if(log_flag[EKF_M_ID]) printEKF();
 				break;
 			case MEASUREMENT_M_ID:
 				pipeRead(&m->measurements[MAX_CHANNELS], sizeof(Measurement_M));
@@ -322,6 +317,7 @@ void GUI_Serial::readPipe()
 				pipeRead(&m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
 				chan = m->pseudoranges[MAX_CHANNELS].chan;
 				memcpy(&m->pseudoranges[chan], &m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
+				if(log_flag[PSEUDORANGE_M_ID]) printPseudo(chan);
 				break;
 			case EPHEMERIS_M_ID:
 				pipeRead(&m->ephemerides[NUM_CODES], sizeof(Ephemeris_M));
@@ -458,6 +454,10 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 
 	switch(_id)
 	{
+		case RESET_ALL_C_ID:
+			cb->reset_all.flag = 1;
+			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_All_C), 1, command_tic++);
+			break;
 		case RESET_PVT_C_ID:
 			cb->reset_pvt.flag = 1;
 			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_PVT_C), 1, command_tic++);
@@ -553,3 +553,186 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 }
 /*----------------------------------------------------------------------------------------------*/
 
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::setLogFile(const char *_str)
+{
+	if(lfile) fclose(lfile);
+	strcpy(filename, _str);
+	lfile = fopen(filename, "wt");
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::logStart()
+{
+	if(lfile) fclose(lfile);
+	lfile = NULL;
+	lfile = fopen(filename, "wt");
+
+	if(lfile)
+		logging_on = true;
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::logStop()
+{
+	if(lfile) fclose(lfile);
+	lfile = NULL;
+	logging_on = false;
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::logClear()
+{
+	if(lfile) fclose(lfile);
+	lfile = NULL;
+	lfile = fopen(filename, "wt");
+	if(lfile) fclose(lfile);
+	lfile = NULL;
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printChan(int32 _chan)
+{
+	SPS_M		*pNav = &messages.sps;
+	Channel_M	*pChan = &messages.channel[_chan];
+
+	if(logging_on && lfile)
+	{
+		fprintf(lfile,"%02d,%.16e,%02d,%02d,%08d,%01d,%01d,%01d,%02d,%.16e,%.16e\n",
+		CHANNEL_M_ID,
+		pNav->time,
+		_chan,
+		(int32)pChan->sv,
+		(int32)pChan->count,
+		(int32)pChan->bit_lock,
+		(int32)pChan->frame_lock,
+		(int32)pChan->subframe,
+		(int32)pChan->len,
+		pChan->p_avg,
+		pChan->CN0);
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printPVT()
+{
+	SPS_M *pNav = &messages.sps; /* Navigation Solution */
+	int32 lcv, nsvs;
+
+	if(logging_on && lfile)
+	{
+		nsvs = 0;
+		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+		{
+			if((pNav->nsvs >> lcv) & 0x1)
+				nsvs++;
+		}
+			/* Nav solution */
+		fprintf(lfile,"%02d,%.16e,%02d,%02d,%08d,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n",
+			SPS_M_ID,
+			pNav->time,
+			pNav->converged,
+			nsvs,
+			pNav->tic,
+			pNav->x,
+			pNav->y,
+			pNav->z,
+			pNav->vx,
+			pNav->vy,
+			pNav->vz,
+			pNav->gdop,
+			pNav->hdop,
+			pNav->tdop,
+			pNav->vdop,
+			pNav->pdop);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printTask()
+{
+	if(logging_on && lfile)
+	{
+
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printEKF()
+{
+	if(logging_on && lfile)
+	{
+
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printClock()
+{
+	SPS_M		*pNav		= &messages.sps;		/* Navigation Solution */
+	Clock_M		*pClock		= &messages.clock;	/* Clock solution */
+
+	if(logging_on && lfile)
+	{
+		/* Clock state */
+		fprintf(lfile,"%02d,%.16e,%04d,%04d,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n",
+		CLOCK_M_ID,
+		pNav->time,
+		(int32)pClock->week,
+		pClock->state,
+		pClock->receiver_time,
+		pClock->bias,
+		pClock->rate,
+		pClock->time0,
+		pClock->time,
+		pClock->time_raw);
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printPseudo(int32 _chan)
+{
+
+	Pseudorange_M *pPseudo = &messages.pseudoranges[_chan];
+	SPS_M *pNav	= &messages.sps;
+
+	if(logging_on && lfile)
+	{
+		/* Pseudorange */
+		fprintf(lfile,"%02d,%.16e,%02d,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n",
+			PSEUDORANGE_M_ID,
+			pNav->time,
+			_chan,
+			pPseudo->time,
+			pPseudo->time_rate,
+			pPseudo->meters,
+			pPseudo->meters_rate,
+			pPseudo->residual,
+			pPseudo->rate_residual,
+			pPseudo->time_uncorrected);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/

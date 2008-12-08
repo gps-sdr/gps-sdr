@@ -66,8 +66,14 @@ class GUI_Serial : public Threaded_Object
 		uint32					command_tail;							//!< Command tail
 		int32					command_free;							//!< Commands free
 
-		Message_Struct		messages;						//!< Hold all the messages
+		Message_Struct			messages;					//!< Hold all the messages
 		char buff[2048];									//!< Dump wasted data
+
+		/* Logging variables */
+		int32 logging_on;									//!< Control overall logging
+		char filename[1024];								//!< Log to this file
+		FILE *lfile;										//!< Pointer to log file
+		int32 log_flag[LAST_M_ID];							//!< Control messages on/off
 
 	public:
 
@@ -91,6 +97,21 @@ class GUI_Serial : public Threaded_Object
 		int pipeRead(void *_b, int32 _bytes);
 		int pipeWrite(void *_b, int32 _bytes);
 		void formCommand(int32 _id, void *_p);
+
+		/* Control the logging */
+		void logOn(int32 _apid, bool _on){log_flag[_apid] = _on;};
+		int32 getLog(int32 _apid){return(log_flag[_apid]);};
+		void logStart();
+		void logStop();
+		void logClear();
+		void setLogFile(const char *_str);
+
+		void printChan(int32 _chan);
+		void printPVT();
+		void printTask();
+		void printEKF();
+		void printClock();
+		void printPseudo(int32 _chan);
 
 };
 

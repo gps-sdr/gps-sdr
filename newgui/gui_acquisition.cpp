@@ -109,7 +109,7 @@ void GUI_Acquisition::renderBars(int32 _type)
 	dX *= scaleX;
 
 	/* Draw the threshold */
-    dc->SetPen(wxPen(wxColor(0,0,0), 1, wxLONG_DASH ));
+    dc->SetPen(wxPen(wxColor(0,0,0), 3, wxLONG_DASH ));
 	dc->DrawLine(0, (2000-600)*scaleY, maxX*scaleX, (2000-600)*scaleY);
 
 	dc->SetPen(wxPen(wxColor(0,0,0), 1));

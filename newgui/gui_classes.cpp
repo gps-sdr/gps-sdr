@@ -47,6 +47,28 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	
 	mMenuBar->Append( mUSRP, wxT("USRP") );
 	
+	mLogging = new wxMenu();
+	wxMenuItem* mLogconfig;
+	mLogconfig = new wxMenuItem( mLogging, ID_LOG_CONFIG, wxString( wxT("Config") ) , wxEmptyString, wxITEM_NORMAL );
+	mLogging->Append( mLogconfig );
+	
+	wxMenuItem* mLogstart;
+	mLogstart = new wxMenuItem( mLogging, ID_LOG_START, wxString( wxT("Start") ) , wxEmptyString, wxITEM_NORMAL );
+	mLogging->Append( mLogstart );
+	mLogstart->Enable( false );
+	
+	wxMenuItem* mLogstop;
+	mLogstop = new wxMenuItem( mLogging, ID_LOG_STOP, wxString( wxT("Stop") ) , wxEmptyString, wxITEM_NORMAL );
+	mLogging->Append( mLogstop );
+	mLogstop->Enable( false );
+	
+	wxMenuItem* mLogclear;
+	mLogclear = new wxMenuItem( mLogging, ID_LOG_CLEAR, wxString( wxT("Clear") ) , wxEmptyString, wxITEM_NORMAL );
+	mLogging->Append( mLogclear );
+	mLogclear->Enable( false );
+	
+	mMenuBar->Append( mLogging, wxT("Logging") );
+	
 	this->SetMenuBar( mMenuBar );
 	
 	wxBoxSizer* sMain;
@@ -61,6 +83,9 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	bChannel = new wxToggleButton( this, ID_CHANNEL_B, wxT("Channel"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bChannel, 0, wxALL|wxEXPAND, 5 );
 	
+	bPseudo = new wxToggleButton( this, ID_PSEUDO_B, wxT("Pseudo"), wxDefaultPosition, wxDefaultSize, 0 );
+	SubWindows->Add( bPseudo, 0, wxALL|wxEXPAND, 5 );
+	
 	bAcquisition = new wxToggleButton( this, ID_ACQUISITION_B, wxT("Acquisition"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bAcquisition, 0, wxALL|wxEXPAND, 5 );
 	
@@ -73,11 +98,11 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	bAlmanac = new wxToggleButton( this, ID_ALMANAC_B, wxT("Almanac"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bAlmanac, 0, wxALL|wxEXPAND, 5 );
 	
-	bLog = new wxToggleButton( this, ID_LOG_B, wxT("Log"), wxDefaultPosition, wxDefaultSize, 0 );
-	SubWindows->Add( bLog, 0, wxALL|wxEXPAND, 5 );
-	
 	bCommands = new wxToggleButton( this, ID_COMMANDS_B, wxT("Commands"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bCommands, 0, wxALL|wxEXPAND, 5 );
+	
+	bConfig = new wxToggleButton( this, ID_CONFIG_B, wxT("Config"), wxDefaultPosition, wxDefaultSize, 0 );
+	SubWindows->Add( bConfig, 0, wxALL|wxEXPAND, 5 );
 	
 	bSpeed = new wxToggleButton( this, ID_SPEED_B, wxT("Speedometer"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bSpeed, 0, wxALL|wxEXPAND, 5 );
@@ -165,10 +190,157 @@ iGUI_Default::iGUI_Default( wxWindow* parent, wxWindowID id, const wxString& tit
 	sbSizer13 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("PVT") ), wxVERTICAL );
 	
 	sbSizer13->SetMinSize( wxSize( -1,180 ) ); 
-	tPVT = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
-	tPVT->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	wxGridSizer* gSizer1;
+	gSizer1 = new wxGridSizer( 8, 4, 0, 0 );
 	
-	sbSizer13->Add( tPVT, 1, wxEXPAND, 5 );
+	
+	gSizer1->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	m_staticText2 = new wxStaticText( this, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText2->Wrap( -1 );
+	m_staticText2->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText2, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText3 = new wxStaticText( this, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText3->Wrap( -1 );
+	m_staticText3->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText3, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText4 = new wxStaticText( this, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText4->Wrap( -1 );
+	m_staticText4->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText4, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText5 = new wxStaticText( this, wxID_ANY, wxT("Position (m)"), wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE );
+	m_staticText5->Wrap( -1 );
+	m_staticText5->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText5, 0, wxALL|wxEXPAND, 5 );
+	
+	px = new wxStaticText( this, wxID_ANY, wxT("posx"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	px->Wrap( -1 );
+	gSizer1->Add( px, 0, wxALL|wxEXPAND, 5 );
+	
+	py = new wxStaticText( this, wxID_ANY, wxT("posy"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	py->Wrap( -1 );
+	gSizer1->Add( py, 0, wxALL|wxEXPAND, 5 );
+	
+	pz = new wxStaticText( this, wxID_ANY, wxT("posz"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	pz->Wrap( -1 );
+	gSizer1->Add( pz, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText9 = new wxStaticText( this, wxID_ANY, wxT("Vel (cm/s)"), wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE );
+	m_staticText9->Wrap( -1 );
+	m_staticText9->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText9, 0, wxALL|wxEXPAND, 5 );
+	
+	vx = new wxStaticText( this, wxID_ANY, wxT("velx"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	vx->Wrap( -1 );
+	gSizer1->Add( vx, 0, wxALL|wxEXPAND, 5 );
+	
+	vy = new wxStaticText( this, wxID_ANY, wxT("vely"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	vy->Wrap( -1 );
+	gSizer1->Add( vy, 0, wxALL|wxEXPAND, 5 );
+	
+	vz = new wxStaticText( this, wxID_ANY, wxT("velz"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	vz->Wrap( -1 );
+	gSizer1->Add( vz, 0, wxALL|wxEXPAND, 5 );
+	
+	
+	gSizer1->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	m_staticText18 = new wxStaticText( this, wxID_ANY, wxT("Lat"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText18->Wrap( -1 );
+	m_staticText18->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText18, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText19 = new wxStaticText( this, wxID_ANY, wxT("Long"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText19->Wrap( -1 );
+	m_staticText19->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText19, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText21 = new wxStaticText( this, wxID_ANY, wxT("Height"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText21->Wrap( -1 );
+	m_staticText21->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText21, 0, wxALL|wxEXPAND, 5 );
+	
+	
+	gSizer1->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	lat = new wxStaticText( this, wxID_ANY, wxT("lat"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	lat->Wrap( -1 );
+	gSizer1->Add( lat, 0, wxALL|wxEXPAND, 5 );
+	
+	lon = new wxStaticText( this, wxID_ANY, wxT("lon"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	lon->Wrap( -1 );
+	gSizer1->Add( lon, 0, wxALL|wxEXPAND, 5 );
+	
+	alt = new wxStaticText( this, wxID_ANY, wxT("alt"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	alt->Wrap( -1 );
+	gSizer1->Add( alt, 0, wxALL|wxEXPAND, 5 );
+	
+	
+	gSizer1->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	m_staticText26 = new wxStaticText( this, wxID_ANY, wxT("Clock Bias"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText26->Wrap( -1 );
+	m_staticText26->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText26, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText27 = new wxStaticText( this, wxID_ANY, wxT("Clock Rate"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText27->Wrap( -1 );
+	m_staticText27->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText27, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText28 = new wxStaticText( this, wxID_ANY, wxT("GPS Second"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText28->Wrap( -1 );
+	m_staticText28->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText28, 0, wxALL|wxEXPAND, 5 );
+	
+	
+	gSizer1->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	cb = new wxStaticText( this, wxID_ANY, wxT("cb"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	cb->Wrap( -1 );
+	gSizer1->Add( cb, 0, wxALL|wxEXPAND, 5 );
+	
+	cr = new wxStaticText( this, wxID_ANY, wxT("cr"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	cr->Wrap( -1 );
+	gSizer1->Add( cr, 0, wxALL|wxEXPAND, 5 );
+	
+	gpst = new wxStaticText( this, wxID_ANY, wxT("gpst"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	gpst->Wrap( -1 );
+	gSizer1->Add( gpst, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText33 = new wxStaticText( this, wxID_ANY, wxT("Time"), wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE );
+	m_staticText33->Wrap( -1 );
+	m_staticText33->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	gSizer1->Add( m_staticText33, 0, wxALL|wxEXPAND, 5 );
+	
+	day = new wxStaticText( this, wxID_ANY, wxT("day"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	day->Wrap( -1 );
+	gSizer1->Add( day, 0, wxALL|wxEXPAND, 5 );
+	
+	month = new wxStaticText( this, wxID_ANY, wxT("month"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	month->Wrap( -1 );
+	gSizer1->Add( month, 0, wxALL|wxEXPAND, 5 );
+	
+	time = new wxStaticText( this, wxID_ANY, wxT("time"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	time->Wrap( -1 );
+	gSizer1->Add( time, 0, wxALL|wxEXPAND, 5 );
+	
+	sbSizer13->Add( gSizer1, 1, wxEXPAND, 5 );
 	
 	bSizer18->Add( sbSizer13, 0, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5 );
 	
@@ -215,6 +387,14 @@ iGUI_Commands::iGUI_Commands( wxWindow* parent, wxWindowID id, const wxString& t
 	
 	wxBoxSizer* bSizer11;
 	bSizer11 = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer29;
+	bSizer29 = new wxBoxSizer( wxHORIZONTAL );
+	
+	bResetAll = new wxButton( this, ID_RESET_ALL, wxT("Reset All"), wxDefaultPosition, wxSize( 150,-1 ), 0 );
+	bSizer29->Add( bResetAll, 0, wxALL, 5 );
+	
+	bSizer11->Add( bSizer29, 0, 0, 5 );
 	
 	wxBoxSizer* bSizer17;
 	bSizer17 = new wxBoxSizer( wxHORIZONTAL );
@@ -501,5 +681,102 @@ iGUI_Select::iGUI_Select( wxWindow* parent, wxWindowID id, const wxString& title
 }
 
 iGUI_Select::~iGUI_Select()
+{
+}
+
+iGUI_Config::iGUI_Config( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+}
+
+iGUI_Config::~iGUI_Config()
+{
+}
+
+iGUI_Pseudo::iGUI_Pseudo( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxBoxSizer* bSizer9;
+	bSizer9 = new wxBoxSizer( wxVERTICAL );
+	
+	tPseudos = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tPseudos->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	
+	bSizer9->Add( tPseudos, 1, wxALL|wxEXPAND, 5 );
+	
+	this->SetSizer( bSizer9 );
+	this->Layout();
+}
+
+iGUI_Pseudo::~iGUI_Pseudo()
+{
+}
+
+iGUI_Log::iGUI_Log( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxBoxSizer* bSizer30;
+	bSizer30 = new wxBoxSizer( wxVERTICAL );
+	
+	mFile = new wxFilePickerCtrl( this, wxID_ANY, wxEmptyString, wxT("Select a file"), wxT("*.log"), wxDefaultPosition, wxSize( 600,-1 ), wxFLP_OVERWRITE_PROMPT|wxFLP_SAVE|wxFLP_USE_TEXTCTRL );
+	bSizer30->Add( mFile, 0, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer14;
+	sbSizer14 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Logged Items") ), wxVERTICAL );
+	
+	wxGridSizer* gSizer3;
+	gSizer3 = new wxGridSizer( 2, 2, 0, 0 );
+	
+	cChan = new wxCheckBox( this, wxID_ANY, wxT("Channel Status"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer3->Add( cChan, 0, wxALL, 5 );
+	
+	cClock = new wxCheckBox( this, wxID_ANY, wxT("Clock State"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer3->Add( cClock, 0, wxALL, 5 );
+	
+	cPseudo = new wxCheckBox( this, wxID_ANY, wxT("Pseudoranges"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer3->Add( cPseudo, 0, wxALL, 5 );
+	
+	cTask = new wxCheckBox( this, wxID_ANY, wxT("Task Health"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer3->Add( cTask, 0, wxALL, 5 );
+	
+	cEKF = new wxCheckBox( this, wxID_ANY, wxT("EKF State"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer3->Add( cEKF, 0, wxALL, 5 );
+	
+	cPVT = new wxCheckBox( this, wxID_ANY, wxT("PVT State"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer3->Add( cPVT, 0, wxALL, 5 );
+	
+	sbSizer14->Add( gSizer3, 0, wxEXPAND, 5 );
+	
+	bSizer30->Add( sbSizer14, 1, wxALL|wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer31;
+	bSizer31 = new wxBoxSizer( wxHORIZONTAL );
+	
+	
+	bSizer31->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	bCancel = new wxButton( this, wxID_ANY, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer31->Add( bCancel, 0, wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND, 5 );
+	
+	bOK = new wxButton( this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer31->Add( bOK, 0, wxALL|wxEXPAND, 5 );
+	
+	bSizer30->Add( bSizer31, 0, wxEXPAND, 5 );
+	
+	this->SetSizer( bSizer30 );
+	this->Layout();
+	bSizer30->Fit( this );
+}
+
+iGUI_Log::~iGUI_Log()
 {
 }

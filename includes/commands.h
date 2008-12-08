@@ -29,7 +29,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 enum CCSDS_COMMAND_IDS
 {
 	FIRST_C_ID,
-	RESET_RESET_C_ID,
+	RESET_ALL_C_ID,
 	RESET_PVT_C_ID,
 	RESET_EKF_C_ID,
 	RESET_CHANNEL_C_ID,
@@ -56,10 +56,10 @@ enum CCSDS_COMMAND_IDS
 /*! \ingroup COMMANDS
 	Dump everything (PVT/Ephemeris/Almanac/Channels/EKF)
 */
-typedef struct Reset_Reset_C
+typedef struct Reset_All_C
 {
 	int32 flag;		//!< Flag for no reason
-} Reset_Reset_C;
+} Reset_All_C;
 
 /*! \ingroup COMMANDS
 	Reset the PVT
@@ -252,6 +252,7 @@ typedef struct Get_Channel_C
 
 typedef union Union_C
 {
+	Reset_All_C			reset_all;
 	Reset_PVT_C			reset_pvt;
 	Reset_EKF_C			reset_ekf;
 	Reset_Channel_C		reset_channel;

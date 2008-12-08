@@ -91,7 +91,7 @@ void Commando::Import()
 	/* Now do something based on the command */
 	switch(decoded_header.id)
 	{
-		case RESET_RESET_C_ID:
+		case RESET_ALL_C_ID:
 			resetReset();
 			break;
 		case RESET_PVT_C_ID:

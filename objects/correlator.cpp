@@ -166,10 +166,10 @@ void Correlator::Import()
 					aChannel->Start(result.sv, result, 1);
 					break;
 				case ACQ_MEDIUM:
-					aChannel->Start(result.sv, result, 1);
+					aChannel->Start(result.sv, result, 10);
 					break;
 				case ACQ_WEAK:
-					aChannel->Start(result.sv, result, 4);
+					aChannel->Start(result.sv, result, 10);
 					break;
 			}
 

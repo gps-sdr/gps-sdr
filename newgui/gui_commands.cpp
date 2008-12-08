@@ -11,6 +11,7 @@ DECLARE_APP(GUI_App)
 
 /*----------------------------------------------------------------------------------------------*/
 BEGIN_EVENT_TABLE(GUI_Commands, wxFrame)
+	EVT_BUTTON(ID_RESET_ALL,		GUI_Commands::onAll)
     EVT_BUTTON(ID_RESET_PVT,		GUI_Commands::onPVT)
     EVT_BUTTON(ID_RESET_CHANNEL,	GUI_Commands::onChannel)
 	EVT_BUTTON(ID_RESET_EPHEMERIS,	GUI_Commands::onEphemeris)
@@ -43,6 +44,16 @@ void GUI_Commands::render(wxDC& dc)
 
 }
 
+void GUI_Commands::onAll(wxCommandEvent& event)
+{
+	wxString str;
+	int32 val;
+
+	val = 1;
+	pSerial->formCommand(RESET_ALL_C_ID, &val);
+	str.Printf(wxT("Reset All:\t\t%d\n"),val);
+	tCommand_Ack->AppendText(str);
+}
 
 void GUI_Commands::onPVT(wxCommandEvent& event)
 {

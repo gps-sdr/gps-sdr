@@ -514,9 +514,7 @@ typedef struct Acq_Config_M
 	int32 min_doppler;		//!< Minimum doppler
 	int32 max_doppler;		//!< Maximum doppler
 	int32 doppler_range;	//!< Doppler range to search when almanac is valid
-	int32 acq_strong;		//!< 0 for off, 1 for on, 2 for on IF almanac is valid
-	int32 acq_medium;		//!< 0 for off, 1 for on, 2 for on IF almanac is valid
-	int32 acq_weak;			//!< 0 for off, 1 for on, 2 for on IF almanac is valid
+	int32 acq_method[3];	//!< 0 for off, 1 for on, 2 for on if hot acquisition, mapped via ACQ_STRONG, etc
 } Acq_Config_M;
 
 
@@ -527,7 +525,7 @@ typedef struct Message_Struct
 	/* Data gets stored here! */
 	Board_Health_M 		board_health;					//!< Board health message
 	Task_Health_M		task_health;					//!< Task health message
-	Channel_M 	channel_health[MAX_CHANNELS+1]; //!< Channel health message, last element is used as a buffer
+	Channel_M 			channel[MAX_CHANNELS+1]; 		//!< Channel health message, last element is used as a buffer
 
 	SPS_M				sps;							//!< SPS message
 	Clock_M				clock;							//!< Clock message
@@ -552,7 +550,7 @@ typedef union Union_M
 {
 	Board_Health_M		board_health;
 	Task_Health_M		task_health;
-	Channel_M	channel_health;
+	Channel_M			channel;
 	SPS_M				sps;
 	Clock_M				clock;
 	SV_Position_M		sv_position;

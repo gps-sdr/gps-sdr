@@ -67,6 +67,14 @@ SV_Select::SV_Select()
 	pnav = &pvt.master_nav;
 	pclock = &pvt.master_clock;
 
+	/* Setup behavior */
+	config.min_doppler = -MAX_DOPPLER;
+	config.max_doppler = MAX_DOPPLER;
+	config.doppler_range = DOPPLER_RANGE;
+	config.acq_method[0] = ACQ_STRONG_STATE;
+	config.acq_method[1] = ACQ_MEDIUM_STATE;
+	config.acq_method[2] = ACQ_WEAK_STATE;
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -86,6 +94,13 @@ SV_Select::~SV_Select()
 void SV_Select::setConfig(Acq_Config_M *cfg)
 {
 	memcpy(&config, cfg, sizeof(Acq_Config_M));
+
+	if(config.min_doppler < -MAX_DOPPLER)
+		config.min_doppler = -MAX_DOPPLER;
+
+	if(config.min_doppler > MAX_DOPPLER)
+		config.max_doppler = MAX_DOPPLER;
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -200,7 +215,6 @@ void SV_Select::Acquire()
 			/* Do something! */
 			if(already != 666)
 				ProcessResult();
-
 		}
 
 		UpdateState();
@@ -232,57 +246,51 @@ bool SV_Select::SetupRequest()
 
 	SV_Prediction_M *ppred;
 	int32 doppler;
+	int32 acq_method;
 
 	/* Initialize parameters */
 	request.state = 1;
 	request.type = sv_history[sv].type;
 	request.sv = sv;
-	request.mindopp = -MAX_DOPPLER;
-	request.maxdopp = MAX_DOPPLER;
-	sv_history[sv].mindopp = -MAX_DOPPLER;
-	sv_history[sv].maxdopp = MAX_DOPPLER;
+	request.mindopp = config.min_doppler;
+	request.maxdopp = config.max_doppler;
+	sv_history[sv].mindopp = config.min_doppler;
+	sv_history[sv].maxdopp = config.max_doppler;
 
-	if(almanacs[sv].decoded == false)
-		return(true);
+	acq_method = config.acq_method[request.type];
 
-	if(mode == COLD_START)
+	/* This type is turned off completely */
+	if(acq_method == 0)
+		return(false);
+
+	if((mode == COLD_START) || (almanacs[sv].decoded == false))
 	{
-		return(true);
-	}
-	else if(mode == WARM_START) /* On warm start on use predicted visibility, not Doppler information */
-	{
-		ppred = &sv_prediction[sv];
-
-		if(ppred->visible)
+		/* This type is turned on for cold starts */
+		if(acq_method == 1)
 			return(true);
 		else
 			return(false);
 	}
-	else /* Else use Doppler information to narrow Doppler search space */
+	else
 	{
-
 		ppred = &sv_prediction[sv];
 
-		//if(ppred->visible)
+		if(ppred->visible)
 		{
+		/* Round to a kHz value */
+		doppler = (int32)ppred->doppler;
+		doppler = doppler - (doppler % 1000);
 
-			/* Round to a kHz value */
-			doppler = (int32)ppred->doppler;
-			doppler = doppler - (doppler % 1000);
+		/* Give it a 3 kHz error range */
+		request.mindopp = (doppler - config.doppler_range);
+		request.maxdopp = (doppler + config.doppler_range);
+		sv_history[sv].mindopp = (doppler - config.doppler_range);
+		sv_history[sv].maxdopp = (doppler + config.doppler_range);
 
-			/* Give it a 3 kHz error range */
-			request.mindopp = (doppler - 1000);
-			request.maxdopp = (doppler + 1000);
-			sv_history[sv].mindopp = (doppler - 1000);
-			sv_history[sv].maxdopp = (doppler + 1000);
-
-			return(true);
-
+		return(true);
 		}
-//		else
-//		{
-//			return(false);
-//		}
+		else
+			return(false);
 	}
 
 }
@@ -295,47 +303,28 @@ void SV_Select::ProcessResult()
 
 	int32 type;
 	Acq_History_S *psv;
-
 	psv = &sv_history[sv];
 	type = psv->type;
 
-	if((mode == HOT_START) && (almanacs[sv].decoded))
-	{
-		/* Always a better estimate from the PVT and Alamanac than the acq engine */
-		result.doppler = sv_prediction[sv].doppler;
-	}
+//	if((mode == HOT_START) && (almanacs[sv].decoded))
+//	{
+//		/* Always a better estimate from the PVT and Alamanac than the acq engine */
+//		result.doppler = sv_prediction[sv].doppler;
+//	}
+
+	psv->count[type]++;
+	psv->attempts[type]++;
+	psv->magnitude = result.magnitude;
+	psv->doppler = result.doppler;
 
 	if(result.success)
 	{
-
-		psv->count[type]++;
-		psv->attempts[type]++;
 		psv->successes[type]++;
-		psv->magnitude = result.magnitude;
-		psv->doppler = result.doppler;
-
-		/* Map receiver channels to channels on correlator */
 		write(Trak_2_Corr_P[result.chan][WRITE], &result, sizeof(Acq_Command_M));
-
 	}
 	else
 	{
-
-		psv->count[type]++;
 		psv->failures[type]++;
-		psv->attempts[type]++;
-		psv->magnitude = result.magnitude;
-		psv->doppler = result.doppler;
-
-		if(psv->count[type] >= ACQ_ITERATIONS)
-		{
-			psv->count[type] = 0;
-			psv->type++;
-
-			if(psv->type > ACQ_MAX)
-				psv->type = ACQ_STRONG;
-		}
-
 	}
 
 }
@@ -346,11 +335,19 @@ void SV_Select::ProcessResult()
 void SV_Select::UpdateState()
 {
 
+	int32 type;
+	Acq_History_S *psv;
+
+	psv = &sv_history[sv];
+
+	psv->type++;
+	if(psv->type > ACQ_WEAK)
+		psv->type = ACQ_STRONG;
+
 	sv++;
 	if(sv >= NUM_CODES)
 		sv = 0;
 
-	//sv = 0;
 }
 /*----------------------------------------------------------------------------------------------*/
 

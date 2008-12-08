@@ -57,7 +57,7 @@ class Serial_Telemetry : public Threaded_Object
 
 		Board_Health_M 		board_health;					//!< Board health message
 		Task_Health_M		task_health;					//!< Task health message
-		Channel_M 	channel_health[MAX_CHANNELS]; 	//!< Channel health message
+		Channel_M 			channel[MAX_CHANNELS]; 			//!< Channel health message
 
 		SPS_M				sps;							//!< SPS message
 		Clock_M				clock;							//!< Clock message

@@ -119,9 +119,12 @@ void GUI_Select::renderDoppler()
     	//dc.DrawLine(dX*lcv+100*scaleX, pY+bar[2].y, dX*(lcv+1)+100*scaleX, pY+bar[2].y);
 
     	if(psv->visible)
-    		dc.SetPen(wxPen(wxColor(0,255,0), 4));
+    		dc.SetPen(wxPen(wxColor(0,0,0), 4));
     	else
     		dc.SetPen(wxPen(wxColor(200,200,200), 4));
+
+		if(psv->tracked)
+			dc.SetPen(wxPen(wxColor(0,255,0), 4));
 
     	pY = -1000*psv->doppler/MAX_DOPPLER;
     	pY += 1000;
@@ -199,8 +202,8 @@ void GUI_Select::renderSV()
 		    dc.SetPen(wxPen(wxColor(200,200,200), 1 ));
 			dc.SetBrush(wxBrush(wxColor(200,200,200)));
 			dc.SetTextForeground(wxColor(200,200,200));
-			svX = scaleY*(900 + 10.0*RAD_2_DEG*psv->elev) * cos(psv->azim);
-			svY = scaleY*(900 + 10.0*RAD_2_DEG*psv->elev) * sin(psv->azim);
+			svX = scaleY*(900 + 10.0*RAD_2_DEG*psv->elev) * cos(psv->azim - PI_OVER_2);
+			svY = scaleY*(900 + 10.0*RAD_2_DEG*psv->elev) * sin(psv->azim - PI_OVER_2);
 			dc.DrawCircle(mX + svX, mY + svY, 3);
 			dc.DrawText(str, mX + svX, mY + svY);
 		}
@@ -218,8 +221,8 @@ void GUI_Select::renderSV()
 			dc.SetPen(wxPen(wxColor(0,0,0), 1 ));
 			dc.SetBrush(wxBrush(wxColor(0,0,0)));
 			dc.SetTextForeground(wxColor(0,0,0));
-			svX = scaleY*(900 - 10.0*RAD_2_DEG*psv->elev) * cos(psv->azim);
-			svY = scaleY*(900 - 10.0*RAD_2_DEG*psv->elev) * sin(psv->azim);
+			svX = scaleY*(900 - 10.0*RAD_2_DEG*psv->elev) * cos(psv->azim - PI_OVER_2);
+			svY = scaleY*(900 - 10.0*RAD_2_DEG*psv->elev) * sin(psv->azim - PI_OVER_2);
 			dc.DrawText(str, mX + svX, mY + svY);
 
 			if(psv->tracked)

@@ -43,7 +43,8 @@ class GUI_Toplevel: public iGUI_Toplevel
 
 		Message_Struct	messages;						//!< Hold all the messages
 
-		float kB_sec;
+		float 			kB_sec;
+		int				last_tic;						//!< Only update when new info is available
 
 	public:
 
@@ -59,6 +60,10 @@ class GUI_Toplevel: public iGUI_Toplevel
 		void onGPSStop(wxCommandEvent& event);
 		void onUSRPStart(wxCommandEvent& event);
 		void onUSRPStop(wxCommandEvent& event);
+		void onLogConfig(wxCommandEvent& event);
+		void onLogStart(wxCommandEvent& event);
+		void onLogStop(wxCommandEvent& event);
+		void onLogClear(wxCommandEvent& event);
 
 		void onMain(wxCommandEvent& event);
 		void onChannel(wxCommandEvent& event);

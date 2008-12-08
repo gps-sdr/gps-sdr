@@ -17,6 +17,10 @@ BEGIN_EVENT_TABLE(GUI_Toplevel, wxFrame)
     EVT_MENU(ID_GPS_Stop,			GUI_Toplevel::onGPSStop)
     EVT_MENU(ID_USRP_Start,			GUI_Toplevel::onUSRPStart)
     EVT_MENU(ID_USRP_Stop,			GUI_Toplevel::onUSRPStop)
+    EVT_MENU(ID_LOG_CONFIG,			GUI_Toplevel::onLogConfig)
+    EVT_MENU(ID_LOG_START,			GUI_Toplevel::onLogStart)
+	EVT_MENU(ID_LOG_STOP,			GUI_Toplevel::onLogStop)
+	EVT_MENU(ID_LOG_CLEAR,			GUI_Toplevel::onLogClear)
     EVT_TIMER(ID_TIMER,				GUI_Toplevel::onTimer)
     EVT_TOGGLEBUTTON(ID_MAIN_B,		GUI_Toplevel::onMain)
     EVT_TOGGLEBUTTON(ID_CHANNEL_B,	GUI_Toplevel::onChannel)
@@ -44,6 +48,7 @@ GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS-SDR"), wxDef
     pSerial->Start();
 
     kB_sec = 0;
+    last_tic = 0;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -93,6 +98,15 @@ void GUI_Toplevel::onTimer(wxTimerEvent& evt)
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Toplevel::onQuit(wxCommandEvent& WXUNUSED(event))
 {
+
+	wxCommandEvent event;
+
+	if(gps_active == 1)
+		onGPSStop(event);
+
+	if(usrp_active == 1)
+		onUSRPStop(event);
+
     Close(TRUE);
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -124,7 +138,7 @@ void GUI_Toplevel::onGPSStart(wxCommandEvent& WXUNUSED(event))
 	/* First try local directory */
 	if(wxFileExists(cmd))
 	{
-		cmd += wxT(" -p gps.dbb -gui");
+		cmd += wxT(" -gui");
 	}
 	else if(wxFileExists(wxT("/usr/local/bin/gps-sdr")))
 	{
@@ -271,6 +285,137 @@ void GUI_Toplevel::onUSRPStop(wxCommandEvent& WXUNUSED(event))
 
 
 /*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onLogConfig(wxCommandEvent& WXUNUSED(event))
+{
+	int32 val;
+	wxString str;
+	iGUI_Log log(this);
+
+	log.SetAffirmativeId(wxID_OK);
+	log.SetEscapeId(wxID_ANY);
+
+	log.cChan->SetValue(pSerial->getLog(CHANNEL_M_ID));
+	log.cClock->SetValue(pSerial->getLog(CLOCK_M_ID));
+	log.cPseudo->SetValue(pSerial->getLog(PSEUDORANGE_M_ID));
+	log.cTask->SetValue(pSerial->getLog(TASK_HEALTH_M_ID));
+	log.cEKF->SetValue(pSerial->getLog(EKF_M_ID));
+	log.cPVT->SetValue(pSerial->getLog(SPS_M_ID));
+
+	if(log.ShowModal() == wxID_OK)
+	{
+		pSerial->Lock();
+
+		/* Get options */
+		if(log.cChan->IsChecked())
+			pSerial->logOn(CHANNEL_M_ID, true);
+		else
+			pSerial->logOn(CHANNEL_M_ID, false);
+
+		if(log.cClock->IsChecked())
+			pSerial->logOn(CLOCK_M_ID, true);
+		else
+			pSerial->logOn(CLOCK_M_ID, false);
+
+		if(log.cPseudo->IsChecked())
+			pSerial->logOn(PSEUDORANGE_M_ID,true);
+		else
+			pSerial->logOn(PSEUDORANGE_M_ID,false);
+
+		if(log.cTask->IsChecked())
+			pSerial->logOn(TASK_HEALTH_M_ID, true);
+		else
+			pSerial->logOn(TASK_HEALTH_M_ID, false);
+
+		if(log.cEKF->IsChecked())
+			pSerial->logOn(EKF_M_ID, true);
+		else
+			pSerial->logOn(EKF_M_ID, false);
+
+		if(log.cPVT->IsChecked())
+			pSerial->logOn(SPS_M_ID, true);
+		else
+			pSerial->logOn(SPS_M_ID, false);
+
+		/* Get Filename */
+		str = log.mFile->GetPath();
+		pSerial->setLogFile(str.mb_str());
+
+		pSerial->Unlock();
+
+		if(pSerial->getLog(PSEUDORANGE_M_ID))
+		{
+			val = 1;
+			pSerial->formCommand(GET_PSEUDORANGE_C_ID, &val);
+		}
+
+		if(pSerial->getLog(CHANNEL_M_ID))
+		{
+			val = 1;
+			pSerial->formCommand(GET_CHANNEL_C_ID, &val);
+		}
+
+		mLogging->Enable(ID_LOG_START, true);
+		mLogging->Enable(ID_LOG_CLEAR, true);
+		mLogging->Enable(ID_LOG_STOP, false);
+		mLogging->Enable(ID_LOG_CONFIG, true);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onLogStart(wxCommandEvent& WXUNUSED(event))
+{
+
+	pSerial->Lock();
+	pSerial->logStart();
+	pSerial->Unlock();
+
+
+	mLogging->Enable(ID_LOG_START, false);
+	mLogging->Enable(ID_LOG_CLEAR, false);
+	mLogging->Enable(ID_LOG_STOP, true);
+	mLogging->Enable(ID_LOG_CONFIG, false);
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onLogStop(wxCommandEvent& WXUNUSED(event))
+{
+	int32 val;
+
+	pSerial->Lock();
+	pSerial->logStop();
+	pSerial->Unlock();
+
+	if(wChannel == NULL && (pSerial->getLog(CHANNEL_M_ID) == 0))
+	{
+		val = 0;
+		pSerial->formCommand(GET_CHANNEL_C_ID, &val);
+	}
+
+	mLogging->Enable(ID_LOG_START, true);
+	mLogging->Enable(ID_LOG_CLEAR, true);
+	mLogging->Enable(ID_LOG_STOP, false);
+	mLogging->Enable(ID_LOG_CONFIG, true);
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onLogClear(wxCommandEvent& WXUNUSED(event))
+{
+	pSerial->Lock();
+	pSerial->logClear();
+	pSerial->Unlock();
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void GUI_Toplevel::onClose(wxCloseEvent& evt)
 {
 
@@ -303,53 +448,59 @@ void GUI_Toplevel::paintNow()
 void GUI_Toplevel::render(wxDC& dc)
 {
 
-	int page;
+	int page, this_tic;
     wxString str;
     wxString str2;
-
 
     pSerial->Lock();
     memcpy(&messages,pSerial->GetMessages(),sizeof(Message_Struct));
     pSerial->Unlock();
 
-    /* Render FIFO Panel */
-	renderFIFO();
+    this_tic = pSerial->decoded_packet.tic;
+    if(this_tic != last_tic)
+    {
 
-	/* Render RS422 Panel */
-	renderRS422();
+    	last_tic = this_tic;
+		/* Render FIFO Panel */
+		renderFIFO();
 
-	/* Render Task Panel */
-	renderTask();
+		/* Render RS422 Panel */
+		renderRS422();
 
-	str = status_str;
-	str2.Printf(wxT("Count: %d"),count++);
-	str += str2;
+		/* Render Task Panel */
+		renderTask();
 
-	SetStatusText(str);
+		str = status_str;
+		str2.Printf(wxT("Count: %d"),count++);
+		str += str2;
 
-	/* Render default window */
-	if(wDefault != NULL)
-		wDefault->paintNow();
+		SetStatusText(str);
 
-	/* Render channel window */
-	if(wChannel != NULL)
-		wChannel->paintNow();
+		/* Render default window */
+		if(wDefault != NULL)
+			wDefault->paintNow();
 
-	/* Render channel window */
-	if(wAlmanac != NULL)
-		wAlmanac->paintNow();
+		/* Render channel window */
+		if(wChannel != NULL)
+			wChannel->paintNow();
 
-	/* Render channel window */
-	if(wEphemeris != NULL)
-		wEphemeris->paintNow();
+		/* Render channel window */
+		if(wAlmanac != NULL)
+			wAlmanac->paintNow();
 
-	/* Render SV Select window */
-	if(wSelect != NULL)
-		wSelect->paintNow();
+		/* Render channel window */
+		if(wEphemeris != NULL)
+			wEphemeris->paintNow();
 
-	/* Display acquisition */
-	if(wAcquisition != NULL)
-		wAcquisition->paintNow();
+		/* Render SV Select window */
+		if(wSelect != NULL)
+			wSelect->paintNow();
+
+		/* Display acquisition */
+		if(wAcquisition != NULL)
+			wAcquisition->paintNow();
+
+    }
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -482,7 +633,7 @@ void GUI_Toplevel::onMain(wxCommandEvent& WXUNUSED(event))
 		val = 0;
 		pSerial->formCommand(GET_SV_POSITION_C_ID, &val);
 
-		if(wChannel == NULL)
+		if(wChannel == NULL && (pSerial->getLog(CHANNEL_M_ID) == 0))
 		{
 			val = 0;
 			pSerial->formCommand(GET_CHANNEL_C_ID, &val);
@@ -514,7 +665,7 @@ void GUI_Toplevel::onChannel(wxCommandEvent& WXUNUSED(event))
 		delete wChannel;
 		wChannel = NULL;
 
-		if(wDefault == NULL)
+		if(wDefault == NULL && (pSerial->getLog(CHANNEL_M_ID) == 0))
 		{
 			val = 0;
 			pSerial->formCommand(GET_CHANNEL_C_ID, &val);

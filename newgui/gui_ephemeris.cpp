@@ -196,7 +196,6 @@ void GUI_Ephemeris::renderSV()
 	str.Printf(wxT("CRS:                       %.10g\n"),e->crs);
 	tDisplay->AppendText(str);
 
-
 }
 
 

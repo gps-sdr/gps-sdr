@@ -148,11 +148,11 @@ void Channel::Start(int32 _sv, Acq_Command_M result, int32 _corr_len)
 		case 1:
 			PLL_W(30.0);
 			break;
-		case 4:
-			PLL_W(24.0);
+		case 10:
+			PLL_W(25.0);
 			break;
 		case 20:
-			PLL_W(18.0);
+			PLL_W(20.0);
 			break;
 		default:
 			PLL_W(30.0);
@@ -563,7 +563,8 @@ void Channel::BitStuff()
 
 	uint32 lcv, temp_bit, feedbit;
 
-	if(bit_lock && (_1ms_epoch == 19))
+	//if(bit_lock && (_1ms_epoch == 19))
+	if(_1ms_epoch == 19)
 	{
 
 		/* Make a bit decision */
@@ -913,19 +914,23 @@ void Channel::Error()
 	/* Adjust integration length based on CN0 */
 	if(count > 5000)
 	{
-
 		if((mcn0 > 39.0) && (len != 1))
 		{
 			len = 1;
 			PLL_W(30.0);
 		}
 
-		if((mcn0 < 37.0) && (len != 20))
+		if((mcn0 < 37.0) && (len != 10))
 		{
-			len = 20;
-			PLL_W(15.0);
+			len = 10;
+			PLL_W(25.0);
 		}
 
+		if((mcn0 < 30.0) && (len != 20))
+		{
+			len = 20;
+			PLL_W(20.0);
+		}
 	}
 
 }

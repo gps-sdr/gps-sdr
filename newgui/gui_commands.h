@@ -24,6 +24,7 @@ class GUI_Commands: public iGUI_Commands
 		void setPointer(Message_Struct *_p){p = _p;};
 		void setSerial(GUI_Serial *_p){pSerial = _p;};
 
+		void onAll(wxCommandEvent& event);
 		void onPVT(wxCommandEvent& event);
 		void onChannel(wxCommandEvent& event);
 		void onEphemeris(wxCommandEvent& event);

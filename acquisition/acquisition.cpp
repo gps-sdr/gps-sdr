@@ -463,8 +463,7 @@ Acq_Command_M Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 		for(lcv2 = 0; lcv2 < 4; lcv2++)
 		{
 			/* Do both even and odd */
-			//for(k = 0; k < 2; k++)
-			k = 0;
+			for(k = 0; k < 2; k++)
 			{
 
 				/* Clear out incoherent int */
