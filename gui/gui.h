@@ -23,18 +23,15 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #ifndef GUI_H
 #define GUI_H
 
-/* Include standard headers, OS stuff */
-/*----------------------------------------------------------------------------------------------*/
-#include "includes.h"
-/*----------------------------------------------------------------------------------------------*/
-
 /* wxWidgets headers */
 /*----------------------------------------------------------------------------------------------*/
 #include "wx/wx.h"
+#include <wx/app.h>
 #include <wx/statusbr.h>
 #include <wx/gdicmn.h>
 #include <wx/font.h>
 #include <wx/colour.h>
+#include <wx/dcbuffer.h>
 #include <wx/settings.h>
 #include <wx/string.h>
 #include <wx/bitmap.h>
@@ -50,154 +47,31 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include <wx/process.h>
 /*----------------------------------------------------------------------------------------------*/
 
-#define ID_EXIT 1000
-
-
+/* Include standard headers, OS stuff */
 /*----------------------------------------------------------------------------------------------*/
-class GUI: public wxFrame
-{
-public:
-
-
-	private:
-
-		/* Capture the named pipe */
-		int 			k;
-		int 			last_k;
-		int				active_panel; /* Always hold the active panel */
-		int				gpipe;
-		int				gpipe2;
-		bool			gpipe_open;
-		wxString		status_str;
-		Telem_2_GUI_S 	tGUI;
-
-		/* GPS-SDR exec variables */
-		wxInputStream* 	gps_in;
-		wxOutputStream* gps_out;
-		wxProcess*		gps_proc;
-		int				gps_pid;
-		int				gps_active;
-
-		/* GPS-USRP exec variables */
-		wxInputStream* 	usrp_in;
-		wxOutputStream* usrp_out;
-		wxProcess*		usrp_proc;
-		int				usrp_pid;
-		int				usrp_active;
-
-	protected:
-
-		wxTimer 		*timer;
-
-		wxStatusBar*	m_statusbar;
-		wxMenuBar* 		m_menubar;
-
-		wxMenu* 		Menu;
-		wxNotebook* 	Main;
-
-		/* Navigation Tab */
-		wxPanel* 		pNavigation;
-		wxBoxSizer* 	sNavigation;
-		wxTextCtrl* 	tTracking;
-		wxTextCtrl* 	tNavigation;
-
-		/* Acquisition Tab */
-		wxPanel* 		pAcquisition;
-		wxSizer* 		sAcquisition;
-		wxTextCtrl* 	tAcquisition;
-
-		/* Ephemeris Tab */
-		wxPanel* 		pEphemeris;
-		wxSizer* 		sEphemeris;
-		wxTextCtrl* 	tEphemeris;
-
-		/* Constellation Tab */
-		wxPanel* 		pConstellation;
-		wxSizer* 		sConstellation;
-		wxTextCtrl* 	tConstellation;
-
-		/* EKF Tab */
-		wxPanel* 		pEKF;
-		wxSizer* 		sEKF;
-		wxTextCtrl* 	tEKF;
-
-		/* Threads Tab */
-		wxPanel* 		pThreads;
-		wxSizer* 		sThreads;
-		wxTextCtrl* 	tThreads;
-
-		/* Commands Tab */
-		wxPanel* 		pCommands;
-		wxSizer* 		sCommands;
-		wxTextCtrl* 	tCommands;
-
-		/* Logging Tab */
-		wxPanel* 		pConfig;
-		wxBoxSizer* 	sConfig;
-		wxTextCtrl* 	tConfig;
-		wxCheckListBox *cConfig;
-
-
-	public:
-
-		GUI(const wxString& title, const wxPoint& pos, const wxSize& size);
-		~GUI();
-		bool openPipe();
-		void readPipe();
-
-		void onTimer(wxTimerEvent& evt);
-		void onClose(wxCloseEvent& evt);
-		void OnQuit(wxCommandEvent& event);
-		void OnAbout(wxCommandEvent& event);
-		void OnStart(wxCommandEvent& event);
-		void OnStop(wxCommandEvent& event);
-		void OnUSRPStart(wxCommandEvent& event);
-		void OnUSRPStop(wxCommandEvent& event);
-	    void paintEvent(wxPaintEvent& evt);
-	    void paintNow();
-	    void render(wxDC& dc);
-
-	    void initNavigation();
-	    void renderNavigation();
-			void PrintChan(wxTextCtrl* _text);
-			void PrintNav(wxTextCtrl* _text);
-			void PrintSV(wxTextCtrl* _text);
-
-		void initAcquisition();
-	    void renderAcquisition();
-			void PrintHistory(wxTextCtrl* _text);
-
-		void initEphemeris();
-	    void renderEphemeris();
-			void PrintEphem(wxTextCtrl* _text);
-			void PrintAlmanac(wxTextCtrl* _text);
-
-		void initConstellation();
-	    void renderConstellation();
-
-	    void initEKF();
-	    void renderEKF();
-
-	    void initThreads();
-	    void renderThreads();
-
-	    void initCommands();
-	    void renderCommands();
-
-	    void initConfig();
-	    void renderConfig();
-
-	    DECLARE_EVENT_TABLE()
-
-};
+#include "includes.h"
+#include "gui_classes.h"
+#include "gui_serial.h"
+#include "gui_default.h"
+#include "gui_almanac.h"
+#include "gui_ephemeris.h"
+#include "gui_channel.h"
+#include "gui_commands.h"
+#include "gui_select.h"
+#include "gui_acquisition.h"
+#include "gui_toplevel.h"
 /*----------------------------------------------------------------------------------------------*/
 
+
+#define ID_EXIT  1000
+#define ID_TIMER 9999
 
 /*----------------------------------------------------------------------------------------------*/
 class GUI_App: public wxApp
 {
 
-	GUI *frame;
+	GUI_Toplevel *pMain;
+
     bool render_loop_on;
     virtual bool OnInit();
     void onIdle(wxIdleEvent& evt);

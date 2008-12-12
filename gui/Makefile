@@ -9,37 +9,39 @@ CINCPATHFLAGS = -I../accessories	\
 				-I../objects		\
 				-I../simd
 				
-VPATH		=   ../accessories:	\
-				../acquisition:	\
-				../includes:	\
-				../main:		\
-				../objects:		\
-				../simd:			
+#VPATH		=   ../accessories:	\
+#				../acquisition:	\
+#				../includes:	\
+#				../main:		\
+#				../objects:		\
+#				../simd:			
 									
 
-WX_FLAGS = `wx-config --libs` `wx-config --cxxflags`
-LDFLAGS	 = -lpthread -lncurses
-CFLAGS   = $(WX_FLAGS) $(CINCPATHFLAGS) 
+WX_FLAGS = `wx-config --libs` 
+LDFLAGS	 = -lpthread
+CFLAGS   = -D_FORTIFY_SOURCE=0 `wx-config --cxxflags` $(CINCPATHFLAGS) 
 
 HEADERS =   
-OBJS =		gui.o
 
-EXE =		gui		
+SRC = $(wildcard *.cpp)
+OBJ = $(SRC:.cpp=.o)
+HEADERS = $(wildcard *.h)
 
-All: $(EXE)
+EXE = gps-gui
 
-#gui: $(OBJS) $(DIS) $(HEADERS)
-#	 $(LINK) $(LDFLAGS) -o $@ gui.o $(OBJS)
+all: $(EXE)
 
-gui: gui.cpp gui.h
-	 $(CC) $(CFLAGS) gui.cpp -o gps-gui
-	mv gps-gui ../gps-gui
-	
-#%.o:%.cpp $(HEADERS)
-#	$(CC) $(CFLAGS) -c $< -o $@ 
-	
+$(EXE): $(OBJ) $(SRC) $(HEADERS)
+	 $(LINK) $(LDFLAGS) $(WX_FLAGS) $(OBJ) -o $@
+	 cp $(EXE) ../$(EXE)
+	  
+%.o : %.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c $< -o $@ 
+
 clean:
-	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -o -name "*.out" -o -name "*.m~"  -o -name "*.tlm" \) -print`
-	@rm -rvf `find . \( -name "*.klm" -o -name "gui" \) -print`	
-	@rm -rvf $(EXE)
+	@rm -rv *.o
+	@rm -rv $(EXE)
 
+test:
+	echo $(SRC)
+	echo $(OBJ)

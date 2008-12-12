@@ -45,7 +45,9 @@ TEST =	simd-test	\
 		
 all: $(EXE)
 
-extras: $(EXE) $(EXTRAS) $(TEST)
+extras: $(EXTRAS)
+
+test: $(TEST)
 
 gui: gps-gui
 
@@ -71,8 +73,7 @@ acq-test: acq-test.o $(OBJS)
 	$(ASM) $(CFLAGS) -c $< -o $@
 
 gps-gui:
-	make --directory=./newgui clean
-	make --directory=./newgui
+	make --directory=./gui
 	
 gps-usrp:
 	make --directory=./usrp
