@@ -1,34 +1,33 @@
 /*
- * gui_Channel.h
+ * gui_pseudo.h
  *
  *  Created on: Nov 4, 2008
  *      Author: gheckler
  */
 
-#ifndef GUI_CHANNEL_H_
-#define GUI_CHANNEL_H_
+#ifndef GUI_PSEUDO_H_
+#define GUI_PSEUDO_H_
 
 #include "gui.h"
 
 /*----------------------------------------------------------------------------------------------*/
-class GUI_Channel: public iGUI_Channel, public GUI_Object
+class GUI_Pseudo: public iGUI_Pseudo, public GUI_Object
 {
 
 	private:
 
-
 	public:
 
-		GUI_Channel();
-		~GUI_Channel();
+		GUI_Pseudo();
+		~GUI_Pseudo();
 
+		void onClose(wxCloseEvent& evt);
 		void paintNow();
 		void render(wxDC& dc);
-		void onClose(wxCloseEvent& evt);
 
 		DECLARE_EVENT_TABLE()
 
 };
 /*----------------------------------------------------------------------------------------------*/
 
-#endif /* GUI_Channel_H_ */
+#endif /* GUI_Pseudo_H_ */

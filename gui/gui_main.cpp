@@ -10,29 +10,36 @@
 DECLARE_APP(GUI_App)
 
 /*----------------------------------------------------------------------------------------------*/
-BEGIN_EVENT_TABLE(GUI_Default, wxFrame)
-    EVT_CLOSE(GUI_Default::onClose)
+BEGIN_EVENT_TABLE(GUI_Main, wxFrame)
+    EVT_CLOSE(GUI_Main::onClose)
 END_EVENT_TABLE()
 /*----------------------------------------------------------------------------------------------*/
 
-GUI_Default::GUI_Default():iGUI_Default(NULL, wxID_ANY, wxT("Main"), wxDefaultPosition, wxSize(980,600), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL)
+GUI_Main::GUI_Main():iGUI_Main(NULL, wxID_ANY, wxT("Main"), wxDefaultPosition, wxSize(980,600), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL)
 {
 
 }
 
-GUI_Default::~GUI_Default()
+GUI_Main::~GUI_Main()
 {
 
 
 }
 
-void GUI_Default::paintNow()
+void GUI_Main::onClose(wxCloseEvent& evt)
+{
+	wxCommandEvent cevt;
+	evt.Veto();
+	pToplevel->onMain(cevt);
+}
+
+void GUI_Main::paintNow()
 {
     wxClientDC dc(this);
     render(dc);
 }
 
-void GUI_Default::render(wxDC& dc)
+void GUI_Main::render(wxDC& dc)
 {
 
 	renderCN0();
@@ -41,7 +48,7 @@ void GUI_Default::render(wxDC& dc)
 
 }
 
-void GUI_Default::renderCN0()
+void GUI_Main::renderCN0()
 {
 
 	Channel_M *pchan;
@@ -63,7 +70,7 @@ void GUI_Default::renderCN0()
 	scaleX = w/maxX; scaleY = h/maxY;
 	mX = w/2; mY = h/2;
 
-	dc.SetFont(wxFont(12, wxDEFAULT, wxNORMAL, wxNORMAL));
+	dc.SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxNORMAL, wxNORMAL));
 
 	dc.SetPen(wxPen(wxColor(0,0,0), 1, wxLONG_DASH ));
     dc.DrawLine(mX-500*scaleX, h-800*scaleY, mX+500*scaleX, h-800*scaleY);
@@ -121,7 +128,7 @@ void GUI_Default::renderCN0()
 
 }
 
-void GUI_Default::renderSkyPlot()
+void GUI_Main::renderSkyPlot()
 {
 
 	int mX, mY, lcv, rval, gval;
@@ -213,22 +220,13 @@ void GUI_Default::renderSkyPlot()
 
 }
 
-void GUI_Default::renderPVT()
+void GUI_Main::renderPVT()
 {
 
 	wxString str;
 	SPS_M *pNav = &p->sps;
 	Clock_M *pClock = &p->clock;
 
-
-//	tPVT->Clear();
-	//tPVT->SetFont(wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Monospace")));
-
-
-//	str.Printf(wxT("Nav SVs:\t%-2d\n"),pNav->nav_channels);
-//	tPVT->AppendText(str);
-//	str.Printf(wxT("Receiver Time:\t%10.2f\n"),(float)pNav->tic/(float)TICS_PER_SECOND);
-//	tPVT->AppendText(str);
 	str.Printf(wxT("% 15.2f"),pNav->x);						px->SetLabel(str);
 	str.Printf(wxT("% 15.2f"),pNav->y);						py->SetLabel(str);
 	str.Printf(wxT("% 15.2f"),pNav->z);						pz->SetLabel(str);
@@ -242,24 +240,4 @@ void GUI_Default::renderPVT()
 	str.Printf(wxT("%15.6f"),pClock->rate);					cr->SetLabel(str);
 	str.Printf(wxT("%15.6f"),pClock->time);					gpst->SetLabel(str);
 
-
-//
-//	str.Printf(wxT("\t\t\t      X\t\t      Y\t\t      Z\n"));
-//	tPVT->AppendText(str);
-//	str.Printf(wxT("Position (m):\t%15.2f\t%15.2f\t%15.2f\n"),pNav->x,pNav->y,pNav->z);
-//	tPVT->AppendText(str);
-//	str.Printf(wxT("Vel (cm/s):\t%15.2f\t%15.2f\t%15.2f\n"),100.0*pNav->vx,100.0*pNav->vy,100.0*pNav->vz);
-//	tPVT->AppendText(str);
-//	str.Printf(wxT("\n"));
-//	tPVT->AppendText(str);
-//	str.Printf(wxT("\t\t\t    Lat\t\t   Long\t\t    Alt\n"));
-//	tPVT->AppendText(str);
-//	str.Printf(wxT("\t\t%15.9f\t%15.9f\t%15.4f\n"),pNav->latitude*RAD_2_DEG,pNav->longitude*RAD_2_DEG,pNav->altitude);
-//	tPVT->AppendText(str);
-//	str.Printf(wxT("\n"));
-//	tPVT->AppendText(str);
-//	str.Printf(wxT("\t\t     Clock Bias\t     Clock Rate\t       GPS Time\n"));
-//	tPVT->AppendText(str);
-//	str.Printf(wxT("\t\t%15.6f\t%15.7f\t%15.6f\n"),pClock->bias,pClock->rate,pClock->time);
-//	tPVT->AppendText(str);
 }

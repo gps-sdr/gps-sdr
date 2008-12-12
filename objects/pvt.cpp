@@ -182,8 +182,8 @@ void PVT::Export()
 		if(good_channels[lcv] && ephemerides[lcv].valid)
 		{
 			master_nav.nsvs += (0x1 << lcv);
+			master_nav.chanmap[lcv] = master_sv[lcv];
 		}
-		master_nav.chanmap[lcv] = ephemerides[lcv].valid;
 	}
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)

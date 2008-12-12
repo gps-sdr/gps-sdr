@@ -26,6 +26,13 @@ GUI_Select::~GUI_Select()
 
 }
 
+void GUI_Select::onClose(wxCloseEvent& evt)
+{
+	wxCommandEvent cevt;
+	evt.Veto();
+	pToplevel->onSelect(cevt);
+}
+
 void GUI_Select::paintNow()
 {
     wxClientDC dc(this);
@@ -79,7 +86,7 @@ void GUI_Select::renderDoppler()
 
     /* Draw intermediate lines */
     dc.SetBrush(wxBrush(wxColor(0,0,0)));
-    dc.SetFont(wxFont(10, wxDEFAULT, wxNORMAL, wxBOLD));
+    dc.SetFont(wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL));
     dc.SetPen(wxPen(wxColor(0,0,0), 1, wxLONG_DASH ));
     for(lcv = 0; lcv < 11; lcv++)
     {

@@ -32,6 +32,13 @@ GUI_Ephemeris::~GUI_Ephemeris()
 
 }
 
+void GUI_Ephemeris::onClose(wxCloseEvent& evt)
+{
+	wxCommandEvent cevt;
+	evt.Veto();
+	pToplevel->onEphemeris(cevt);
+}
+
 void GUI_Ephemeris::paintNow()
 {
     wxClientDC dc(this);
@@ -113,6 +120,8 @@ void GUI_Ephemeris::renderDecoded()
 	box[1].x = dX;	box[1].y = 0;
 	box[2].x = dX;	box[2].y = dY;
 	box[3].x = 0;	box[3].y = dY;
+
+	dc.SetFont(wxFont(12, wxDEFAULT, wxNORMAL, wxNORMAL));
 
 	/* Render the decoded ephemerides */
 	for(lcv = 0; lcv < NUM_CODES; lcv++)

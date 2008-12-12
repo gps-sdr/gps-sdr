@@ -11,8 +11,9 @@ class GUI_Toplevel: public iGUI_Toplevel
 
 		/* Add all the "subwindows" here */
 		int count;
-		GUI_Default		*wDefault;
+		GUI_Main		*wMain;
 		GUI_Channel		*wChannel;
+		GUI_Pseudo		*wPseudo;
 		GUI_Commands	*wCommands;
 		GUI_Almanac		*wAlmanac;
 		GUI_Ephemeris	*wEphemeris;
@@ -67,6 +68,7 @@ class GUI_Toplevel: public iGUI_Toplevel
 
 		void onMain(wxCommandEvent& event);
 		void onChannel(wxCommandEvent& event);
+		void onPseudo(wxCommandEvent& event);
 		void onCommands(wxCommandEvent& event);
 		void onEphemeris(wxCommandEvent& event);
 		void onAlmanac(wxCommandEvent& event);

@@ -4,13 +4,11 @@
 #include "gui.h"
 
 /*----------------------------------------------------------------------------------------------*/
-class GUI_Acquisition: public iGUI_Acquisition
+class GUI_Acquisition: public iGUI_Acquisition, public GUI_Object
 {
 
 	private:
 
-		Message_Struct *p;
-		class GUI_Serial *pSerial;
 		Acq_Command_M acq_command[3][NUM_CODES];
 		int32 sv;
 		float scale[3];
@@ -23,9 +21,7 @@ class GUI_Acquisition: public iGUI_Acquisition
 
 		void render(wxDC& dc);
 		void paintNow();
-		void setSerial(GUI_Serial *_p){pSerial = _p;};
-		void setPointer(Message_Struct *_p){p = _p;};
-		void onClose(wxCloseEvent& evt){evt.Veto();};
+		void onClose(wxCloseEvent& evt);
 		void renderBars(int32 _type);
 		void copyBuff();
 

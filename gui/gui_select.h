@@ -4,13 +4,11 @@
 #include "gui.h"
 
 /*----------------------------------------------------------------------------------------------*/
-class GUI_Select: public iGUI_Select
+class GUI_Select: public iGUI_Select, public GUI_Object
 {
 
 	private:
 
-		Message_Struct *p;
-		class GUI_Serial *pSerial;
 		int32 sv;
 		int32 tic;
 
@@ -19,11 +17,10 @@ class GUI_Select: public iGUI_Select
 		GUI_Select();
 		~GUI_Select();
 
+		void onClose(wxCloseEvent& evt);
 		void render(wxDC& dc);
 		void paintNow();
-		void setSerial(GUI_Serial *_p){pSerial = _p;};
-		void setPointer(Message_Struct *_p){p = _p;};
-		void onClose(wxCloseEvent& evt){evt.Veto();};
+
 		void renderDoppler();
 		void renderSV();
 		void renderRec();

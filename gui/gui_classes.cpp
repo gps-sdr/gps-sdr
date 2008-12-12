@@ -89,8 +89,8 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	bAcquisition = new wxToggleButton( this, ID_ACQUISITION_B, wxT("Acquisition"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bAcquisition, 0, wxALL|wxEXPAND, 5 );
 	
-	bSV_Select = new wxToggleButton( this, ID_SELECT_B, wxT("SV_Select"), wxDefaultPosition, wxDefaultSize, 0 );
-	SubWindows->Add( bSV_Select, 0, wxALL|wxEXPAND, 5 );
+	bSelect = new wxToggleButton( this, ID_SELECT_B, wxT("SV_Select"), wxDefaultPosition, wxDefaultSize, 0 );
+	SubWindows->Add( bSelect, 0, wxALL|wxEXPAND, 5 );
 	
 	bEphemeris = new wxToggleButton( this, ID_EPHEMERIS_B, wxT("Ephemeris"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bEphemeris, 0, wxALL|wxEXPAND, 5 );
@@ -156,7 +156,7 @@ iGUI_Toplevel::~iGUI_Toplevel()
 {
 }
 
-iGUI_Default::iGUI_Default( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+iGUI_Main::iGUI_Main( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
@@ -253,19 +253,19 @@ iGUI_Default::iGUI_Default( wxWindow* parent, wxWindowID id, const wxString& tit
 	
 	gSizer1->Add( 0, 0, 1, wxEXPAND, 5 );
 	
-	m_staticText18 = new wxStaticText( this, wxID_ANY, wxT("Lat"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText18 = new wxStaticText( this, wxID_ANY, wxT("Latitude"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
 	m_staticText18->Wrap( -1 );
 	m_staticText18->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
 	
 	gSizer1->Add( m_staticText18, 0, wxALL|wxEXPAND, 5 );
 	
-	m_staticText19 = new wxStaticText( this, wxID_ANY, wxT("Long"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText19 = new wxStaticText( this, wxID_ANY, wxT("Longitude"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
 	m_staticText19->Wrap( -1 );
 	m_staticText19->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
 	
 	gSizer1->Add( m_staticText19, 0, wxALL|wxEXPAND, 5 );
 	
-	m_staticText21 = new wxStaticText( this, wxID_ANY, wxT("Height"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	m_staticText21 = new wxStaticText( this, wxID_ANY, wxT("Altitude"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
 	m_staticText21->Wrap( -1 );
 	m_staticText21->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
 	
@@ -352,13 +352,13 @@ iGUI_Default::iGUI_Default( wxWindow* parent, wxWindowID id, const wxString& tit
 	this->Layout();
 	
 	// Connect Events
-	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( iGUI_Default::OnClose ) );
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( iGUI_Main::OnClose ) );
 }
 
-iGUI_Default::~iGUI_Default()
+iGUI_Main::~iGUI_Main()
 {
 	// Disconnect Events
-	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( iGUI_Default::OnClose ) );
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( iGUI_Main::OnClose ) );
 }
 
 iGUI_Channel::iGUI_Channel( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
@@ -702,10 +702,10 @@ iGUI_Pseudo::iGUI_Pseudo( wxWindow* parent, wxWindowID id, const wxString& title
 	wxBoxSizer* bSizer9;
 	bSizer9 = new wxBoxSizer( wxVERTICAL );
 	
-	tPseudos = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
-	tPseudos->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
+	tPseudo = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tPseudo->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
-	bSizer9->Add( tPseudos, 1, wxALL|wxEXPAND, 5 );
+	bSizer9->Add( tPseudo, 1, wxALL|wxEXPAND, 5 );
 	
 	this->SetSizer( bSizer9 );
 	this->Layout();
@@ -765,13 +765,13 @@ iGUI_Log::iGUI_Log( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	bSizer31->Add( 0, 0, 1, wxEXPAND, 5 );
 	
-	bCancel = new wxButton( this, wxID_ANY, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer31->Add( bCancel, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+	bCancel = new wxButton( this, wxID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer31->Add( bCancel, 0, wxALIGN_CENTER_VERTICAL, 5 );
 	
 	bOK = new wxButton( this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer31->Add( bOK, 0, wxLEFT|wxRIGHT, 5 );
+	bSizer31->Add( bOK, 0, wxLEFT, 5 );
 	
-	bSizer30->Add( bSizer31, 0, wxALIGN_RIGHT, 5 );
+	bSizer30->Add( bSizer31, 0, wxALIGN_RIGHT|wxALL, 5 );
 	
 	this->SetSizer( bSizer30 );
 	this->Layout();

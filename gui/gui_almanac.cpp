@@ -24,10 +24,18 @@ GUI_Almanac::GUI_Almanac():iGUI_Almanac(NULL, wxID_ANY, wxT("Almanac"), wxDefaul
 	loaded = 0;
 }
 
+
 GUI_Almanac::~GUI_Almanac()
 {
 
 
+}
+
+void GUI_Almanac::onClose(wxCloseEvent& evt)
+{
+	wxCommandEvent cevt;
+	evt.Veto();
+	pToplevel->onAlmanac(cevt);
 }
 
 void GUI_Almanac::paintNow()
@@ -110,6 +118,8 @@ void GUI_Almanac::renderDecoded()
 	box[1].x = dX;	box[1].y = 0;
 	box[2].x = dX;	box[2].y = dY;
 	box[3].x = 0;	box[3].y = dY;
+
+    dc.SetFont(wxFont(12, wxDEFAULT, wxNORMAL, wxNORMAL));
 
 	/* Render the decoded ephemerides */
 	for(lcv = 0; lcv < NUM_CODES; lcv++)

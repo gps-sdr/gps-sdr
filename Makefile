@@ -45,7 +45,7 @@ TEST =	simd-test	\
 		
 all: $(EXE)
 
-extras: $(EXTRAS)
+extras:	guiclean $(EXTRAS)
 
 test: $(TEST)
 
@@ -85,8 +85,11 @@ clean_o:
 	
 minclean:
 	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -o -name "*.out" -o -name "*.m~"  -o -name "*.tlm" \) -print`
-	@rm -rvf `find . \( -name "*.klm" -o -name "fft-test" -o -name "acq-test" -o -name "current.*" -o -name "usrp-gps" -o -name "gps-gui" -o -name "gps-usrp" \) -print`	
+	@rm -rvf `find . \( -name "*.klm" -o -name "fft-test" -o -name "acq-test" -o -name "current.*" -o -name "gps-gui" -o -name "gps-usrp" \) -print`	
 	@rm -rvf $(EXE)
+	
+guiclean:
+	@rm -rvf `find . \( -name "gps-gui" \) -print`	
 	
 exclean:	
 	@rm -rvf `find . \( -name "*.txt" -o -name "*.png" \) -print`

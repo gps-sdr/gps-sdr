@@ -288,8 +288,16 @@ void GUI_Serial::readPipe()
 			case CHANNEL_M_ID:
 				pipeRead(&m->channel[MAX_CHANNELS], sizeof(Channel_M));
 				chan = m->channel[MAX_CHANNELS].chan;
-				memcpy(&m->channel[chan], &m->channel[MAX_CHANNELS], sizeof(Channel_M));
-				if(log_flag[CHANNEL_M_ID]) printChan(chan);
+				if((chan >= 0) && (chan < MAX_CHANNELS))
+				{
+					memcpy(&m->channel[chan], &m->channel[MAX_CHANNELS], sizeof(Channel_M));
+					if(log_flag[CHANNEL_M_ID]) printChan(chan);
+				}
+				else
+				{
+					message_sync = 0;
+					packet_count[LAST_M_ID]++;
+				}
 				break;
 			case SPS_M_ID:
 				pipeRead(&m->sps, sizeof(SPS_M));
@@ -302,7 +310,15 @@ void GUI_Serial::readPipe()
 			case SV_POSITION_M_ID:
 				pipeRead(&m->sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
 				chan = m->sv_positions[MAX_CHANNELS].chan;
-				memcpy(&m->sv_positions[chan], &m->sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
+				if((chan >= 0) && (chan < MAX_CHANNELS))
+				{
+					memcpy(&m->sv_positions[chan], &m->sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
+				}
+				else
+				{
+					message_sync = 0;
+					packet_count[LAST_M_ID]++;
+				}
 				break;
 			case EKF_M_ID:
 				pipeRead(&m->task_health, sizeof(Task_Health_M));
@@ -311,23 +327,55 @@ void GUI_Serial::readPipe()
 			case MEASUREMENT_M_ID:
 				pipeRead(&m->measurements[MAX_CHANNELS], sizeof(Measurement_M));
 				chan = m->measurements[MAX_CHANNELS].chan;
-				memcpy(&m->measurements[chan], &m->measurements[MAX_CHANNELS], sizeof(Measurement_M));
+				if((chan >= 0) && (chan < MAX_CHANNELS))
+				{
+					memcpy(&m->measurements[chan], &m->measurements[MAX_CHANNELS], sizeof(Measurement_M));
+				}
+				else
+				{
+					message_sync = 0;
+					packet_count[LAST_M_ID]++;
+				}
 				break;
 			case PSEUDORANGE_M_ID:
 				pipeRead(&m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
 				chan = m->pseudoranges[MAX_CHANNELS].chan;
-				memcpy(&m->pseudoranges[chan], &m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
-				if(log_flag[PSEUDORANGE_M_ID]) printPseudo(chan);
+				if((chan >= 0) && (chan < MAX_CHANNELS))
+				{
+					memcpy(&m->pseudoranges[chan], &m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
+					if(log_flag[PSEUDORANGE_M_ID]) printPseudo(chan);
+				}
+				else
+				{
+					message_sync = 0;
+					packet_count[LAST_M_ID]++;
+				}
 				break;
 			case EPHEMERIS_M_ID:
 				pipeRead(&m->ephemerides[NUM_CODES], sizeof(Ephemeris_M));
 				chan = m->ephemerides[NUM_CODES].sv;
-				memcpy(&m->ephemerides[chan], &m->ephemerides[NUM_CODES], sizeof(Ephemeris_M));
+				if((chan >= 0) && (chan < NUM_CODES))
+				{
+					memcpy(&m->ephemerides[chan], &m->ephemerides[NUM_CODES], sizeof(Ephemeris_M));
+				}
+				else
+				{
+					message_sync = 0;
+					packet_count[LAST_M_ID]++;
+				}
 				break;
 			case ALMANAC_M_ID:
 				pipeRead(&m->almanacs[NUM_CODES], sizeof(Almanac_M));
 				chan = m->almanacs[NUM_CODES].sv;
-				memcpy(&m->almanacs[chan], &m->almanacs[NUM_CODES], sizeof(Almanac_M));
+				if((chan >= 0) && (chan < NUM_CODES))
+				{
+					memcpy(&m->almanacs[chan], &m->almanacs[NUM_CODES], sizeof(Almanac_M));
+				}
+				else
+				{
+					message_sync = 0;
+					packet_count[LAST_M_ID]++;
+				}
 				break;
 			case EPHEMERIS_VALID_M_ID:
 				pipeRead(&m->ephemeris_status, sizeof(Ephemeris_Status_M));
@@ -338,12 +386,29 @@ void GUI_Serial::readPipe()
 			case SV_PREDICTION_M_ID:
 				pipeRead(&m->sv_predictions[NUM_CODES], sizeof(SV_Prediction_M));
 				chan = m->sv_predictions[NUM_CODES].sv;
-				memcpy(&m->sv_predictions[chan], &m->sv_predictions[NUM_CODES], sizeof(SV_Prediction_M));
+				if((chan >= 0) && (chan < NUM_CODES))
+				{
+					memcpy(&m->sv_predictions[chan], &m->sv_predictions[NUM_CODES], sizeof(SV_Prediction_M));
+				}
+				else
+				{
+					message_sync = 0;
+					packet_count[LAST_M_ID]++;
+				}
 				break;
 			case ACQ_COMMAND_M_ID:
 				pipeRead(&m->acq_command[NUM_CODES], sizeof(Acq_Command_M));
 				chan = m->acq_command[NUM_CODES].sv;
-				memcpy(&m->acq_command[chan], &m->acq_command[NUM_CODES], sizeof(Acq_Command_M));
+				if((chan >= 0) && (chan < NUM_CODES))
+				{
+					memcpy(&m->acq_command[chan], &m->acq_command[NUM_CODES], sizeof(Acq_Command_M));
+				}
+				else
+				{
+					message_sync = 0;
+					packet_count[LAST_M_ID]++;
+				}
+
 				break;
 			case COMMAND_ACK_M_ID:
 				pipeRead(&m->command_ack, sizeof(Command_Ack_M));

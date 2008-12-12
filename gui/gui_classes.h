@@ -81,7 +81,7 @@ class iGUI_Toplevel : public wxFrame
 		wxToggleButton* bChannel;
 		wxToggleButton* bPseudo;
 		wxToggleButton* bAcquisition;
-		wxToggleButton* bSV_Select;
+		wxToggleButton* bSelect;
 		wxToggleButton* bEphemeris;
 		wxToggleButton* bAlmanac;
 		wxToggleButton* bCommands;
@@ -100,9 +100,9 @@ class iGUI_Toplevel : public wxFrame
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Class iGUI_Default
+/// Class iGUI_Main
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_Default : public wxFrame 
+class iGUI_Main : public wxFrame 
 {
 	private:
 	
@@ -147,8 +147,8 @@ class iGUI_Default : public wxFrame
 		
 	
 	public:
-		iGUI_Default( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Main"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 935,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
-		~iGUI_Default();
+		iGUI_Main( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Main"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 935,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~iGUI_Main();
 	
 };
 
@@ -299,7 +299,7 @@ class iGUI_Pseudo : public wxFrame
 	private:
 	
 	protected:
-		wxTextCtrl* tPseudos;
+		wxTextCtrl* tPseudo;
 	
 	public:
 		iGUI_Pseudo( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Pseudoranges"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );

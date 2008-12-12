@@ -32,6 +32,13 @@ GUI_Commands::~GUI_Commands()
 
 }
 
+void GUI_Commands::onClose(wxCloseEvent& evt)
+{
+	wxCommandEvent cevt;
+	evt.Veto();
+	pToplevel->onCommands(cevt);
+}
+
 void GUI_Commands::paintNow()
 {
     wxClientDC dc(this);
@@ -84,7 +91,7 @@ void GUI_Commands::onChannel(wxCommandEvent& event)
 		val = val-1;
 
 	pSerial->formCommand(RESET_CHANNEL_C_ID, &val);
-	str.Printf(wxT("Reset Channel:\t%d\n"),val);
+	str.Printf(wxT("Reset Channel:\t\t%d\n"),val);
 	tCommand_Ack->AppendText(str);
 }
 
@@ -120,7 +127,7 @@ void GUI_Commands::onAlmanac(wxCommandEvent& event)
 		val = val-1;
 
 	pSerial->formCommand(RESET_ALMANAC_C_ID, &val);
-	str.Printf(wxT("Reset Almanac:\t%d\n"),val+1);
+	str.Printf(wxT("Reset Almanac:\t\t%d\n"),val+1);
 	tCommand_Ack->AppendText(str);
 }
 

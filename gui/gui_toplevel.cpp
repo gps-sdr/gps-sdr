@@ -24,6 +24,7 @@ BEGIN_EVENT_TABLE(GUI_Toplevel, wxFrame)
     EVT_TIMER(ID_TIMER,				GUI_Toplevel::onTimer)
     EVT_TOGGLEBUTTON(ID_MAIN_B,		GUI_Toplevel::onMain)
     EVT_TOGGLEBUTTON(ID_CHANNEL_B,	GUI_Toplevel::onChannel)
+    EVT_TOGGLEBUTTON(ID_PSEUDO_B,	GUI_Toplevel::onPseudo)
     EVT_TOGGLEBUTTON(ID_SPEED_B,	GUI_Toplevel::onSpeed)
     EVT_TOGGLEBUTTON(ID_COMMANDS_B,	GUI_Toplevel::onCommands)
     EVT_TOGGLEBUTTON(ID_ALMANAC_B,	GUI_Toplevel::onAlmanac)
@@ -42,7 +43,7 @@ GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS-SDR"), wxDef
     timer = new wxTimer(this, ID_TIMER);
     timer->Start(100, wxTIMER_CONTINUOUS); //Shoot for 20 fps
 
-    wDefault = NULL;
+    wMain = NULL;
 
     pSerial = new GUI_Serial;
     pSerial->Start();
@@ -59,11 +60,14 @@ GUI_Toplevel::~GUI_Toplevel()
 	pSerial->Stop();
 	delete pSerial;
 
-	if(wDefault)
-		delete wDefault;
+	if(wMain)
+		delete wMain;
 
 	if(wChannel)
 		delete wChannel;
+
+	if(wPseudo)
+		delete wPseudo;
 
 	if(wAlmanac)
 		delete wAlmanac;
@@ -481,13 +485,17 @@ void GUI_Toplevel::render(wxDC& dc)
 
 		SetStatusText(str);
 
-		/* Render default window */
-		if(wDefault != NULL)
-			wDefault->paintNow();
+		/* Render main window */
+		if(wMain != NULL)
+			wMain->paintNow();
 
 		/* Render channel window */
 		if(wChannel != NULL)
 			wChannel->paintNow();
+
+		/* Render channel window */
+		if(wPseudo != NULL)
+			wPseudo->paintNow();
 
 		/* Render channel window */
 		if(wAlmanac != NULL)
@@ -542,8 +550,9 @@ void GUI_Toplevel::renderFIFO()
 void GUI_Toplevel::renderRS422()
 {
 
-
 	wxString str;
+
+	pSerial->Lock();
 
 	tRS422->Clear();
 
@@ -574,6 +583,9 @@ void GUI_Toplevel::renderRS422()
 		bytes_sec = bytes_pres - bytes_prev;
 		bytes_prev = bytes_pres;
 	}
+
+	pSerial->Unlock();
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -630,10 +642,11 @@ void GUI_Toplevel::onMain(wxCommandEvent& WXUNUSED(event))
 
 	int32 val;
 
-	if(wDefault)
+	if(wMain)
 	{
-		delete wDefault;
-		wDefault = NULL;
+		delete wMain;
+		wMain = NULL;
+		bMain->SetValue(false);
 
 		val = 0;
 		pSerial->formCommand(GET_SV_POSITION_C_ID, &val);
@@ -646,9 +659,12 @@ void GUI_Toplevel::onMain(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
-		wDefault = new GUI_Default();
-		wDefault->setPointer(&messages);
-		wDefault->Show(TRUE);
+		wMain = new GUI_Main();
+		wMain->setPointer(&messages);
+		wMain->setSerial(pSerial);
+		wMain->setToplevel(this);
+		wMain->Show(TRUE);
+		bMain->SetValue(true);
 
 		val = 1;
 		pSerial->formCommand(GET_SV_POSITION_C_ID, &val);
@@ -669,8 +685,9 @@ void GUI_Toplevel::onChannel(wxCommandEvent& WXUNUSED(event))
 	{
 		delete wChannel;
 		wChannel = NULL;
+		bChannel->SetValue(false);
 
-		if(wDefault == NULL && (pSerial->getLog(CHANNEL_M_ID) == 0))
+		if(wMain == NULL && (pSerial->getLog(CHANNEL_M_ID) == 0))
 		{
 			val = 0;
 			pSerial->formCommand(GET_CHANNEL_C_ID, &val);
@@ -680,10 +697,46 @@ void GUI_Toplevel::onChannel(wxCommandEvent& WXUNUSED(event))
 	{
 		wChannel = new GUI_Channel();
 		wChannel->setPointer(&messages);
+		wChannel->setSerial(pSerial);
+		wChannel->setToplevel(this);
 		wChannel->Show(TRUE);
+		bChannel->SetValue(true);
 
 		val = 1;
 		pSerial->formCommand(GET_CHANNEL_C_ID, &val);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onPseudo(wxCommandEvent& WXUNUSED(event))
+{
+	int32 val;
+
+	if(wPseudo)
+	{
+		delete wPseudo;
+		wPseudo = NULL;
+		bPseudo->SetValue(false);
+
+		if(wPseudo == NULL && (pSerial->getLog(PSEUDORANGE_M_ID) == 0))
+		{
+			val = 0;
+			pSerial->formCommand(GET_PSEUDORANGE_C_ID, &val);
+		}
+	}
+	else
+	{
+		wPseudo = new GUI_Pseudo();
+		wPseudo->setPointer(&messages);
+		wPseudo->setSerial(pSerial);
+		wPseudo->setToplevel(this);
+		wPseudo->Show(TRUE);
+		bPseudo->SetValue(true);
+
+		val = 1;
+		pSerial->formCommand(GET_PSEUDORANGE_C_ID, &val);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -697,13 +750,16 @@ void GUI_Toplevel::onCommands(wxCommandEvent& WXUNUSED(event))
 	{
 		delete wCommands;
 		wCommands = NULL;
+		bCommands->SetValue(false);
 	}
 	else
 	{
 		wCommands = new GUI_Commands();
 		wCommands->setPointer(&messages);
 		wCommands->setSerial(pSerial);
+		wCommands->setToplevel(this);
 		wCommands->Show(TRUE);
+		bCommands->SetValue(true);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -717,14 +773,18 @@ void GUI_Toplevel::onAlmanac(wxCommandEvent& WXUNUSED(event))
 	{
 		delete wAlmanac;
 		wAlmanac = NULL;
+		bAlmanac->SetValue(false);
 	}
 	else
 	{
 		wAlmanac = new GUI_Almanac();
 		wAlmanac->setPointer(&messages);
 		wAlmanac->setSerial(pSerial);
+		wAlmanac->setToplevel(this);
 		wAlmanac->Show(TRUE);
+		bAlmanac->SetValue(true);
 	}
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -737,13 +797,16 @@ void GUI_Toplevel::onEphemeris(wxCommandEvent& WXUNUSED(event))
 	{
 		delete wEphemeris;
 		wEphemeris = NULL;
+		bEphemeris->SetValue(false);
 	}
 	else
 	{
 		wEphemeris = new GUI_Ephemeris();
 		wEphemeris->setPointer(&messages);
 		wEphemeris->setSerial(pSerial);
+		wEphemeris->setToplevel(this);
 		wEphemeris->Show(TRUE);
+		bEphemeris->SetValue(true);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -757,13 +820,16 @@ void GUI_Toplevel::onSelect(wxCommandEvent& WXUNUSED(event))
 	{
 		delete wSelect;
 		wSelect = NULL;
+		bSelect->SetValue(false);
 	}
 	else
 	{
 		wSelect = new GUI_Select();
 		wSelect->setPointer(&messages);
 		wSelect->setSerial(pSerial);
+		wSelect->setToplevel(this);
 		wSelect->Show(TRUE);
+		bSelect->SetValue(true);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -777,13 +843,16 @@ void GUI_Toplevel::onAcquisition(wxCommandEvent& WXUNUSED(event))
 	{
 		delete wAcquisition;
 		wAcquisition = NULL;
+		bAcquisition->SetValue(false);
 	}
 	else
 	{
 		wAcquisition = new GUI_Acquisition();
 		wAcquisition->setPointer(&messages);
 		wAcquisition->setSerial(pSerial);
+		wAcquisition->setToplevel(this);
 		wAcquisition->Show(TRUE);
+		bAcquisition->SetValue(true);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/

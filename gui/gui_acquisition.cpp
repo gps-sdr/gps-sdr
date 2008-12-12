@@ -26,6 +26,13 @@ GUI_Acquisition::~GUI_Acquisition()
 	memset(&acq_command, NUM_CODES*3, sizeof(Acq_Command_M));
 }
 
+void GUI_Acquisition::onClose(wxCloseEvent& evt)
+{
+	wxCommandEvent cevt;
+	evt.Veto();
+	pToplevel->onAcquisition(cevt);
+}
+
 void GUI_Acquisition::paintNow()
 {
     wxClientDC dc(this);

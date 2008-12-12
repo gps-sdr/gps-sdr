@@ -27,28 +27,20 @@ GUI_Channel::~GUI_Channel()
 
 }
 
-void GUI_Channel::setPointer(Message_Struct *_p)
+void GUI_Channel::onClose(wxCloseEvent& evt)
 {
-	p = _p;
+	wxCommandEvent cevt;
+	evt.Veto();
+	pToplevel->onChannel(cevt);
 }
 
 void GUI_Channel::paintNow()
 {
-
     wxClientDC dc(this);
     render(dc);
-
 }
 
 void GUI_Channel::render(wxDC& dc)
-{
-
-
-	renderChannel();
-
-}
-
-void GUI_Channel::renderChannel()
 {
 
 	SPS_M *pNav = &p->sps;
@@ -109,7 +101,8 @@ void GUI_Channel::renderChannel()
 		}
 		else
 		{
-			str.Printf(wxT("%2d   --   --   ----------   --------------   -----   --   ---------   ----------   ------\n"),lcv);
+			//str.Printf(wxT("%2d   --   --   ----------   --------------   -----   --   ---------   ----------   ------\n"),lcv);
+			str.Printf(wxT("%2d                                                                                       \n"),lcv);
 			tChannel->AppendText(str);
 		}
 	}
