@@ -58,7 +58,8 @@ enum CCSDS_COMMAND_IDS
 */
 typedef struct Reset_All_C
 {
-	int32 flag;		//!< Flag for no reason
+	int32 command_id;	//!< Command identifier
+	int32 flag;			//!< Flag for no reason
 } Reset_All_C;
 
 /*! \ingroup COMMANDS
@@ -66,7 +67,8 @@ typedef struct Reset_All_C
 */
 typedef struct Reset_PVT_C
 {
-	int32 flag;		//!< Flag for no reason
+	int32 command_id;	//!< Command identifier
+	int32 flag;			//!< Flag for no reason
 } Reset_PVT_C;
 
 
@@ -75,7 +77,8 @@ typedef struct Reset_PVT_C
 */
 typedef struct Reset_EKF_C
 {
-	int32 flag;		//!< Flag for no reason
+	int32 command_id;	//!< Command identifier
+	int32 flag;			//!< Flag for no reason
 } Reset_EKF_C;
 
 
@@ -84,7 +87,8 @@ typedef struct Reset_EKF_C
 */
 typedef struct Reset_Channel_C
 {
-	int32 chan;		//!< Channel #, or all if chan >= MAX_CHANNELS
+	int32 command_id;	//!< Command identifier
+	int32 chan;			//!< Channel #, or all if chan >= MAX_CHANNELS
 } Reset_Channel_C;
 
 
@@ -93,7 +97,8 @@ typedef struct Reset_Channel_C
 */
 typedef struct Reset_Ephemeris_C
 {
-	int32 sv;		//!< SV #, or all if sv >= NUM_CODES
+	int32 command_id;	//!< Command identifier
+	int32 sv;			//!< SV #, or all if sv >= NUM_CODES
 } Reset_Ephemeris_C;
 
 
@@ -102,7 +107,8 @@ typedef struct Reset_Ephemeris_C
 */
 typedef struct Reset_Almanac_C
 {
-	int32 sv;		//!< SV #, or all if sv >= NUM_CODES
+	int32 command_id;	//!< Command identifier
+	int32 sv;			//!< SV #, or all if sv >= NUM_CODES
 } Reset_Almanac_C;
 
 
@@ -111,7 +117,8 @@ typedef struct Reset_Almanac_C
 */
 typedef struct Get_Measurement_C
 {
-	int32 flag;		//!< On/off
+	int32 command_id;	//!< Command identifier
+	int32 flag;			//!< On/off
 } Get_Measurement_C;
 
 
@@ -120,7 +127,8 @@ typedef struct Get_Measurement_C
 */
 typedef struct Get_Pseudorange_C
 {
-	int32 flag;		//!< On/off
+	int32 command_id;	//!< Command identifier
+	int32 flag;			//!< On/off
 } Get_Pseudorange_C;
 
 
@@ -129,7 +137,8 @@ typedef struct Get_Pseudorange_C
 */
 typedef struct Get_Ephemeris_C
 {
-	int32 sv;		//!< SV #, or all if sv >= NUM_CODES || sv < 0
+	int32 command_id;	//!< Command identifier
+	int32 sv;			//!< SV #, or all if sv >= NUM_CODES || sv < 0
 } Get_Ephemeris_C;
 
 
@@ -138,7 +147,8 @@ typedef struct Get_Ephemeris_C
 */
 typedef struct Get_Almanac_C
 {
-	int32 sv;		//!< SV #, or all if sv >= NUM_CODES || sv < 0
+	int32 command_id;	//!< Command identifier
+	int32 sv;			//!< SV #, or all if sv >= NUM_CODES || sv < 0
 } Get_Almanac_C;
 
 
@@ -147,6 +157,7 @@ typedef struct Get_Almanac_C
 */
 typedef struct Set_Almanac_C
 {
+	int32 command_id;		//!< Command identifier
 	int32 sv;				//!< SV #
 	Almanac_M almanac;		//!< Data to load
 } Set_Almanac_C;
@@ -157,6 +168,7 @@ typedef struct Set_Almanac_C
 */
 typedef struct Set_Ephemeris_C
 {
+	int32 command_id;		//!< Command identifier
 	int32 sv;				//!< SV #
 	Ephemeris_M ephemeris;	//!< Data to load
 } Set_Ephemeris_C;
@@ -167,6 +179,7 @@ typedef struct Set_Ephemeris_C
 */
 typedef struct Set_Acq_Config_C
 {
+	int32 command_id;		//!< Command identifier
 	Acq_Config_M acq_config;
 } Set_Acq_Config_C;
 
@@ -176,6 +189,7 @@ typedef struct Set_Acq_Config_C
 */
 typedef struct Set_PVT_C
 {
+	int32 command_id;		//!< Command identifier
 	double x;				//!< ECEF X position (meters)
 	double y;				//!< ECEF Y position (meters)
 	double z;				//!< ECEF Z position (meters)
@@ -192,6 +206,7 @@ typedef struct Set_PVT_C
 */
 typedef struct Get_Acq_Config_C
 {
+	int32 command_id;		//!< Command identifier
 	int32 flag; 			//!< Not used
 } Get_Acq_Config_C;
 
@@ -201,6 +216,7 @@ typedef struct Get_Acq_Config_C
 */
 typedef struct Get_SV_Prediction_C
 {
+	int32 command_id;		//!< Command identifier
 	int32 sv; 				//!< SV $
 } Get_SV_Prediction_C;
 
@@ -210,6 +226,7 @@ typedef struct Get_SV_Prediction_C
 */
 typedef struct Get_Ephemeris_Valid_C
 {
+	int32 command_id;		//!< Command identifier
 	int32 flag; 			//!< Not used
 } Get_Ephemeris_Valid_C;
 
@@ -219,6 +236,7 @@ typedef struct Get_Ephemeris_Valid_C
 */
 typedef struct Get_Board_Health_C
 {
+	int32 command_id;		//!< Command identifier
 	int32 flag; 			//!< Not used
 } Get_Board_Health_C;
 
@@ -228,6 +246,7 @@ typedef struct Get_Board_Health_C
 */
 typedef struct Get_Acq_Command_C
 {
+	int32 command_id;	//!< Command identifier
 	int32 sv; 			//!< SV #
 } Get_Acq_Command_C;
 
@@ -237,6 +256,7 @@ typedef struct Get_Acq_Command_C
 */
 typedef struct Get_SV_Position_C
 {
+	int32 command_id;	//!< Command identifier
 	int32 flag; 		//!< On/off
 } Get_SV_Position_C;
 
@@ -246,6 +266,7 @@ typedef struct Get_SV_Position_C
 */
 typedef struct Get_Channel_C
 {
+	int32 command_id;	//!< Command identifier
 	int32 flag; 		//!< On/off
 } Get_Channel_C;
 

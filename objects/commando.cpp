@@ -80,7 +80,7 @@ Commando::~Commando()
 void Commando::Import()
 {
 
-	uint32 bread;
+	uint32 bread, id;
 
 	bread = read(Telem_2_Cmd_P[READ], &command_header, sizeof(CCSDS_Packet_Header));//!< Read in the head
 	DecodeCCSDSPacketHeader(&decoded_header, &command_header);						//!< Decode the commmand
@@ -88,8 +88,14 @@ void Commando::Import()
 
 	IncStartTic();
 
+	/* Make sure the command is in the correct format */
+	if(decoded_header.id == COMMAND_M_ID)
+		id = command_body.reset_all.command_id;
+	else
+		return;
+
 	/* Now do something based on the command */
-	switch(decoded_header.id)
+	switch(id)
 	{
 		case RESET_ALL_C_ID:
 			resetReset();

@@ -29,7 +29,8 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 enum CCSDS_MESSAGES_IDS
 {
 	FIRST_M_ID,
-	FIFO_M_ID,
+	COMMAND_M_ID,
+	COMMAND_ACK_M_ID,
 	TASK_HEALTH_M_ID,
 	SPS_M_ID,
 	CLOCK_M_ID,
@@ -45,7 +46,7 @@ enum CCSDS_MESSAGES_IDS
 	ACQ_COMMAND_M_ID,
 	ACQ_CONFIG_M_ID,
 	BOARD_HEALTH_M_ID,
-	COMMAND_ACK_M_ID,
+	FIFO_M_ID,
 	LAST_M_ID
 };
 

@@ -28,8 +28,8 @@
 #include <wx/stattext.h>
 #include <wx/button.h>
 #include <wx/choice.h>
-#include <wx/filepicker.h>
 #include <wx/checkbox.h>
+#include <wx/filepicker.h>
 #include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -188,7 +188,7 @@ class iGUI_Commands : public wxFrame
 		wxTextCtrl* tCommand_Ack;
 	
 	public:
-		iGUI_Commands( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Commands"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 400,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		iGUI_Commands( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Commands"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Commands();
 	
 };
@@ -302,7 +302,7 @@ class iGUI_Pseudo : public wxFrame
 		wxTextCtrl* tPseudos;
 	
 	public:
-		iGUI_Pseudo( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Pseudoranges"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		iGUI_Pseudo( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Pseudoranges"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Pseudo();
 	
 };
@@ -320,13 +320,13 @@ class iGUI_Log : public wxDialog
 		wxButton* bOK;
 	
 	public:
-		wxFilePickerCtrl* mFile;
 		wxCheckBox* cChan;
 		wxCheckBox* cClock;
 		wxCheckBox* cPseudo;
 		wxCheckBox* cTask;
 		wxCheckBox* cEKF;
 		wxCheckBox* cPVT;
+		wxFilePickerCtrl* mFile;
 		iGUI_Log( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Logging Config"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE );
 		~iGUI_Log();
 	

@@ -41,7 +41,7 @@ class Commando : public Threaded_Object
 		Union_C				command_body;			//!< Body of the command
 		Union_M				message_buff;			//!< Transmit sheit over
 		Command_Ack_M		command_ack;			//!< Dump the acknowledge
-		uint32				command_tic;
+		uint32				command_tic;			//!< Count received commands
 
 	public:
 

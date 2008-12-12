@@ -105,6 +105,7 @@ class GUI_Serial : public Threaded_Object
 		void logStop();
 		void logClear();
 		void setLogFile(const char *_str);
+		char *getLogFile(){return(&filename[0]);};
 
 		void printChan(int32 _chan);
 		void printPVT();

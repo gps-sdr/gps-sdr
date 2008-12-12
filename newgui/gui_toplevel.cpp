@@ -301,6 +301,11 @@ void GUI_Toplevel::onLogConfig(wxCommandEvent& WXUNUSED(event))
 	log.cEKF->SetValue(pSerial->getLog(EKF_M_ID));
 	log.cPVT->SetValue(pSerial->getLog(SPS_M_ID));
 
+	//str.sprintf(wxT("%s"),pSerial->getLogFile());
+
+	//log.mFile->SetPath(str);
+	//status_str = str;
+
 	if(log.ShowModal() == wxID_OK)
 	{
 		pSerial->Lock();

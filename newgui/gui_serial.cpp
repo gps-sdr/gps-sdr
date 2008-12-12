@@ -456,83 +456,103 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 	{
 		case RESET_ALL_C_ID:
 			cb->reset_all.flag = 1;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_All_C), 1, command_tic++);
+			cb->reset_all.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Reset_All_C), 1, command_tic++);
 			break;
 		case RESET_PVT_C_ID:
 			cb->reset_pvt.flag = 1;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_PVT_C), 1, command_tic++);
+			cb->reset_pvt.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Reset_PVT_C), 1, command_tic++);
 			break;
 		case RESET_CHANNEL_C_ID:
 			cb->reset_channel.chan = *(int32 *)_p;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_Channel_C), 1, command_tic++);
+			cb->reset_channel.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Reset_Channel_C), 1, command_tic++);
 			break;
 		case RESET_EPHEMERIS_C_ID:
 			cb->reset_ephemeris.sv = *(int32 *)_p;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_Ephemeris_C), 1, command_tic++);
+			cb->reset_all.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Reset_Ephemeris_C), 1, command_tic++);
 			break;
 		case RESET_ALMANAC_C_ID:
 			cb->reset_almanac.sv = *(int32 *)_p;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Reset_Almanac_C), 1, command_tic++);
+			cb->reset_almanac.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Reset_Almanac_C), 1, command_tic++);
 			break;
 		case GET_MEASUREMENT_C_ID:
 			cb->get_measurement.flag = *(int32 *)_p;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Measurement_C), 1, command_tic++);
+			cb->get_measurement.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Get_Measurement_C), 1, command_tic++);
 			break;
 		case GET_PSEUDORANGE_C_ID:
 			cb->get_pseudorange.flag = *(int32 *)_p;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Pseudorange_C), 1, command_tic++);
+			cb->get_pseudorange.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Get_Pseudorange_C), 1, command_tic++);
 			break;
 		case GET_EPHEMERIS_C_ID:
 			cb->get_ephemeris.sv = *(int32 *)_p;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Ephemeris_C), 1, command_tic++);
+			cb->get_ephemeris.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Get_Ephemeris_C), 1, command_tic++);
 			break;
 		case GET_ALMANAC_C_ID:
 			cb->get_almanac.sv = *(int32 *)_p;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Almanac_C), 1, command_tic++);
+			cb->get_almanac.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Get_Almanac_C), 1, command_tic++);
 			break;
 		case SET_EPHEMERIS_C_ID:
 			memcpy(&cb->set_ephemeris, _p, sizeof(Set_Ephemeris_C));
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Set_Ephemeris_C), 1, command_tic++);
+			cb->set_ephemeris.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Set_Ephemeris_C), 1, command_tic++);
 			break;
 		case SET_ALMANAC_C_ID:
 			memcpy(&cb->set_almanac, _p, sizeof(Set_Almanac_C));
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Set_Almanac_C), 1, command_tic++);
+			cb->set_almanac.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Set_Almanac_C), 1, command_tic++);
 			break;
 		case SET_ACQ_CONFIG_C_ID:
 			memcpy(&cb->set_acq_config, _p, sizeof(Set_Acq_Config_C));
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Set_Acq_Config_C), 1, command_tic++);
+			cb->set_acq_config.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Set_Acq_Config_C), 1, command_tic++);
 			break;
 		case SET_PVT_C_ID:
 			memcpy(&cb->set_pvt, _p, sizeof(Set_PVT_C));
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Set_PVT_C), 1, command_tic++);
+			cb->set_pvt.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Set_PVT_C), 1, command_tic++);
 			break;
 		case GET_ACQ_CONFIG_C_ID:
 			cb->get_acq_config.flag = 1;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Acq_Config_C), 1, command_tic++);
+			cb->get_acq_config.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Get_Acq_Config_C), 1, command_tic++);
 			break;
 		case GET_SV_PREDICTION_C_ID:
 			cb->get_sv_prediction.sv = *(int32 *)_p;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_SV_Prediction_C), 1, command_tic++);
+			cb->get_sv_prediction.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Get_SV_Prediction_C), 1, command_tic++);
 			break;
 		case GET_EPHEMERIS_VALID_C_ID:
 			cb->get_ephemeris_valid.flag = 1;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Ephemeris_Valid_C), 1, command_tic++);
+			cb->get_ephemeris_valid.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Get_Ephemeris_Valid_C), 1, command_tic++);
 			break;
 		case GET_BOARD_HEALTH_C_ID:
 			cb->get_board_health.flag = 1;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Board_Health_C), 1, command_tic++);
+			cb->get_board_health.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Get_Board_Health_C), 1, command_tic++);
 			break;
 		case GET_ACQ_COMMAND_C_ID:
 			cb->get_acq_command.sv = *(int32 *)_p;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Acq_Command_C), 1, command_tic++);
+			cb->get_acq_command.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Get_Acq_Command_C), 1, command_tic++);
 			break;
 		case GET_SV_POSITION_C_ID:
 			cb->get_sv_position.flag = *(int32 *)_p;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_SV_Position_C), 1, command_tic++);
+			cb->get_sv_position.command_id = _id;
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Get_SV_Position_C), 1, command_tic++);
 			break;
 		case GET_CHANNEL_C_ID:
+			cb->get_channel.command_id = _id;
 			cb->get_channel.flag = *(int32 *)_p;
-			FormCCSDSPacketHeader(ch, _id, 0, sizeof(Get_Channel_C), 1, command_tic++);
+			FormCCSDSPacketHeader(ch, COMMAND_M_ID, 0, sizeof(Get_Channel_C), 1, command_tic++);
 			break;
 		default:
 			command_ready[command_head] = 0;

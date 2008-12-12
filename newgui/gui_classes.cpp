@@ -463,10 +463,11 @@ iGUI_Commands::iGUI_Commands( wxWindow* parent, wxWindowID id, const wxString& t
 	tCommand_Ack = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
 	tCommand_Ack->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
-	bSizer11->Add( tCommand_Ack, 1, wxALL|wxEXPAND, 5 );
+	bSizer11->Add( tCommand_Ack, 0, wxALL|wxEXPAND, 5 );
 	
 	this->SetSizer( bSizer11 );
 	this->Layout();
+	bSizer11->Fit( this );
 }
 
 iGUI_Commands::~iGUI_Commands()
@@ -721,9 +722,6 @@ iGUI_Log::iGUI_Log( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	wxBoxSizer* bSizer30;
 	bSizer30 = new wxBoxSizer( wxVERTICAL );
 	
-	mFile = new wxFilePickerCtrl( this, wxID_ANY, wxEmptyString, wxT("Select a file"), wxT("*.log"), wxDefaultPosition, wxSize( 600,-1 ), wxFLP_OVERWRITE_PROMPT|wxFLP_SAVE|wxFLP_USE_TEXTCTRL );
-	bSizer30->Add( mFile, 0, wxALL|wxEXPAND, 5 );
-	
 	wxStaticBoxSizer* sbSizer14;
 	sbSizer14 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Logged Items") ), wxVERTICAL );
 	
@@ -758,6 +756,9 @@ iGUI_Log::iGUI_Log( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	bSizer30->Add( sbSizer14, 1, wxALL|wxEXPAND, 5 );
 	
+	mFile = new wxFilePickerCtrl( this, wxID_ANY, wxEmptyString, wxT("Create/Open File for Logging"), wxT("*.log"), wxDefaultPosition, wxSize( 600,-1 ), wxFLP_OVERWRITE_PROMPT|wxFLP_SAVE|wxFLP_USE_TEXTCTRL );
+	bSizer30->Add( mFile, 0, wxALL|wxEXPAND, 5 );
+	
 	wxBoxSizer* bSizer31;
 	bSizer31 = new wxBoxSizer( wxHORIZONTAL );
 	
@@ -765,12 +766,12 @@ iGUI_Log::iGUI_Log( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	bSizer31->Add( 0, 0, 1, wxEXPAND, 5 );
 	
 	bCancel = new wxButton( this, wxID_ANY, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer31->Add( bCancel, 0, wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND, 5 );
+	bSizer31->Add( bCancel, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 	
 	bOK = new wxButton( this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer31->Add( bOK, 0, wxALL|wxEXPAND, 5 );
+	bSizer31->Add( bOK, 0, wxLEFT|wxRIGHT, 5 );
 	
-	bSizer30->Add( bSizer31, 0, wxEXPAND, 5 );
+	bSizer30->Add( bSizer31, 0, wxALIGN_RIGHT, 5 );
 	
 	this->SetSizer( bSizer30 );
 	this->Layout();
