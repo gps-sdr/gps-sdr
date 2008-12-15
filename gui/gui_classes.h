@@ -34,35 +34,37 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
-#define ID_About 1000
-#define ID_Quit 1001
-#define ID_GPS_Start 1002
-#define ID_GPS_Stop 1003
-#define ID_USRP_Start 1004
-#define ID_USRP_Stop 1005
-#define ID_LOG_CONFIG 1006
-#define ID_LOG_START 1007
-#define ID_LOG_STOP 1008
-#define ID_LOG_CLEAR 1009
-#define ID_MAIN_B 1010
-#define ID_CHANNEL_B 1011
-#define ID_PSEUDO_B 1012
-#define ID_ACQUISITION_B 1013
-#define ID_SELECT_B 1014
-#define ID_EPHEMERIS_B 1015
-#define ID_ALMANAC_B 1016
-#define ID_COMMANDS_B 1017
-#define ID_CONFIG_B 1018
-#define ID_SPEED_B 1019
-#define ID_RESET_ALL 1020
-#define ID_RESET_PVT 1021
-#define ID_RESET_CHANNEL 1022
-#define ID_RESET_EPHEMERIS 1023
-#define ID_RESET_ALMANAC 1024
-#define ID_EPHEMERIS_SAVE 1025
-#define ID_EPHEMERIS_LOAD 1026
-#define ID_ALMANAC_SAVE 1027
-#define ID_ALMANAC_LOAD 1028
+#define ID_ABOUT 1000
+#define ID_QUIT 1001
+#define ID_NAMED_PIPE 1002
+#define ID_SERIAL_PORT 1003
+#define ID_GPS_START 1004
+#define ID_GPS_STOP 1005
+#define ID_USRP_START 1006
+#define ID_USRP_STOP 1007
+#define ID_LOG_CONFIG 1008
+#define ID_LOG_START 1009
+#define ID_LOG_STOP 1010
+#define ID_LOG_CLEAR 1011
+#define ID_MAIN_B 1012
+#define ID_CHANNEL_B 1013
+#define ID_PSEUDO_B 1014
+#define ID_ACQUISITION_B 1015
+#define ID_SELECT_B 1016
+#define ID_EPHEMERIS_B 1017
+#define ID_ALMANAC_B 1018
+#define ID_COMMANDS_B 1019
+#define ID_CONFIG_B 1020
+#define ID_SPEED_B 1021
+#define ID_RESET_ALL 1022
+#define ID_RESET_PVT 1023
+#define ID_RESET_CHANNEL 1024
+#define ID_RESET_EPHEMERIS 1025
+#define ID_RESET_ALMANAC 1026
+#define ID_EPHEMERIS_SAVE 1027
+#define ID_EPHEMERIS_LOAD 1028
+#define ID_ALMANAC_SAVE 1029
+#define ID_ALMANAC_LOAD 1030
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Toplevel
@@ -74,6 +76,7 @@ class iGUI_Toplevel : public wxFrame
 	protected:
 		wxMenuBar* mMenuBar;
 		wxMenu* mFile;
+		wxMenu* mIO;
 		wxMenu* mReceiver;
 		wxMenu* mUSRP;
 		wxMenu* mLogging;
@@ -304,6 +307,22 @@ class iGUI_Pseudo : public wxFrame
 	public:
 		iGUI_Pseudo( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Pseudoranges"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Pseudo();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class iGUI_Speed
+///////////////////////////////////////////////////////////////////////////////
+class iGUI_Speed : public wxFrame 
+{
+	private:
+	
+	protected:
+		wxPanel* m_panel12;
+	
+	public:
+		iGUI_Speed( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Speedometer"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~iGUI_Speed();
 	
 };
 

@@ -22,6 +22,8 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #include "gui_serial.h"
 
+GUI_Serial *aGUI_Serial;
+
 /*----------------------------------------------------------------------------------------------*/
 /* Form the CCSDS packet header with the given _apid, sequence flag, and packet length, and command bit */
 void FormCCSDSPacketHeader(CCSDS_Packet_Header *_p, uint32 _apid, uint32 _sf, uint32 _pl, uint32 _cm, uint32 _tic)
@@ -47,33 +49,11 @@ void DecodeCCSDSPacketHeader(CCSDS_Decoded_Header *_d, CCSDS_Packet_Header *_p)
 
 
 /*----------------------------------------------------------------------------------------------*/
-/* This is global so it can be handled by the signal handler */
-int gpipe_open[2];
-int gpipe[2];
 int grun;
 
-void openPipe(int32 _pipe)
+void pipe_closed(int _sig)
 {
-
-	gpipe[_pipe] = -1;
-
-	if(_pipe == WRITE)
-		gpipe[_pipe] = open("/tmp/GUI2GPS",O_WRONLY | O_NONBLOCK);
-	else
-		gpipe[_pipe] = open("/tmp/GPS2GUI",O_RDONLY | O_NONBLOCK);
-
-	if(gpipe[_pipe] != -1)
-		gpipe_open[_pipe] = true;
-
-	usleep(1000000);
-
-}
-
-
-void gps_2_gui_pipe_close(int _sig)
-{
-	gpipe_open[READ] = false;
-	gpipe_open[WRITE] = false;
+	aGUI_Serial->setPipe(false);
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -82,7 +62,7 @@ void gps_2_gui_pipe_close(int _sig)
 void *GUI_Serial_Thread(void *_arg)
 {
 
-	GUI_Serial *aGUI_Serial = (GUI_Serial *)_arg;
+	aGUI_Serial = (GUI_Serial *)_arg;
 
 	while(grun)
 	{
@@ -113,15 +93,18 @@ GUI_Serial::GUI_Serial()
 	start_tic = 0;
 	stop_tic = 0;
 	message_sync = 0;
-	pipe_open = 0;
 	byte_count = 0;
 	command_head = 0;
 	command_tail = 0;
 	command_free = COMMAND_BUFFER_DEPTH;
-	gpipe_open[READ] = false;
-	gpipe_open[WRITE] = false;
-	packet_count[LAST_M_ID] = 0;
+	npipe_open = false;
+	spipe_open = false;
+	serial = 0;
+	spipe = NULL;
+	npipe[READ] = NULL;
+	npipe[WRITE] = NULL;
 	lfile = NULL;
+	packet_count[LAST_M_ID] = 0;
 	decoded_packet.tic = decoded_packet.id = decoded_packet.length = 0;
 	memset(&packet_count[0], 0x0, (LAST_M_ID+1)*sizeof(int));
 	memset(&messages.fifo, 0x0, sizeof(FIFO_M));
@@ -134,7 +117,7 @@ GUI_Serial::GUI_Serial()
 	memset(&filename[0], 0x0, 1024*sizeof(char));
 	memset(&log_flag[0], 0x0, LAST_M_ID*sizeof(char));
 
-	signal(SIGPIPE, gps_2_gui_pipe_close);
+	signal(SIGPIPE, pipe_closed);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -143,11 +126,113 @@ GUI_Serial::GUI_Serial()
 /*----------------------------------------------------------------------------------------------*/
 GUI_Serial::~GUI_Serial()
 {
+	if(lfile)
+		fclose(lfile);
 
-	if(lfile) fclose(lfile);
-	close(gpipe[READ]);
-	close(gpipe[WRITE]);
+	if(npipe[READ])
+		close(npipe[READ]);
+
+	if(npipe[WRITE])
+		close(npipe[WRITE]);
+
+	if(spipe)
+		close(spipe);
+
 	grun = false;
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::openSerial()
+{
+
+	spipe = open("/dev/ttyS0", O_RDWR | O_NOCTTY | O_NONBLOCK);
+    if(spipe < 0)
+    {
+    	usleep(1000000);
+    	spipe_open = false;
+    	spipe = NULL;
+    	return;
+    }
+
+    memset(&tty, 0x0, sizeof(tty));			//!< Initialize the port settings structure to all zeros
+    tty.c_cflag =  B115200 | CS8 | CLOCAL | CREAD | CRTSCTS;	//!< 8N1
+    tty.c_iflag = IGNPAR;
+    tty.c_oflag = 0;
+    tty.c_lflag = 0;
+    tty.c_cc[VMIN] = 0;      				//!< 0 means use-vtime
+    tty.c_cc[VTIME] = 1;      				//!< Time to wait until exiting read (tenths of a second)
+
+    tcflush(spipe, TCIFLUSH);				//!< flush old data
+    tcsetattr(spipe, TCSANOW, &tty);		//!< apply new settings
+    fcntl(spipe, F_SETFL, FASYNC);
+	fcntl(spipe, F_SETFL, O_NONBLOCK);
+	spipe_open = true;
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::openPipe()
+{
+
+	npipe[READ] = npipe[WRITE] = -1;
+	npipe[READ] = open("/tmp/GPS2GUI", O_RDONLY | O_NONBLOCK);
+	npipe[WRITE] = open("/tmp/GUI2GPS", O_WRONLY | O_NONBLOCK);
+
+	if((npipe[READ] != -1) && (npipe[WRITE] != -1))
+	{
+		npipe_open = true;
+	}
+	else
+	{
+		npipe_open = false;
+		usleep(1000000);
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::setPipe(bool _status)
+{
+	npipe_open = _status;
+	if(_status == false)
+	{
+		close(npipe[READ]);
+		close(npipe[WRITE]);
+		npipe[READ] = NULL;
+		npipe[WRITE] = NULL;
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::setIO(int32 _serial)
+{
+
+	if(spipe_open)
+	{
+		spipe_open = false;
+		close(spipe);
+		spipe = NULL;
+	}
+
+	if(npipe_open)
+	{
+		npipe_open = false;
+		close(npipe[READ]);
+		close(npipe[WRITE]);
+		npipe[READ] = NULL;
+		npipe[WRITE] = NULL;
+	}
+
+	serial = _serial;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -155,16 +240,24 @@ GUI_Serial::~GUI_Serial()
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Serial::Import()
 {
-
-	pipe_open = gpipe_open[READ];
-
 	/* Open the pipe */
-	if(gpipe_open[READ] == false)
-		openPipe(READ);
+	if(serial)
+	{
+		if(spipe_open)
+			readGPS();
+		else
+			openSerial();
+	}
 	else
-		readPipe();
+	{
+		if(npipe_open == true)
+			readGPS();
+		else
+			openPipe();
+	}
 
 	execution_tic++;
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -174,17 +267,27 @@ void GUI_Serial::Export()
 {
 
 	/* Open the pipe */
-	if(gpipe_open[WRITE] == false)
-		openPipe(WRITE);
+	if(serial)
+	{
+		if(spipe_open)
+			writeGPS();
+		else
+			openSerial();
+	}
 	else
-		writePipe();
+	{
+		if(npipe_open == true)
+			writeGPS();
+		else
+			openPipe();
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
-int GUI_Serial::pipeRead(void *_b, int32 _bytes)
+int GUI_Serial::Read(void *_b, int32 _bytes)
 {
 
 	int32 nbytes, bread;
@@ -194,8 +297,10 @@ int GUI_Serial::pipeRead(void *_b, int32 _bytes)
 	buff = (uint8 *)_b;
 	while((nbytes < _bytes) && grun)
 	{
-		if(gpipe_open[READ] == true)
-			bread = read(gpipe[READ], &buff[nbytes], _bytes - nbytes);
+		if(serial && spipe_open)
+			bread = read(spipe, &buff[nbytes], _bytes - nbytes);
+		else if(npipe_open)
+			bread = read(npipe[READ], &buff[nbytes], _bytes - nbytes);
 		else
 			nbytes = _bytes;
 
@@ -212,11 +317,18 @@ int GUI_Serial::pipeRead(void *_b, int32 _bytes)
 
 
 /*----------------------------------------------------------------------------------------------*/
-int GUI_Serial::pipeWrite(void *_b, int32 _bytes)
+int GUI_Serial::Write(void *_b, int32 _bytes)
 {
 
 	uint32 bwrote;
-	bwrote = write(gpipe[WRITE], _b, _bytes);
+
+	if(serial && spipe_open)
+		bwrote = write(spipe, _b, _bytes);
+	else if(npipe_open)
+		bwrote = write(npipe[WRITE], _b, _bytes);
+	else
+		bwrote = 0;
+
 	return(bwrote);
 
 }
@@ -224,7 +336,7 @@ int GUI_Serial::pipeWrite(void *_b, int32 _bytes)
 
 
 /*----------------------------------------------------------------------------------------------*/
-void GUI_Serial::readPipe()
+void GUI_Serial::readGPS()
 {
 	int32 nbytes, bread, k, chan;
 	uint8 v;
@@ -235,7 +347,7 @@ void GUI_Serial::readPipe()
 	{
 
 		/* Check to make sure the first 4 bytes are "0xAAAAAAAA" */
-		byte_count += pipeRead(&syncword, sizeof(uint32));
+		byte_count += Read(&syncword, sizeof(uint32));
 
 		if(syncword == 0xAAAAAAAA)
 		{
@@ -250,7 +362,7 @@ void GUI_Serial::readPipe()
 
 
 		/* If so get the packet header */
-		byte_count += pipeRead(&packet_header, sizeof(CCSDS_Packet_Header));
+		byte_count += Read(&packet_header, sizeof(CCSDS_Packet_Header));
 		DecodeCCSDSPacketHeader(&decoded_packet, &packet_header);
 
 		/* Catch some failures */
@@ -268,25 +380,25 @@ void GUI_Serial::readPipe()
 			return;
 		}
 
+		Lock();
+
 		/* For the bytes/sec calculation */
 		byte_count += decoded_packet.length;
 
 		packet_count[decoded_packet.id]++;
 
-		Lock();
-
 		/* Now copy in the body */
 		switch(decoded_packet.id)
 		{
 			case BOARD_HEALTH_M_ID:
-				pipeRead(&m->board_health, sizeof(Board_Health_M));
+				Read(&m->board_health, sizeof(Board_Health_M));
 				break;
 			case TASK_HEALTH_M_ID:
-				pipeRead(&m->task_health, sizeof(Task_Health_M));
+				Read(&m->task_health, sizeof(Task_Health_M));
 				if(log_flag[PSEUDORANGE_M_ID]) printTask();
 				break;
 			case CHANNEL_M_ID:
-				pipeRead(&m->channel[MAX_CHANNELS], sizeof(Channel_M));
+				Read(&m->channel[MAX_CHANNELS], sizeof(Channel_M));
 				chan = m->channel[MAX_CHANNELS].chan;
 				if((chan >= 0) && (chan < MAX_CHANNELS))
 				{
@@ -300,15 +412,15 @@ void GUI_Serial::readPipe()
 				}
 				break;
 			case SPS_M_ID:
-				pipeRead(&m->sps, sizeof(SPS_M));
+				Read(&m->sps, sizeof(SPS_M));
 				if(log_flag[SPS_M_ID]) printPVT();
 				break;
 			case CLOCK_M_ID:
-				pipeRead(&m->clock, sizeof(Clock_M));
+				Read(&m->clock, sizeof(Clock_M));
 				if(log_flag[CLOCK_M_ID]) printClock();
 				break;
 			case SV_POSITION_M_ID:
-				pipeRead(&m->sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
+				Read(&m->sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
 				chan = m->sv_positions[MAX_CHANNELS].chan;
 				if((chan >= 0) && (chan < MAX_CHANNELS))
 				{
@@ -321,11 +433,11 @@ void GUI_Serial::readPipe()
 				}
 				break;
 			case EKF_M_ID:
-				pipeRead(&m->task_health, sizeof(Task_Health_M));
+				Read(&m->task_health, sizeof(Task_Health_M));
 				if(log_flag[EKF_M_ID]) printEKF();
 				break;
 			case MEASUREMENT_M_ID:
-				pipeRead(&m->measurements[MAX_CHANNELS], sizeof(Measurement_M));
+				Read(&m->measurements[MAX_CHANNELS], sizeof(Measurement_M));
 				chan = m->measurements[MAX_CHANNELS].chan;
 				if((chan >= 0) && (chan < MAX_CHANNELS))
 				{
@@ -338,7 +450,7 @@ void GUI_Serial::readPipe()
 				}
 				break;
 			case PSEUDORANGE_M_ID:
-				pipeRead(&m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
+				Read(&m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
 				chan = m->pseudoranges[MAX_CHANNELS].chan;
 				if((chan >= 0) && (chan < MAX_CHANNELS))
 				{
@@ -352,7 +464,7 @@ void GUI_Serial::readPipe()
 				}
 				break;
 			case EPHEMERIS_M_ID:
-				pipeRead(&m->ephemerides[NUM_CODES], sizeof(Ephemeris_M));
+				Read(&m->ephemerides[NUM_CODES], sizeof(Ephemeris_M));
 				chan = m->ephemerides[NUM_CODES].sv;
 				if((chan >= 0) && (chan < NUM_CODES))
 				{
@@ -365,7 +477,7 @@ void GUI_Serial::readPipe()
 				}
 				break;
 			case ALMANAC_M_ID:
-				pipeRead(&m->almanacs[NUM_CODES], sizeof(Almanac_M));
+				Read(&m->almanacs[NUM_CODES], sizeof(Almanac_M));
 				chan = m->almanacs[NUM_CODES].sv;
 				if((chan >= 0) && (chan < NUM_CODES))
 				{
@@ -378,13 +490,13 @@ void GUI_Serial::readPipe()
 				}
 				break;
 			case EPHEMERIS_VALID_M_ID:
-				pipeRead(&m->ephemeris_status, sizeof(Ephemeris_Status_M));
+				Read(&m->ephemeris_status, sizeof(Ephemeris_Status_M));
 				break;
 			case FIFO_M_ID:
-				pipeRead(&m->fifo, sizeof(FIFO_M));
+				Read(&m->fifo, sizeof(FIFO_M));
 				break;
 			case SV_PREDICTION_M_ID:
-				pipeRead(&m->sv_predictions[NUM_CODES], sizeof(SV_Prediction_M));
+				Read(&m->sv_predictions[NUM_CODES], sizeof(SV_Prediction_M));
 				chan = m->sv_predictions[NUM_CODES].sv;
 				if((chan >= 0) && (chan < NUM_CODES))
 				{
@@ -397,7 +509,7 @@ void GUI_Serial::readPipe()
 				}
 				break;
 			case ACQ_COMMAND_M_ID:
-				pipeRead(&m->acq_command[NUM_CODES], sizeof(Acq_Command_M));
+				Read(&m->acq_command[NUM_CODES], sizeof(Acq_Command_M));
 				chan = m->acq_command[NUM_CODES].sv;
 				if((chan >= 0) && (chan < NUM_CODES))
 				{
@@ -411,16 +523,16 @@ void GUI_Serial::readPipe()
 
 				break;
 			case COMMAND_ACK_M_ID:
-				pipeRead(&m->command_ack, sizeof(Command_Ack_M));
+				Read(&m->command_ack, sizeof(Command_Ack_M));
 				break;
 //			case LAST_M_ID:
-//				pipeRead(&buff[0], decoded_packet.length);
+//				Read(&buff[0], decoded_packet.length);
 //				message_sync = 0;
 //				packet_count[LAST_M_ID]++;
 //				break;
 			default:
 				packet_count[LAST_M_ID]++;
-				pipeRead(&buff[0], decoded_packet.length);
+				Read(&buff[0], decoded_packet.length);
 				break;
 		}
 
@@ -430,7 +542,7 @@ void GUI_Serial::readPipe()
 	else
 	{
 		v = 0;
-		byte_count += pipeRead(&v, 1);
+		byte_count += Read(&v, 1);
 
 		syncword <<= 8;
 		syncword += (uint32)v;
@@ -440,11 +552,11 @@ void GUI_Serial::readPipe()
 			message_sync = 1;
 
 			/* If so get the packet header */
-			byte_count += pipeRead(&packet_header, sizeof(CCSDS_Packet_Header));
+			byte_count += Read(&packet_header, sizeof(CCSDS_Packet_Header));
 			DecodeCCSDSPacketHeader(&decoded_packet, &packet_header);
 
 			/* Get the body */
-			byte_count += pipeRead(&buff[0], decoded_packet.length);
+			byte_count += Read(&buff[0], decoded_packet.length);
 		}
 	}
 
@@ -453,7 +565,7 @@ void GUI_Serial::readPipe()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void GUI_Serial::writePipe()
+void GUI_Serial::writeGPS()
 {
 
 	uint32 preamble = 0xAAAAAAAA;
@@ -472,9 +584,9 @@ void GUI_Serial::writePipe()
 
 		if(command_ready[command_tail] && (command_sent[command_tail] == 0))
 		{
-			pipeWrite(&preamble, sizeof(uint32));
-			pipeWrite(ch, sizeof(CCSDS_Packet_Header));
-			pipeWrite(cb, dc->length);
+			Write(&preamble, sizeof(uint32));
+			Write(ch, sizeof(CCSDS_Packet_Header));
+			Write(cb, dc->length);
 			command_sent[command_tail] = 1;
 			command_tail++;
 			command_tail %= COMMAND_BUFFER_DEPTH;
@@ -754,7 +866,6 @@ void GUI_Serial::printTask()
 	{
 
 	}
-
 }
 /*----------------------------------------------------------------------------------------------*/
 

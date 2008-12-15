@@ -18,7 +18,7 @@
         <property name="relative_path">1</property>
         <property name="use_enum">0</property>
         <property name="use_microsoft_bom">0</property>
-        <object class="Frame" expanded="0">
+        <object class="Frame" expanded="1">
             <property name="bg"></property>
             <property name="center"></property>
             <property name="context_help"></property>
@@ -123,10 +123,10 @@
                         <property name="checked">0</property>
                         <property name="enabled">1</property>
                         <property name="help"></property>
-                        <property name="id">ID_About</property>
+                        <property name="id">ID_ABOUT</property>
                         <property name="kind">wxITEM_NORMAL</property>
                         <property name="label">About</property>
-                        <property name="name">miAbout</property>
+                        <property name="name">mAbout</property>
                         <property name="permission">none</property>
                         <property name="shortcut"></property>
                         <property name="unchecked_bitmap"></property>
@@ -138,10 +138,45 @@
                         <property name="checked">0</property>
                         <property name="enabled">1</property>
                         <property name="help"></property>
-                        <property name="id">ID_Quit</property>
+                        <property name="id">ID_QUIT</property>
                         <property name="kind">wxITEM_NORMAL</property>
                         <property name="label">Exit</property>
-                        <property name="name">miExit</property>
+                        <property name="name">mExit</property>
+                        <property name="permission">none</property>
+                        <property name="shortcut"></property>
+                        <property name="unchecked_bitmap"></property>
+                        <event name="OnMenuSelection"></event>
+                        <event name="OnUpdateUI"></event>
+                    </object>
+                </object>
+                <object class="wxMenu" expanded="1">
+                    <property name="label">Interface</property>
+                    <property name="name">mIO</property>
+                    <property name="permission">protected</property>
+                    <object class="wxMenuItem" expanded="1">
+                        <property name="bitmap"></property>
+                        <property name="checked">0</property>
+                        <property name="enabled">1</property>
+                        <property name="help"></property>
+                        <property name="id">ID_NAMED_PIPE</property>
+                        <property name="kind">wxITEM_NORMAL</property>
+                        <property name="label">Named Pipe</property>
+                        <property name="name">mNpipe</property>
+                        <property name="permission">none</property>
+                        <property name="shortcut"></property>
+                        <property name="unchecked_bitmap"></property>
+                        <event name="OnMenuSelection"></event>
+                        <event name="OnUpdateUI"></event>
+                    </object>
+                    <object class="wxMenuItem" expanded="1">
+                        <property name="bitmap"></property>
+                        <property name="checked">0</property>
+                        <property name="enabled">1</property>
+                        <property name="help"></property>
+                        <property name="id">ID_SERIAL_PORT</property>
+                        <property name="kind">wxITEM_NORMAL</property>
+                        <property name="label">Serial Port</property>
+                        <property name="name">mSerial</property>
                         <property name="permission">none</property>
                         <property name="shortcut"></property>
                         <property name="unchecked_bitmap"></property>
@@ -158,10 +193,10 @@
                         <property name="checked">0</property>
                         <property name="enabled">1</property>
                         <property name="help"></property>
-                        <property name="id">ID_GPS_Start</property>
+                        <property name="id">ID_GPS_START</property>
                         <property name="kind">wxITEM_NORMAL</property>
                         <property name="label">Start</property>
-                        <property name="name">miReceiverStart</property>
+                        <property name="name">mReceiverStart</property>
                         <property name="permission">none</property>
                         <property name="shortcut"></property>
                         <property name="unchecked_bitmap"></property>
@@ -171,12 +206,12 @@
                     <object class="wxMenuItem" expanded="1">
                         <property name="bitmap"></property>
                         <property name="checked">0</property>
-                        <property name="enabled">1</property>
+                        <property name="enabled">0</property>
                         <property name="help"></property>
-                        <property name="id">ID_GPS_Stop</property>
+                        <property name="id">ID_GPS_STOP</property>
                         <property name="kind">wxITEM_NORMAL</property>
                         <property name="label">Stop</property>
-                        <property name="name">miReceiverStop</property>
+                        <property name="name">mReceiverStop</property>
                         <property name="permission">none</property>
                         <property name="shortcut"></property>
                         <property name="unchecked_bitmap"></property>
@@ -193,10 +228,10 @@
                         <property name="checked">0</property>
                         <property name="enabled">1</property>
                         <property name="help"></property>
-                        <property name="id">ID_USRP_Start</property>
+                        <property name="id">ID_USRP_START</property>
                         <property name="kind">wxITEM_NORMAL</property>
                         <property name="label">Start</property>
-                        <property name="name">miUSRPStart</property>
+                        <property name="name">mUSRPStart</property>
                         <property name="permission">none</property>
                         <property name="shortcut"></property>
                         <property name="unchecked_bitmap"></property>
@@ -206,12 +241,12 @@
                     <object class="wxMenuItem" expanded="1">
                         <property name="bitmap"></property>
                         <property name="checked">0</property>
-                        <property name="enabled">1</property>
+                        <property name="enabled">0</property>
                         <property name="help"></property>
-                        <property name="id">ID_USRP_Stop</property>
+                        <property name="id">ID_USRP_STOP</property>
                         <property name="kind">wxITEM_NORMAL</property>
                         <property name="label">Stop</property>
-                        <property name="name">miUSRPStop</property>
+                        <property name="name">mUSRPStop</property>
                         <property name="permission">none</property>
                         <property name="shortcut"></property>
                         <property name="unchecked_bitmap"></property>

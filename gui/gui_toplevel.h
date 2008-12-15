@@ -65,6 +65,8 @@ class GUI_Toplevel: public iGUI_Toplevel
 		void onLogStart(wxCommandEvent& event);
 		void onLogStop(wxCommandEvent& event);
 		void onLogClear(wxCommandEvent& event);
+		void onNamedPipe(wxCommandEvent& event);
+		void onSerialPort(wxCommandEvent& event);
 
 		void onMain(wxCommandEvent& event);
 		void onChannel(wxCommandEvent& event);

@@ -11,16 +11,18 @@ DECLARE_APP(GUI_App)
 
 /*----------------------------------------------------------------------------------------------*/
 BEGIN_EVENT_TABLE(GUI_Toplevel, wxFrame)
-    EVT_MENU(ID_Quit,				GUI_Toplevel::onQuit)
-    EVT_MENU(ID_About,				GUI_Toplevel::onAbout)
-    EVT_MENU(ID_GPS_Start,			GUI_Toplevel::onGPSStart)
-    EVT_MENU(ID_GPS_Stop,			GUI_Toplevel::onGPSStop)
-    EVT_MENU(ID_USRP_Start,			GUI_Toplevel::onUSRPStart)
-    EVT_MENU(ID_USRP_Stop,			GUI_Toplevel::onUSRPStop)
+    EVT_MENU(ID_QUIT,				GUI_Toplevel::onQuit)
+    EVT_MENU(ID_ABOUT,				GUI_Toplevel::onAbout)
+    EVT_MENU(ID_GPS_START,			GUI_Toplevel::onGPSStart)
+    EVT_MENU(ID_GPS_STOP,			GUI_Toplevel::onGPSStop)
+    EVT_MENU(ID_USRP_START,			GUI_Toplevel::onUSRPStart)
+    EVT_MENU(ID_USRP_STOP,			GUI_Toplevel::onUSRPStop)
     EVT_MENU(ID_LOG_CONFIG,			GUI_Toplevel::onLogConfig)
     EVT_MENU(ID_LOG_START,			GUI_Toplevel::onLogStart)
 	EVT_MENU(ID_LOG_STOP,			GUI_Toplevel::onLogStop)
 	EVT_MENU(ID_LOG_CLEAR,			GUI_Toplevel::onLogClear)
+	EVT_MENU(ID_NAMED_PIPE,			GUI_Toplevel::onNamedPipe)
+	EVT_MENU(ID_SERIAL_PORT,		GUI_Toplevel::onSerialPort)
     EVT_TIMER(ID_TIMER,				GUI_Toplevel::onTimer)
     EVT_TOGGLEBUTTON(ID_MAIN_B,		GUI_Toplevel::onMain)
     EVT_TOGGLEBUTTON(ID_CHANNEL_B,	GUI_Toplevel::onChannel)
@@ -46,6 +48,7 @@ GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS-SDR"), wxDef
     wMain = NULL;
 
     pSerial = new GUI_Serial;
+    pSerial->setIO(0);
     pSerial->Start();
 
     kB_sec = 0;
@@ -171,6 +174,8 @@ void GUI_Toplevel::onGPSStart(wxCommandEvent& WXUNUSED(event))
 		{
 			status_str.Printf(wxT("Started GPS-SDR %d"),gps_pid);
 			gps_active = 1;
+			mReceiver->Enable(ID_GPS_START, false);
+			mReceiver->Enable(ID_GPS_STOP, true);
 		}
 	}
 	else
@@ -199,6 +204,8 @@ void GUI_Toplevel::onGPSStop(wxCommandEvent& WXUNUSED(event))
 
 		/* Status at the bottom */
 		status_str = wxT("Stopped GPS-SDR");
+		mReceiver->Enable(ID_GPS_START, true);
+		mReceiver->Enable(ID_GPS_STOP, false);
 	}
 	else
 	{
@@ -250,6 +257,8 @@ void GUI_Toplevel::onUSRPStart(wxCommandEvent& WXUNUSED(event))
 		{
 			status_str.Printf(wxT("Started GPS-USRP %d"),usrp_pid);
 			usrp_active = 1;
+			mUSRP->Enable(ID_USRP_START, false);
+			mUSRP->Enable(ID_USRP_STOP, true);
 		}
 	}
 	else
@@ -278,6 +287,8 @@ void GUI_Toplevel::onUSRPStop(wxCommandEvent& WXUNUSED(event))
 
 		/* Status at the bottom */
 		status_str = wxT("Stopped GPS-USRP");
+		mUSRP->Enable(ID_USRP_START, true);
+		mUSRP->Enable(ID_USRP_STOP, false);
 	}
 	else
 	{
@@ -419,6 +430,30 @@ void GUI_Toplevel::onLogClear(wxCommandEvent& WXUNUSED(event))
 {
 	pSerial->Lock();
 	pSerial->logClear();
+	pSerial->Unlock();
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onNamedPipe(wxCommandEvent& WXUNUSED(event))
+{
+//	mIO->Enable(ID_SERIAL_PORT, true);
+//	mIO->Enable(ID_NAMED_PIPE, false);
+	pSerial->Lock();
+	pSerial->setIO(0);
+	pSerial->Unlock();
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onSerialPort(wxCommandEvent& WXUNUSED(event))
+{
+//	mIO->Enable(ID_SERIAL_PORT, false);
+//	mIO->Enable(ID_NAMED_PIPE, true);
+	pSerial->Lock();
+	pSerial->setIO(1);
 	pSerial->Unlock();
 }
 /*----------------------------------------------------------------------------------------------*/

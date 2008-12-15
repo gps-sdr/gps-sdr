@@ -26,7 +26,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*----------------------------------------------------------------------------------------------*/
 void lost_gui_pipe(int _sig)
 {
-	pSerial_Telemetry->SetGUIPipe(false);
+	pSerial_Telemetry->SetPipe(false);
 	printf("GUI disconnected\n");
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -70,7 +70,9 @@ Serial_Telemetry::Serial_Telemetry(int32 _serial)
 {
 
 	execution_tic = start_tic = stop_tic = 0;
-	serial_open = npipe_open;
+	spipe_open = npipe_open = 0;
+	npipe[READ] = npipe[WRITE] = spipe = NULL;
+
 	serial = _serial;
 
 	memset(&stream[0], 0x0, LAST_M_ID*sizeof(int32));
@@ -92,7 +94,7 @@ Serial_Telemetry::Serial_Telemetry(int32 _serial)
 		if ((fifo[READ] == -1) && (errno != EEXIST))
 			printf("Error creating the named pipe");
 
-		OpenGUIPipe();
+		OpenPipe();
 	}
 
 	if(gopt.verbose)
@@ -108,11 +110,9 @@ Serial_Telemetry::Serial_Telemetry(int32 _serial)
 /*----------------------------------------------------------------------------------------------*/
 Serial_Telemetry::~Serial_Telemetry()
 {
-	if(npipe_open)
-	{
-		close(npipe[READ]);
-		close(npipe[WRITE]);
-	}
+	close(npipe[READ]);
+	close(npipe[WRITE]);
+	close(spipe);
 
 	if(gopt.verbose)
 		printf("Destroying Serial_Telemetry\n");
@@ -173,15 +173,14 @@ void Serial_Telemetry::Import()
 	/* See if any commands have been sent over */
 	if(serial)
 	{
-		if(serial_open)
+		if(spipe_open)
 			ImportSerial();
 	}
 	else
 	{
 		if(npipe_open)
-			ImportGUI();
+			ImportPipe();
 	}
-
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -199,17 +198,17 @@ void Serial_Telemetry::Export()
 	{
 		if(serial)
 		{
-			if(serial_open)
-				ExportSerial();
+			if(spipe_open)
+				SendMessages();
 			else
 				OpenSerial();
 		}
 		else
 		{
 			if(npipe_open)
-				ExportGUI();
+				SendMessages();
 			else
-				OpenGUIPipe();
+				OpenPipe();
 		}
 	}
 
@@ -221,15 +220,22 @@ void Serial_Telemetry::Export()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Serial_Telemetry::SetGUIPipe(bool _status)
+void Serial_Telemetry::SetPipe(bool _status)
 {
 	npipe_open = _status;
+	if(_status == false)
+	{
+		close(npipe[READ]);
+		close(npipe[WRITE]);
+		npipe[READ] = NULL;
+		npipe[WRITE] = NULL;
+	}
 }
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Serial_Telemetry::ExportGUI()
+void Serial_Telemetry::SendMessages()
 {
 
 	/* Now transmit the normal once/pvt stuff */
@@ -262,7 +268,7 @@ void Serial_Telemetry::ExportGUI()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Serial_Telemetry::ImportGUI()
+void Serial_Telemetry::ImportPipe()
 {
 
 	uint32 preamble;
@@ -279,9 +285,17 @@ void Serial_Telemetry::ImportGUI()
 		{
 			if(preamble == 0xAAAAAAAA)
 			{
-				bread = read(npipe[READ], &command_header, sizeof(CCSDS_Packet_Header));//!< Read in the head
-				DecodeCCSDSPacketHeader(&decoded_header, &command_header);				//!< Decode the packet
-				bread = read(npipe[READ], &command_body, decoded_header.length);		//!< Read in the body
+				if(npipe_open)
+					bread = read(npipe[READ], &command_header, sizeof(CCSDS_Packet_Header)); 	//!< Read in the head
+				else
+					return;
+
+				DecodeCCSDSPacketHeader(&decoded_header, &command_header);						//!< Decode the packet
+
+				if(npipe_open)
+					bread = read(npipe[READ], &command_body, decoded_header.length);			//!< Read in the body
+				else
+					return;
 
 				/* Forward the command to Commando */
 				bwrote = write(Telem_2_Cmd_P[WRITE], &command_header, sizeof(CCSDS_Packet_Header));
@@ -296,7 +310,8 @@ void Serial_Telemetry::ImportGUI()
 		bread = read(Cmd_2_Telem_P[READ], &commando_buff, COMMANDO_BUFF_SIZE);
 		if(bread > 0)
 		{
-			write(npipe[WRITE], &commando_buff, bread);
+			if(npipe_open)
+				write(npipe[WRITE], &commando_buff, bread);
 		}
 	}
 
@@ -305,7 +320,7 @@ void Serial_Telemetry::ImportGUI()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Serial_Telemetry::OpenGUIPipe()
+void Serial_Telemetry::OpenPipe()
 {
 
 	npipe[READ] = npipe[WRITE] = -1;
@@ -325,17 +340,52 @@ void Serial_Telemetry::OpenGUIPipe()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Serial_Telemetry::ExportSerial()
-{
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::ImportSerial()
 {
 
+	uint32 preamble;
+	int32 bread;
+	int32 bwrote;
+
+	preamble = 0x0;
+
+	bread = 1;
+	while(bread > 0)
+	{
+		bread = read(spipe, &preamble, sizeof(uint32));
+		if(bread == sizeof(uint32))
+		{
+			if(preamble == 0xAAAAAAAA)
+			{
+				if(spipe_open)
+					bread = read(spipe, &command_header, sizeof(CCSDS_Packet_Header));	//!< Read in the head
+				else
+					return;
+
+				DecodeCCSDSPacketHeader(&decoded_header, &command_header);			//!< Decode the packet
+
+				if(spipe_open)
+					bread = read(spipe, &command_body, decoded_header.length);			//!< Read in the body
+				else
+					return;
+
+				/* Forward the command to Commando */
+				bwrote = write(Telem_2_Cmd_P[WRITE], &command_header, sizeof(CCSDS_Packet_Header));
+				bwrote = write(Telem_2_Cmd_P[WRITE], &command_body, decoded_header.length);
+			}
+		}
+	}
+
+	/* Bent pipe anything coming from Commando */
+	if(spipe_open)
+	{
+		bread = read(Cmd_2_Telem_P[READ], &commando_buff, COMMANDO_BUFF_SIZE);
+		if(bread > 0)
+		{
+			if(spipe_open)
+				write(spipe, &commando_buff, bread);
+		}
+	}
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -343,6 +393,28 @@ void Serial_Telemetry::ImportSerial()
 /*----------------------------------------------------------------------------------------------*/
 void Serial_Telemetry::OpenSerial()
 {
+
+	spipe = open("/dev/ttyS0", O_RDWR | O_NOCTTY | O_NONBLOCK);
+    if(spipe < 0)
+    {
+    	spipe_open = false;
+    	spipe = NULL;
+    	return;
+    }
+
+    memset(&tty, 0x0, sizeof(tty));		//!< Initialize the port settings structure to all zeros
+    tty.c_cflag =  B115200 | CS8 | CLOCAL | CREAD | CRTSCTS;	//!< 8N1
+    tty.c_iflag = IGNPAR;
+    tty.c_oflag = 0;
+    tty.c_lflag = 0;
+    tty.c_cc[VMIN] = 0;      			//!< 0 means use-vtime
+    tty.c_cc[VTIME] = 1;      			//!< Time to wait until exiting read (tenths of a second)
+
+    tcflush(spipe, TCIFLUSH);				//!< flush old data
+    tcsetattr(spipe, TCSANOW, &tty);		//!< apply new settings
+    fcntl(spipe, F_SETFL, FASYNC);
+	fcntl(spipe, F_SETFL, O_NONBLOCK);
+	spipe_open = true;
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -594,49 +666,25 @@ void Serial_Telemetry::EmitCCSDSPacket(void *_buff, uint32 _len)
 
 	if(serial)
 	{
-		/* Write the sync header to the UART */
-		for(lcv = 0; lcv < 8; lcv++)
-			//NU_SD_Put_Char(header[lcv], &sport);
+		if(spipe_open)
+			write(spipe, &preamble, sizeof(uint32));  					//!< Stuff the preamble
 
-		/* Write the CCSDS header to the UART */
-		sbuff = (uint8 *)&packet_header;
-		for(lcv = 0; lcv < 6; lcv++)
-		{
-			//NU_SD_Put_Char(*sbuff, &sport);
-			sbuff++;
-		}
+		if(spipe_open)
+			write(spipe, &packet_header, sizeof(CCSDS_Packet_Header)); 	//!< Stuff the CCSDS header
 
-		/* Now write the body to the UART */
-		sbuff = (uint8 *)_buff;
-		for(lcv = 0; lcv < _len; lcv++)
-		{
-			//NU_SD_Put_Char(*sbuff, &sport);
-			sbuff++;
-		}
+		if(spipe_open)
+			write(spipe, _buff, _len);									//!< Stuff the body
 	}
 	else
 	{
-
-
-		/* Only write if the client is connected */
 		if(npipe_open)
-		{
-//			packet.preamble = 0xAAAAAAAA;						//!< Preamble
-//			packet.header = packet_header;						//!< Set the header
-//			memcpy(&packet.payload[0], _buff, len);				//!< Copy in the payload
-//			packet.checksum = adler(&packet.header, len + 12);	//!< Compute the checksum
-//			bwrote = write(npipe[WRITE], &packet, len + 20);	//!< Export
-			if(npipe_open)
-				write(npipe[WRITE], &preamble, sizeof(uint32));  					//!< Stuff the preamble
+			write(npipe[WRITE], &preamble, sizeof(uint32));  					//!< Stuff the preamble
 
-			if(npipe_open)
-				write(npipe[WRITE], &packet_header, sizeof(CCSDS_Packet_Header)); 	//!< Stuff the CCSDS header
+		if(npipe_open)
+			write(npipe[WRITE], &packet_header, sizeof(CCSDS_Packet_Header)); 	//!< Stuff the CCSDS header
 
-			if(npipe_open)
-				write(npipe[WRITE], _buff, _len);									//!< Stuff the body
-		}
-		else
-			OpenGUIPipe();
+		if(npipe_open)
+			write(npipe[WRITE], _buff, _len);									//!< Stuff the body
 	}
 
 }

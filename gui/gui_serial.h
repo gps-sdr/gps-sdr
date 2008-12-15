@@ -42,10 +42,20 @@ class GUI_Serial : public Threaded_Object
 		uint32				packet_tic;						//!< Received packets
 		uint32				command_tic;					//!< Transmitted commands
 
-		/* Nondefault variables */
 		int32				message_sync;					//!< Are we synched to the packets
-		int32				pipe_open;						//!< Flag to see if the pipes are open
 		uint32 				syncword;						//!< Sync to the 0xAAAAAAAA preamble
+
+		/* Serial port flag */
+		int32				serial;							//!< Serial or named pipe
+
+		/* Named pipe */
+		int32				npipe_open;						//!< Flag to see if the pipes are open
+		int32				npipe[2];						//!< Read and write files
+
+		/* Serial port */
+		int32				spipe_open;						//!< Has the serial port been configured?
+		int32				spipe;							//!< Serial port file
+		struct termios		tty; 	     					//!< Port settings
 
 		/* Headers for CCSDC packets */
 		CCSDS_Packet_Header  packet_header;					//!< CCSDS Packet header
@@ -84,18 +94,23 @@ class GUI_Serial : public Threaded_Object
 		void Import();										//!< Get data into the thread
 		void Export();										//!< Get data out of the thread
 
-		uint32 GetPipeOpen(){return(pipe_open);};
+		uint32 GetPipeOpen(){return(npipe_open);};
 		uint32 GetByteCount(){return(byte_count);};
 		uint32 GetPacketTic(){return(packet_tic);};
 		uint32 GetCommandTic(){return(command_tic);};
 		uint32 GetCommandFree(){return(command_free);};
 		Message_Struct *GetMessages(){return(&messages);};	//!< Dump the messages
 
+		void setIO(int32 _serial);
+
 		/* Nondefault methods */
-		void readPipe();
-		void writePipe();
-		int pipeRead(void *_b, int32 _bytes);
-		int pipeWrite(void *_b, int32 _bytes);
+		void setPipe(bool _status);							//!< Signal handler
+		void openSerial();									//!< Attempt to open the serial port
+		void openPipe();									//!< Attempt to open the named pipe
+		void readGPS();										//!< Read from the receiver
+		void writeGPS();									//!< Write to the receiver
+		int Read(void *_b, int32 _bytes);					//!< Read bytes from given interface
+		int Write(void *_b, int32 _bytes);					//!< Write bytes to given interface
 		void formCommand(int32 _id, void *_p);
 
 		/* Control the logging */

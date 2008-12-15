@@ -44,7 +44,9 @@ class Serial_Telemetry : public Threaded_Object
 		int32	  			npipe[2];		//!< Named pipe to import/export data with the GUI
 		int32				npipe_open;		//!< Is this named pipe connected?
 
-		int32				serial_open;	//!< Has the serial port been configured?
+		struct termios		tty; 	     	//!< will be used for new port settings
+		int32				spipe;			//!< Serial port file handle
+		int32				spipe_open;		//!< Has the serial port been configured?
 
 		int32				stream[LAST_M_ID];				//!< Control the streaming messages
 
@@ -83,18 +85,17 @@ class Serial_Telemetry : public Threaded_Object
 		void Import();								//!< Get data into the thread
 		void Export();								//!< Get data out of the thread
 
-		void OpenGUIPipe();
-		void SetGUIPipe(bool _status);
-		void ExportGUI();
-		void ImportGUI();
+		void SetPipe(bool _status);
+		void OpenPipe();
+		void ImportPipe();
 		void OpenSerial();
-		void ExportSerial();
 		void ImportSerial();
 
 		/* Object specific methods */
 		void EmitCCSDSPacket(void *_buff, uint32 _len);	//!< Emit a CCSDS packet
 
 		/* Types of output messages */
+		void SendMessages();						//!< Calls the rest of these functions
 		void SendBoardHealth();						//!< Emit hardware health values
 		void SendTaskHealth();						//!< Emit task health values
 		void SendChannelHealth();					//!< Emit channel health

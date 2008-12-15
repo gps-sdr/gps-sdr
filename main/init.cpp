@@ -209,6 +209,7 @@ void Parse_Arguments(int32 argc, char* argv[])
 			gopt.serial = 1;
 			gopt.gui = 0;
 			gopt.ncurses = 0;
+			gopt.log_decimate = 10;
 		}
 		else if(strcmp(argv[lcv],"-u") == 0)
 		{

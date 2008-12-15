@@ -15,35 +15,48 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	
 	mMenuBar = new wxMenuBar( 0 );
 	mFile = new wxMenu();
-	wxMenuItem* miAbout;
-	miAbout = new wxMenuItem( mFile, ID_About, wxString( wxT("About") ) , wxEmptyString, wxITEM_NORMAL );
-	mFile->Append( miAbout );
+	wxMenuItem* mAbout;
+	mAbout = new wxMenuItem( mFile, ID_ABOUT, wxString( wxT("About") ) , wxEmptyString, wxITEM_NORMAL );
+	mFile->Append( mAbout );
 	
-	wxMenuItem* miExit;
-	miExit = new wxMenuItem( mFile, ID_Quit, wxString( wxT("Exit") ) , wxEmptyString, wxITEM_NORMAL );
-	mFile->Append( miExit );
+	wxMenuItem* mExit;
+	mExit = new wxMenuItem( mFile, ID_QUIT, wxString( wxT("Exit") ) , wxEmptyString, wxITEM_NORMAL );
+	mFile->Append( mExit );
 	
 	mMenuBar->Append( mFile, wxT("File") );
 	
-	mReceiver = new wxMenu();
-	wxMenuItem* miReceiverStart;
-	miReceiverStart = new wxMenuItem( mReceiver, ID_GPS_Start, wxString( wxT("Start") ) , wxEmptyString, wxITEM_NORMAL );
-	mReceiver->Append( miReceiverStart );
+	mIO = new wxMenu();
+	wxMenuItem* mNpipe;
+	mNpipe = new wxMenuItem( mIO, ID_NAMED_PIPE, wxString( wxT("Named Pipe") ) , wxEmptyString, wxITEM_NORMAL );
+	mIO->Append( mNpipe );
 	
-	wxMenuItem* miReceiverStop;
-	miReceiverStop = new wxMenuItem( mReceiver, ID_GPS_Stop, wxString( wxT("Stop") ) , wxEmptyString, wxITEM_NORMAL );
-	mReceiver->Append( miReceiverStop );
+	wxMenuItem* mSerial;
+	mSerial = new wxMenuItem( mIO, ID_SERIAL_PORT, wxString( wxT("Serial Port") ) , wxEmptyString, wxITEM_NORMAL );
+	mIO->Append( mSerial );
+	
+	mMenuBar->Append( mIO, wxT("Interface") );
+	
+	mReceiver = new wxMenu();
+	wxMenuItem* mReceiverStart;
+	mReceiverStart = new wxMenuItem( mReceiver, ID_GPS_START, wxString( wxT("Start") ) , wxEmptyString, wxITEM_NORMAL );
+	mReceiver->Append( mReceiverStart );
+	
+	wxMenuItem* mReceiverStop;
+	mReceiverStop = new wxMenuItem( mReceiver, ID_GPS_STOP, wxString( wxT("Stop") ) , wxEmptyString, wxITEM_NORMAL );
+	mReceiver->Append( mReceiverStop );
+	mReceiverStop->Enable( false );
 	
 	mMenuBar->Append( mReceiver, wxT("Receiver") );
 	
 	mUSRP = new wxMenu();
-	wxMenuItem* miUSRPStart;
-	miUSRPStart = new wxMenuItem( mUSRP, ID_USRP_Start, wxString( wxT("Start") ) , wxEmptyString, wxITEM_NORMAL );
-	mUSRP->Append( miUSRPStart );
+	wxMenuItem* mUSRPStart;
+	mUSRPStart = new wxMenuItem( mUSRP, ID_USRP_START, wxString( wxT("Start") ) , wxEmptyString, wxITEM_NORMAL );
+	mUSRP->Append( mUSRPStart );
 	
-	wxMenuItem* miUSRPStop;
-	miUSRPStop = new wxMenuItem( mUSRP, ID_USRP_Stop, wxString( wxT("Stop") ) , wxEmptyString, wxITEM_NORMAL );
-	mUSRP->Append( miUSRPStop );
+	wxMenuItem* mUSRPStop;
+	mUSRPStop = new wxMenuItem( mUSRP, ID_USRP_STOP, wxString( wxT("Stop") ) , wxEmptyString, wxITEM_NORMAL );
+	mUSRP->Append( mUSRPStop );
+	mUSRPStop->Enable( false );
 	
 	mMenuBar->Append( mUSRP, wxT("USRP") );
 	
@@ -712,6 +725,24 @@ iGUI_Pseudo::iGUI_Pseudo( wxWindow* parent, wxWindowID id, const wxString& title
 }
 
 iGUI_Pseudo::~iGUI_Pseudo()
+{
+}
+
+iGUI_Speed::iGUI_Speed( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxBoxSizer* bSizer32;
+	bSizer32 = new wxBoxSizer( wxVERTICAL );
+	
+	m_panel12 = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	bSizer32->Add( m_panel12, 1, wxEXPAND | wxALL, 5 );
+	
+	this->SetSizer( bSizer32 );
+	this->Layout();
+}
+
+iGUI_Speed::~iGUI_Speed()
 {
 }
 
