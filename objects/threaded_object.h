@@ -42,7 +42,7 @@ class Threaded_Object
 		uint32 				stop_tic;		//!< OS tic at end of function
 		pthread_t 			thread;			//!< For the thread
 		pthread_mutex_t		mutex;			//!< Protect the following variable
-
+		struct timeval 		tv;				//!< To time the threads
 	public:
 
 		/* Default object methods */
@@ -62,8 +62,8 @@ class Threaded_Object
 		uint32 GetStopTic(){return(stop_tic);};					//!< Get the Nucleus tic at	end of function
 
 		void IncExecTic(){execution_tic++;};					//!< Increment execution tic
-		void IncStartTic(){start_tic = 100*clock()/CLOCKS_PER_SEC;};	//!< Use OS method to set the start tic
-		void IncStopTic(){stop_tic = 100*clock()/CLOCKS_PER_SEC;};		//!< Use OS method to set the stop tic
+		void IncStartTic();										//!< Use OS method to set the start tic
+		void IncStopTic();										//!< Use OS method to set the stop tic
 
 };
 

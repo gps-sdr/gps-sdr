@@ -131,7 +131,7 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	gUSRP = new wxGauge( this, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_SMOOTH|wxGA_VERTICAL );
 	sUSRP->Add( gUSRP, 0, wxALL|wxEXPAND, 5 );
 	
-	tUSRP = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tUSRP = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL );
 	tUSRP->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	sUSRP->Add( tUSRP, 1, wxALL|wxEXPAND, 5 );
@@ -141,7 +141,7 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	wxStaticBoxSizer* sRS422;
 	sRS422 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("RS422") ), wxVERTICAL );
 	
-	tRS422 = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tRS422 = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL );
 	tRS422->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	sRS422->Add( tRS422, 1, wxALL|wxEXPAND, 5 );
@@ -149,9 +149,9 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	sStatus->Add( sRS422, 1, wxEXPAND, 5 );
 	
 	wxStaticBoxSizer* sTask;
-	sTask = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Task") ), wxVERTICAL );
+	sTask = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Task Health") ), wxVERTICAL );
 	
-	tTask = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tTask = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL );
 	tTask->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	sTask->Add( tTask, 1, wxALL|wxEXPAND, 5 );

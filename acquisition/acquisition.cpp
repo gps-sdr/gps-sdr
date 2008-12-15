@@ -596,7 +596,7 @@ void Acquisition::Acquire()
 {
 	int32 lcv;
 
-	IncStartTic();
+	IncStopTic();
 
 	switch(request.type)
 	{
@@ -616,7 +616,7 @@ void Acquisition::Acquire()
 			doAcqStrong(request.sv, request.mindopp, request.maxdopp);
 	}
 
-	IncStopTic();
+	IncStartTic();
 }
 /*----------------------------------------------------------------------------------------------*/
 

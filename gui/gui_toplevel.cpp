@@ -501,24 +501,24 @@ void GUI_Toplevel::render(wxDC& dc)
     pSerial->Unlock();
 
     this_tic = pSerial->decoded_packet.tic;
-    if(this_tic != last_tic)
-    {
 
-    	last_tic = this_tic;
-		/* Render FIFO Panel */
-		renderFIFO();
+	/* Render FIFO Panel */
+	renderFIFO();
 
-		/* Render RS422 Panel */
-		renderRS422();
+	/* Render RS422 Panel */
+	renderRS422();
 
-		/* Render Task Panel */
-		renderTask();
+	/* Render Task Panel */
+	renderTask();
 
-		str = status_str;
-		str2.Printf(wxT("Count: %d"),count++);
-		str += str2;
+	str = status_str;
+	str2.Printf(wxT("Count: %d"),count++);
+	str += str2;
 
-		SetStatusText(str);
+	SetStatusText(str);
+
+	if(this_tic != last_tic)
+	{
 
 		/* Render main window */
 		if(wMain != NULL)
@@ -574,7 +574,7 @@ void GUI_Toplevel::renderFIFO()
 	tUSRP->AppendText(str);
 	str.Printf(wxT("AGC Overflws:\t%d\n"),p->overflw);
 	tUSRP->AppendText(str);
-	str.Printf(wxT("FIFO Count:\t%d\n"),p->count);
+	str.Printf(wxT("FIFO Count:\t%d"),p->count);
 	tUSRP->AppendText(str);
 
 }
@@ -609,7 +609,7 @@ void GUI_Toplevel::renderRS422()
 	tRS422->AppendText(str);
 	kB_sec += .25 * (((float)bytes_sec/1024.0) - kB_sec);
 	str.Printf(wxT("Serial Bandwidth:\t%.2f "),kB_sec);
-	str += wxT("kB/sec\n");
+	str += wxT("kB/sec");
 	tRS422->AppendText(str);
 
 	if(count % 10 == 0)
@@ -652,7 +652,7 @@ void GUI_Toplevel::renderTask()
 	     str = wxT("-----------------------------------------------------------\n");
 	tTask->AppendText(str);
 
-	for(lcv = 0; lcv < MAX_TASKS; lcv++)
+	for(lcv = 0; lcv < MAX_TASKS-1; lcv++)
 	{
 		if(names[lcv].Len())
 		{
@@ -664,6 +664,17 @@ void GUI_Toplevel::renderTask()
 				pTask->stop_tic[lcv]);
 			tTask->AppendText(str);
 		}
+	}
+
+	if(names[lcv].Len())
+	{
+		str.Printf(wxT("%s   %10d  %6d    %9d    %9d"),
+			names[lcv].c_str(),
+			pTask->execution_tic[lcv],
+			pTask->stop_tic[lcv]-pTask->start_tic[lcv],
+			pTask->start_tic[lcv],
+			pTask->stop_tic[lcv]);
+		tTask->AppendText(str);
 	}
 
 }

@@ -48,12 +48,15 @@ void GUI_Pseudo::render(wxDC& dc)
 	SPS_M *pNav = &p->sps;
 	Channel_M *pchan;
 	Pseudorange_M *ps;
+	double cr;
 
 	wxTextAttr text;
     wxString str, str2;
 	int32 lcv, lcv2, start, stop, lines;
 
 	tPseudo->Clear();
+
+	cr = pNav->clock_rate;
 
 	str.Printf(wxT("Ch#  SV     Pseudorange        Residual         PR Rate        Residual\n"));
 	tPseudo->AppendText(str);
@@ -72,7 +75,7 @@ void GUI_Pseudo::render(wxDC& dc)
 				pNav->chanmap[lcv]+1,
 				ps->meters,
 				ps->residual,
-				ps->meters_rate - pNav->clock_rate,
+				ps->meters_rate - cr,
 				ps->rate_residual);
 				tPseudo->AppendText(str);
 		}

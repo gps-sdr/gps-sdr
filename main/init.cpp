@@ -41,7 +41,7 @@ void usage(int32 argc, char* argv[])
 	fprintf(stderr, "[-v] be verbose \n");
 	fprintf(stderr, "[-n] ncurses OFF \n");
 	fprintf(stderr, "[-gui] run receiver with the GUI app over a named pipe\n");
-	fprintf(stderr, "[-s] run receiver with the GUI app over a serial port\n");
+	fprintf(stderr, "[-ser] run receiver with the GUI app over a serial port\n");
 	fprintf(stderr, "[-w] start receiver in warm start, using almanac and last good position\n");
 	fprintf(stderr, "[-u] run receiver with usrp-gps as child process\n");
 	fprintf(stderr, "\n");
@@ -204,7 +204,7 @@ void Parse_Arguments(int32 argc, char* argv[])
 			gopt.serial = 0;
 			gopt.ncurses = 0;
 		}
-		else if(strcmp(argv[lcv],"-s") == 0)
+		else if(strcmp(argv[lcv],"-ser") == 0)
 		{
 			gopt.serial = 1;
 			gopt.gui = 0;
@@ -290,6 +290,9 @@ int32 Object_Init(void)
 {
 	int32 lcv;
 	int32 failed;
+
+	/* Get start of receiver */
+	gettimeofday(&starttime, NULL);
 
 	/* Create Keyboard objec to handle user input */
 	pKeyboard = new Keyboard;

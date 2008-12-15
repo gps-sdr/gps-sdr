@@ -57,6 +57,7 @@ EXTERN int32				gAcq_high;						//!< This is set high when the acquisition is ac
 /*----------------------------------------------------------------------------------------------*/
 EXTERN int32 grun;											//!< Keep all the threads active (technically, this should be mutex protected, but eh, who cares? )
 EXTERN Options_S gopt;										//!< Global receiver options
+EXTERN struct timeval starttime;							//!< Get receiver start time
 /*----------------------------------------------------------------------------------------------*/
 
 
