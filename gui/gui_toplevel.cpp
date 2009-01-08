@@ -365,13 +365,13 @@ void GUI_Toplevel::onLogConfig(wxCommandEvent& WXUNUSED(event))
 		if(pSerial->getLog(PSEUDORANGE_M_ID))
 		{
 			val = 1;
-			pSerial->formCommand(GET_PSEUDORANGE_C_ID, &val);
+			pSerial->formCommand(GET_PSEUDORANGE_C_ID, &val, false);
 		}
 
 		if(pSerial->getLog(CHANNEL_M_ID))
 		{
 			val = 1;
-			pSerial->formCommand(GET_CHANNEL_C_ID, &val);
+			pSerial->formCommand(GET_CHANNEL_C_ID, &val, false);
 		}
 
 		mLogging->Enable(ID_LOG_START, true);
@@ -413,7 +413,7 @@ void GUI_Toplevel::onLogStop(wxCommandEvent& WXUNUSED(event))
 	if(wChannel == NULL && (pSerial->getLog(CHANNEL_M_ID) == 0))
 	{
 		val = 0;
-		pSerial->formCommand(GET_CHANNEL_C_ID, &val);
+		pSerial->formCommand(GET_CHANNEL_C_ID, &val, false);
 	}
 
 	mLogging->Enable(ID_LOG_START, true);
@@ -500,7 +500,7 @@ void GUI_Toplevel::render(wxDC& dc)
     memcpy(&messages,pSerial->GetMessages(),sizeof(Message_Struct));
     pSerial->Unlock();
 
-    this_tic = pSerial->decoded_packet.tic;
+    this_tic = pSerial->decoded_header.tic;
 
 	/* Render FIFO Panel */
 	renderFIFO();
@@ -603,7 +603,7 @@ void GUI_Toplevel::renderRS422()
 	tRS422->AppendText(str);
 	str.Printf(wxT("Synchronized Count:\t%d\n"),pSerial->message_sync);
 	tRS422->AppendText(str);
-	str.Printf(wxT("Last Message Tic:\t%d\n"),pSerial->decoded_packet.tic);
+	str.Printf(wxT("Last Message Tic:\t%d\n"),pSerial->decoded_header.tic);
 	tRS422->AppendText(str);
 	str.Printf(wxT("Failed Messages:\t%d\n"),pSerial->packet_count[LAST_M_ID]);
 	tRS422->AppendText(str);
@@ -695,12 +695,12 @@ void GUI_Toplevel::onMain(wxCommandEvent& WXUNUSED(event))
 		bMain->SetValue(false);
 
 		val = 0;
-		pSerial->formCommand(GET_SV_POSITION_C_ID, &val);
+		pSerial->formCommand(GET_SV_POSITION_C_ID, &val, false);
 
 		if(wChannel == NULL && (pSerial->getLog(CHANNEL_M_ID) == 0))
 		{
 			val = 0;
-			pSerial->formCommand(GET_CHANNEL_C_ID, &val);
+			pSerial->formCommand(GET_CHANNEL_C_ID, &val, false);
 		}
 	}
 	else
@@ -713,10 +713,10 @@ void GUI_Toplevel::onMain(wxCommandEvent& WXUNUSED(event))
 		bMain->SetValue(true);
 
 		val = 1;
-		pSerial->formCommand(GET_SV_POSITION_C_ID, &val);
+		pSerial->formCommand(GET_SV_POSITION_C_ID, &val, false);
 
 		val = 1;
-		pSerial->formCommand(GET_CHANNEL_C_ID, &val);
+		pSerial->formCommand(GET_CHANNEL_C_ID, &val, false);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -736,7 +736,7 @@ void GUI_Toplevel::onChannel(wxCommandEvent& WXUNUSED(event))
 		if(wMain == NULL && (pSerial->getLog(CHANNEL_M_ID) == 0))
 		{
 			val = 0;
-			pSerial->formCommand(GET_CHANNEL_C_ID, &val);
+			pSerial->formCommand(GET_CHANNEL_C_ID, &val, false);
 		}
 	}
 	else
@@ -749,7 +749,7 @@ void GUI_Toplevel::onChannel(wxCommandEvent& WXUNUSED(event))
 		bChannel->SetValue(true);
 
 		val = 1;
-		pSerial->formCommand(GET_CHANNEL_C_ID, &val);
+		pSerial->formCommand(GET_CHANNEL_C_ID, &val, false);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -769,7 +769,7 @@ void GUI_Toplevel::onPseudo(wxCommandEvent& WXUNUSED(event))
 		if(wPseudo == NULL && (pSerial->getLog(PSEUDORANGE_M_ID) == 0))
 		{
 			val = 0;
-			pSerial->formCommand(GET_PSEUDORANGE_C_ID, &val);
+			pSerial->formCommand(GET_PSEUDORANGE_C_ID, &val, false);
 		}
 	}
 	else
@@ -782,7 +782,7 @@ void GUI_Toplevel::onPseudo(wxCommandEvent& WXUNUSED(event))
 		bPseudo->SetValue(true);
 
 		val = 1;
-		pSerial->formCommand(GET_PSEUDORANGE_C_ID, &val);
+		pSerial->formCommand(GET_PSEUDORANGE_C_ID, &val, false);
 	}
 }
 /*----------------------------------------------------------------------------------------------*/

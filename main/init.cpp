@@ -351,6 +351,8 @@ int32 Pipes_Init(void)
 	pipe((int *)Trak_2_Acq_P);
 	pipe((int *)Acq_2_Trak_P);
 	pipe((int *)FIFO_2_Telem_P);
+	fcntl(FIFO_2_Telem_P[READ], F_SETFL, O_NONBLOCK);
+
 	pipe((int *)FIFO_2_PVT_P);
 	pipe((int *)PVT_2_Telem_P);
 	pipe((int *)Chan_2_Ephem_P);

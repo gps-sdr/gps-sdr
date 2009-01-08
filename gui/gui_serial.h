@@ -38,32 +38,45 @@ class GUI_Serial : public Threaded_Object
 
 	public:
 
-		uint32 				execution_tic;					//!< Execution counter
-		uint32				packet_tic;						//!< Received packets
-		uint32				command_tic;					//!< Transmitted commands
+		uint32	execution_tic;					//!< Execution counter
+		uint32	packet_tic;						//!< Received packets
+		uint32	command_tic;					//!< Transmitted commands
 
-		int32				message_sync;					//!< Are we synched to the packets
-		uint32 				syncword;						//!< Sync to the 0xAAAAAAAA preamble
+		/* Sync to receiver packets */
+		int32	message_sync;					//!< Are we synched to the packets
+		uint32 	syncstate;						//!< Flag to indicate synchronization step 0 for nothing, 1 for preamble, 2 for CCSDS header, 3 for packet
+		uint32 	syncword;						//!< Synchronize to the 0xAAAAAAAA preamble
+
+		uint8 	*pheader;						//!< Pointer to header
+		uint32 	header_bytes;					//!< Bytes left to read in header
+
+		uint8 	*pmessage;						//!< Pointer to message
+		uint32 	message_bytes;					//!< Bytes read in command
+		uint32 	message_bytes_2_read;			//!< Total bytes in body of command
+
 
 		/* Serial port flag */
-		int32				serial;							//!< Serial or named pipe
+		int32				serial;				//!< Serial or named pipe
 
 		/* Named pipe */
-		int32				npipe_open;						//!< Flag to see if the pipes are open
-		int32				npipe[2];						//!< Read and write files
+		int32				npipe_open;			//!< Flag to see if the pipes are open
+		int32				npipe[2];			//!< Read and write files
 
 		/* Serial port */
-		int32				spipe_open;						//!< Has the serial port been configured?
-		int32				spipe;							//!< Serial port file
-		struct termios		tty; 	     					//!< Port settings
+		int32				spipe_open;			//!< Has the serial port been configured?
+		int32				spipe;				//!< Serial port file
+		struct termios		tty; 	     		//!< Port settings
+
+		/* USB port */
 
 		/* Headers for CCSDC packets */
-		CCSDS_Packet_Header  packet_header;					//!< CCSDS Packet header
-		CCSDS_Decoded_Header decoded_packet;				//!< Decoded header
-		int32 				packet_count[LAST_M_ID+1];		//!< Count the packets
-		int32				byte_count;						//!< Count the bytes
+		CCSDS_Packet_Header  packet_header;		//!< CCSDS Packet header
+		CCSDS_Packet_Header  message_header;	//!< CCSDS Packet header
+		CCSDS_Decoded_Header decoded_header;	//!< Decoded header
+		int32 				 packet_count[LAST_M_ID+1];	//!< Count the packets
+		int32				 byte_count;				//!< Count the bytes
 
-		Union_M				message_body;					//!< Union for messages
+		Union_M				message_body;				//!< Union for messages
 
 		/* Buffer for commands */
 		Union_C				 	command_body[COMMAND_BUFFER_DEPTH];		//!< Union for commands
@@ -71,7 +84,8 @@ class GUI_Serial : public Threaded_Object
 		CCSDS_Decoded_Header	decoded_command[COMMAND_BUFFER_DEPTH];	//!< Decoded header
 		uint32					command_ready[COMMAND_BUFFER_DEPTH];	//!< Flag to indicate command needs to be sent
 		uint32					command_sent[COMMAND_BUFFER_DEPTH];		//!< Flag to indicate command was transmitted
-		uint32					command_ack[COMMAND_BUFFER_DEPTH];		//!< Flag to indicate command was executed
+		uint32					command_ack[COMMAND_BUFFER_DEPTH];		//!< Flag to force pend until an ack from the receiver
+		uint32					command_count[COMMAND_BUFFER_DEPTH];	//!< Store command_tic
 		uint32					command_head;							//!< Command head
 		uint32					command_tail;							//!< Command tail
 		int32					command_free;							//!< Commands free
@@ -101,17 +115,24 @@ class GUI_Serial : public Threaded_Object
 		uint32 GetCommandFree(){return(command_free);};
 		Message_Struct *GetMessages(){return(&messages);};	//!< Dump the messages
 
-		void setIO(int32 _serial);
+		void setIO(int32 _serial);							//!< Set IO, named pipe, serial, or usb
 
 		/* Nondefault methods */
 		void setPipe(bool _status);							//!< Signal handler
 		void openSerial();									//!< Attempt to open the serial port
 		void openPipe();									//!< Attempt to open the named pipe
+		void openUSB()	;									//!< Attempt to open the usb
 		void readGPS();										//!< Read from the receiver
 		void writeGPS();									//!< Write to the receiver
-		int Read(void *_b, int32 _bytes);					//!< Read bytes from given interface
-		int Write(void *_b, int32 _bytes);					//!< Write bytes to given interface
-		void formCommand(int32 _id, void *_p);
+		int32 Read(uint8 *_b);								//!< Read a byte from given interface
+		int32 Write(void *_b, int32 _bytes);				//!< Write bytes to given interface
+		void parseMessage();								//!< Parse the incoming message
+		void stateZero();									//!< Search for syncword
+		void stateOne();									//!< Download message header
+		void stateTwo();									//!< Download message body
+		void packetFailure();								//!< Loss of sync
+		void formCommand(int32 _id, void *_p, bool _pend);	//!< Form a command, _pend will make the function pend until it is acked */
+		void processAck();
 
 		/* Control the logging */
 		void logOn(int32 _apid, bool _on){log_flag[_apid] = _on;};

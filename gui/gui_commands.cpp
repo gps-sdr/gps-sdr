@@ -57,7 +57,7 @@ void GUI_Commands::onAll(wxCommandEvent& event)
 	int32 val;
 
 	val = 1;
-	pSerial->formCommand(RESET_ALL_C_ID, &val);
+	pSerial->formCommand(RESET_ALL_C_ID, &val, false);
 	str.Printf(wxT("Reset All:\t\t%d\n"),val);
 	tCommand_Ack->AppendText(str);
 }
@@ -70,7 +70,7 @@ void GUI_Commands::onPVT(wxCommandEvent& event)
 
 	val = mReset_PVT->GetCurrentSelection();
 
-	pSerial->formCommand(RESET_PVT_C_ID, &val);
+	pSerial->formCommand(RESET_PVT_C_ID, &val, true);
 
 	str.Printf(wxT("Reset PVT:\t\t%d\n"),val);
 	tCommand_Ack->AppendText(str);
@@ -90,7 +90,7 @@ void GUI_Commands::onChannel(wxCommandEvent& event)
 	else
 		val = val-1;
 
-	pSerial->formCommand(RESET_CHANNEL_C_ID, &val);
+	pSerial->formCommand(RESET_CHANNEL_C_ID, &val, false);
 	str.Printf(wxT("Reset Channel:\t\t%d\n"),val);
 	tCommand_Ack->AppendText(str);
 }
@@ -108,7 +108,7 @@ void GUI_Commands::onEphemeris(wxCommandEvent& event)
 	else
 		val = val-1;
 
-	pSerial->formCommand(RESET_EPHEMERIS_C_ID, &val);
+	pSerial->formCommand(RESET_EPHEMERIS_C_ID, &val, false);
 	str.Printf(wxT("Reset Ephemeris:\t%d\n"),val+1);
 	tCommand_Ack->AppendText(str);
 }
@@ -126,7 +126,7 @@ void GUI_Commands::onAlmanac(wxCommandEvent& event)
 	else
 		val = val-1;
 
-	pSerial->formCommand(RESET_ALMANAC_C_ID, &val);
+	pSerial->formCommand(RESET_ALMANAC_C_ID, &val, false);
 	str.Printf(wxT("Reset Almanac:\t\t%d\n"),val+1);
 	tCommand_Ack->AppendText(str);
 }

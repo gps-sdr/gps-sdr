@@ -55,7 +55,7 @@ void GUI_Ephemeris::render(wxDC& dc)
 	if((tic++ % 10) == 0)
 	{
 		val = NUM_CODES;
-		pSerial->formCommand(GET_EPHEMERIS_VALID_C_ID, &val);
+		pSerial->formCommand(GET_EPHEMERIS_VALID_C_ID, &val, false);
 	}
 }
 
@@ -92,7 +92,7 @@ void GUI_Ephemeris::onMouse(wxMouseEvent& event)
 		sv += col;
 
 		if(sv >= 0 && sv <= NUM_CODES)
-			pSerial->formCommand(GET_EPHEMERIS_C_ID, &sv);
+			pSerial->formCommand(GET_EPHEMERIS_C_ID, &sv, true);
 		else
 			sv = 0;
 	}
@@ -108,6 +108,7 @@ void GUI_Ephemeris::renderDecoded()
 	wxString str;
 	//wxPaintDC dc(pDecoded);
 	wxBufferedPaintDC dc(pDecoded, wxBUFFER_CLIENT_AREA);
+	dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND)));
 	dc.Clear();
 
 	wxCoord w, h;
@@ -145,7 +146,7 @@ void GUI_Ephemeris::renderDecoded()
 	if(loaded == 0)
 	{
 		loaded = NUM_CODES;
-		pSerial->formCommand(GET_EPHEMERIS_C_ID, &loaded);
+		pSerial->formCommand(GET_EPHEMERIS_C_ID, &loaded, true);
 	}
 
 }
@@ -228,7 +229,7 @@ void GUI_Ephemeris::onSave(wxCommandEvent& event)
 		if(fp != NULL)
 		{
 			lcv = NUM_CODES;
-			pSerial->formCommand(GET_EPHEMERIS_C_ID, &lcv);
+			pSerial->formCommand(GET_EPHEMERIS_C_ID, &lcv, true);
 			sleep(1);
 
 			e = &p->ephemerides[0];
@@ -263,7 +264,7 @@ void GUI_Ephemeris::onLoad(wxCommandEvent& event)
 			{
 				c.sv = lcv;
 				fread(&c.ephemeris, sizeof(Ephemeris_M), 1, fp);
-				pSerial->formCommand(SET_EPHEMERIS_C_ID, &c);
+				pSerial->formCommand(SET_EPHEMERIS_C_ID, &c, true);
 			}
 			fclose(fp);
 		}

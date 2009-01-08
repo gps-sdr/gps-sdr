@@ -1276,7 +1276,6 @@ double PVT::GPSTime()
 {
 
 	double epochdiff = 315964819;	//Difference in zero epochs
-	double offest = 10;				//Unix to TAI;
 	double leap_seconds = 23;		//TAI to UTC/GPS
 	double gps_second;
 	timeval tv;

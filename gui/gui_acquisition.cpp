@@ -51,7 +51,7 @@ void GUI_Acquisition::render(wxDC& dc)
 	if((tic++ % 10) == 0)
 	{
 		val = NUM_CODES;
-		pSerial->formCommand(GET_ACQ_COMMAND_C_ID, &val);
+		pSerial->formCommand(GET_ACQ_COMMAND_C_ID, &val, false);
 	}
 
 }

@@ -341,17 +341,17 @@ iGUI_Main::iGUI_Main( wxWindow* parent, wxWindowID id, const wxString& title, co
 	
 	gSizer1->Add( m_staticText33, 0, wxALL|wxEXPAND, 5 );
 	
-	day = new wxStaticText( this, wxID_ANY, wxT("day"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
-	day->Wrap( -1 );
-	gSizer1->Add( day, 0, wxALL|wxEXPAND, 5 );
+	date = new wxStaticText( this, wxID_ANY, wxT("date"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	date->Wrap( -1 );
+	gSizer1->Add( date, 0, wxALL|wxEXPAND, 5 );
 	
-	month = new wxStaticText( this, wxID_ANY, wxT("month"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
-	month->Wrap( -1 );
-	gSizer1->Add( month, 0, wxALL|wxEXPAND, 5 );
+	hrs = new wxStaticText( this, wxID_ANY, wxT("hrs"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	hrs->Wrap( -1 );
+	gSizer1->Add( hrs, 0, wxALL|wxEXPAND, 5 );
 	
-	time = new wxStaticText( this, wxID_ANY, wxT("time"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
-	time->Wrap( -1 );
-	gSizer1->Add( time, 0, wxALL|wxEXPAND, 5 );
+	sec = new wxStaticText( this, wxID_ANY, wxT("seconds"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE );
+	sec->Wrap( -1 );
+	gSizer1->Add( sec, 0, wxALL|wxEXPAND, 5 );
 	
 	sbSizer13->Add( gSizer1, 1, wxEXPAND, 5 );
 	

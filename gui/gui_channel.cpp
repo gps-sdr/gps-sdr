@@ -71,9 +71,9 @@ void GUI_Channel::render(wxDC& dc)
 
 			/*Flag buffer*/
 			str2 += ' ';
-			((int32)pchan->bit_lock) ? 				str2 += 'B' : str2 += '-';
-			((int32)pchan->frame_lock) ? 			str2 += 'F' : str2 += '-';
-			(pNav->nsvs >> lcv) & 0x1 ? 		str2 += 'N' : str2 += '-';
+			((int32)pchan->bit_lock) ? 		str2 += 'B' : str2 += '-';
+			((int32)pchan->frame_lock) ? 	str2 += 'F' : str2 += '-';
+			(pNav->nsvs >> lcv) & 0x1 ? 	str2 += 'N' : str2 += '-';
 
 			for(lcv2 = 1; lcv2 < 6; lcv2++)
 			{

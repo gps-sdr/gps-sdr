@@ -43,8 +43,7 @@ void *Serial_Telemetry_Thread(void *_arg)
 	while(grun)
 	{
 		aSerial_Telemetry->Import();
-		aSerial_Telemetry->Export();
-		aSerial_Telemetry->IncExecTic();
+		usleep(1000);
 	}
 
 	pthread_exit(0);
@@ -128,47 +127,55 @@ void Serial_Telemetry::Import()
 
 	/* Pend on this pipe */
 	bread = read(FIFO_2_Telem_P[READ], &fifo_status, sizeof(FIFO_M));
-
-	/* Lock correlator status */
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	if(bread == sizeof(FIFO_M))
 	{
-		pChannels[lcv]->Lock();
-		if(pChannels[lcv]->getActive())
+
+		/* Lock correlator status */
+		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		{
-			channel[lcv] = pChannels[lcv]->getPacket();
-			active[lcv] = 1;
+			pChannels[lcv]->Lock();
+			if(pChannels[lcv]->getActive())
+			{
+				channel[lcv] = pChannels[lcv]->getPacket();
+				active[lcv] = 1;
+			}
+			else
+			{
+				channel[lcv].count = 0;
+				active[lcv] = 0;
+			}
+			pChannels[lcv]->Unlock();
 		}
-		else
-		{
-			channel[lcv].count = 0;
-			active[lcv] = 0;
-		}
-		pChannels[lcv]->Unlock();
+
+
+		/* Read from PVT */
+		//read(PVT_2_Telem_P[READ], &tNav, sizeof(PVT_2_Telem_S));
+		read(PVT_2_Telem_P[READ], &sps, 			sizeof(SPS_M));
+		read(PVT_2_Telem_P[READ], &clock, 			sizeof(Clock_M));
+		read(PVT_2_Telem_P[READ], &sv_positions[0],	MAX_CHANNELS*sizeof(SV_Position_M));
+		read(PVT_2_Telem_P[READ], &pseudoranges[0],	MAX_CHANNELS*sizeof(Pseudorange_M));
+		read(PVT_2_Telem_P[READ], &measurements[0],	MAX_CHANNELS*sizeof(Measurement_M));
+
+		/* Read from actual acquisition */
+		bread = sizeof(Acq_Command_M);
+		while(bread == sizeof(Acq_Command_M))
+			bread = read(Acq_2_Telem_P[READ],&acq_command, sizeof(Acq_Command_M));
+
+		/* Read from Ephemeris */
+		bread = sizeof(Ephemeris_Status_M);
+		while(bread == sizeof(Ephemeris_Status_M))
+			bread = read(Ephem_2_Telem_P[READ], &ephemeris_status, sizeof(Ephemeris_Status_M));
+
+		/* Read from SV Select */
+		bread = sizeof(SV_Select_2_Telem_S);
+		while(bread == sizeof(SV_Select_2_Telem_S))
+			bread = read(SV_Select_2_Telem_P[READ], &tSelect, sizeof(SV_Select_2_Telem_S));
+
+		IncExecTic();
+
+		Export();
+
 	}
-
-
-	/* Read from PVT */
-	//read(PVT_2_Telem_P[READ], &tNav, sizeof(PVT_2_Telem_S));
-	read(PVT_2_Telem_P[READ], &sps, 			sizeof(SPS_M));
-	read(PVT_2_Telem_P[READ], &clock, 			sizeof(Clock_M));
-	read(PVT_2_Telem_P[READ], &sv_positions[0],	MAX_CHANNELS*sizeof(SV_Position_M));
-	read(PVT_2_Telem_P[READ], &pseudoranges[0],	MAX_CHANNELS*sizeof(Pseudorange_M));
-	read(PVT_2_Telem_P[READ], &measurements[0],	MAX_CHANNELS*sizeof(Measurement_M));
-
-	/* Read from actual acquisition */
-	bread = sizeof(Acq_Command_M);
-	while(bread == sizeof(Acq_Command_M))
-		bread = read(Acq_2_Telem_P[READ],&acq_command, sizeof(Acq_Command_M));
-
-	/* Read from Ephemeris */
-	bread = sizeof(Ephemeris_Status_M);
-	while(bread == sizeof(Ephemeris_Status_M))
-		bread = read(Ephem_2_Telem_P[READ], &ephemeris_status, sizeof(Ephemeris_Status_M));
-
-	/* Read from SV Select */
-	bread = sizeof(SV_Select_2_Telem_S);
-	while(bread == sizeof(SV_Select_2_Telem_S))
-		bread = read(SV_Select_2_Telem_P[READ], &tSelect, sizeof(SV_Select_2_Telem_S));
 
 	/* See if any commands have been sent over */
 	if(serial)
@@ -312,6 +319,8 @@ void Serial_Telemetry::ImportPipe()
 		{
 			if(npipe_open)
 				write(npipe[WRITE], &commando_buff, bread);
+
+
 		}
 	}
 
@@ -333,7 +342,13 @@ void Serial_Telemetry::OpenPipe()
 		printf("GUI connected\n");
 	}
 	else
+	{
+		close(npipe[READ]);
+		close(npipe[WRITE]);
+		npipe[READ] = NULL;
+		npipe[WRITE] = NULL;
 		npipe_open = false;
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/

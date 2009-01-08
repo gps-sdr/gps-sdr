@@ -113,6 +113,7 @@ typedef unsigned int		uint32;
 #define SPEED_OF_LIGHT 			(2.99792458e8)				//!< Speed of light (m/s) as specified in IS-GPS-200D
 #define GRAVITY_CONSTANT		(3.986005e14)				//!< Earth's WGS-84 gravitational constant (m^3/s^2) as specified in IS-GPS-200D
 #define WGS84OE					(7.2921151467e-5)			//!< Earth's WGS-84 rotation rate (rads/s) as specified in IS-GPS-200D
+#define SECONDS_IN_1024_WEEKS	(619315200.0)				//!< Number of seconds in 1024 weeks
 #define SECONDS_IN_WEEK			(604800.0)					//!< Number of seconds in a week
 #define HALF_OF_SECONDS_IN_WEEK	(302400.0)					//!< Number of seconds in one half of a week
 #define SECONDS_IN_DAY			(86400.0)					//!< Number of seconds in a day

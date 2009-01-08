@@ -68,6 +68,7 @@ void *GUI_Serial_Thread(void *_arg)
 	{
 		aGUI_Serial->Import();
 		aGUI_Serial->Export();
+		usleep(1000);
 	}
 
 	pthread_exit(0);
@@ -96,6 +97,7 @@ GUI_Serial::GUI_Serial()
 	byte_count = 0;
 	command_head = 0;
 	command_tail = 0;
+	command_tic = 0;
 	command_free = COMMAND_BUFFER_DEPTH;
 	npipe_open = false;
 	spipe_open = false;
@@ -105,7 +107,7 @@ GUI_Serial::GUI_Serial()
 	npipe[WRITE] = NULL;
 	lfile = NULL;
 	packet_count[LAST_M_ID] = 0;
-	decoded_packet.tic = decoded_packet.id = decoded_packet.length = 0;
+	decoded_header.tic = decoded_header.id = decoded_header.length = 0;
 	memset(&packet_count[0], 0x0, (LAST_M_ID+1)*sizeof(int));
 	memset(&messages.fifo, 0x0, sizeof(FIFO_M));
 	memset(&command_ready[0], 0x0, COMMAND_BUFFER_DEPTH*sizeof(uint32));
@@ -116,6 +118,9 @@ GUI_Serial::GUI_Serial()
 	memset(&decoded_command[0], 0x0, COMMAND_BUFFER_DEPTH*sizeof(CCSDS_Decoded_Header));
 	memset(&filename[0], 0x0, 1024*sizeof(char));
 	memset(&log_flag[0], 0x0, LAST_M_ID*sizeof(char));
+
+	pmessage = (uint8 *)&message_body;
+	pheader = (uint8 *)&message_header;
 
 	signal(SIGPIPE, pipe_closed);
 
@@ -250,7 +255,7 @@ void GUI_Serial::Import()
 	}
 	else
 	{
-		if(npipe_open == true)
+		if(npipe_open)
 			readGPS();
 		else
 			openPipe();
@@ -276,7 +281,7 @@ void GUI_Serial::Export()
 	}
 	else
 	{
-		if(npipe_open == true)
+		if(npipe_open)
 			writeGPS();
 		else
 			openPipe();
@@ -287,30 +292,22 @@ void GUI_Serial::Export()
 
 
 /*----------------------------------------------------------------------------------------------*/
-int GUI_Serial::Read(void *_b, int32 _bytes)
+int GUI_Serial::Read(uint8 *_b)
 {
 
-	int32 nbytes, bread;
-	uint8 *buff;
+	int32 bread = 0;
 
-	nbytes = 0; bread = 0;
-	buff = (uint8 *)_b;
-	while((nbytes < _bytes) && grun)
-	{
-		if(serial && spipe_open)
-			bread = read(spipe, &buff[nbytes], _bytes - nbytes);
-		else if(npipe_open)
-			bread = read(npipe[READ], &buff[nbytes], _bytes - nbytes);
-		else
-			nbytes = _bytes;
+	if(serial && spipe_open)
+		bread = read(spipe, _b, 1);
+	else if(npipe_open)
+		bread = read(npipe[READ], _b, 1);
+	else
+		bread = 0;
 
-		if(bread > 0)
-			nbytes += bread;
-
-		usleep(1000);
-	}
-
-	return(nbytes);
+	if(bread == 1)
+		return(1);
+	else
+		return(0);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -336,230 +333,250 @@ int GUI_Serial::Write(void *_b, int32 _bytes)
 
 
 /*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::parseMessage()
+{
+
+	int32 chan;
+	Message_Struct *m;
+
+	m = &messages;
+
+	Lock();
+
+	/* For the bytes/sec calculation */
+	byte_count += decoded_header.length;
+
+	packet_count[decoded_header.id]++;
+
+	/* Now copy in the body */
+	switch(decoded_header.id)
+	{
+		case BOARD_HEALTH_M_ID:
+			memcpy(&m->board_health, &message_body, sizeof(Board_Health_M));
+			break;
+		case TASK_HEALTH_M_ID:
+			memcpy(&m->task_health, &message_body, sizeof(Task_Health_M));
+			if(log_flag[PSEUDORANGE_M_ID]) printTask();
+			break;
+		case CHANNEL_M_ID:
+			memcpy(&m->channel[MAX_CHANNELS], &message_body, sizeof(Channel_M));
+			chan = m->channel[MAX_CHANNELS].chan;
+			if((chan >= 0) && (chan < MAX_CHANNELS))
+			{
+				memcpy(&m->channel[chan], &m->channel[MAX_CHANNELS], sizeof(Channel_M));
+				if(log_flag[CHANNEL_M_ID]) printChan(chan);
+			}
+			else
+				packetFailure();
+			break;
+		case SPS_M_ID:
+			memcpy(&m->sps, &message_body, sizeof(SPS_M));
+			if(log_flag[SPS_M_ID]) printPVT();
+			break;
+		case CLOCK_M_ID:
+			memcpy(&m->clock, &message_body, sizeof(Clock_M));
+			if(log_flag[CLOCK_M_ID]) printClock();
+			break;
+		case SV_POSITION_M_ID:
+			memcpy(&m->sv_positions[MAX_CHANNELS], &message_body, sizeof(SV_Position_M));
+			chan = m->sv_positions[MAX_CHANNELS].chan;
+			if((chan >= 0) && (chan < MAX_CHANNELS))
+				memcpy(&m->sv_positions[chan], &m->sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
+			else
+				packetFailure();
+			break;
+		case EKF_M_ID:
+			memcpy(&m->task_health, &message_body, sizeof(Task_Health_M));
+			if(log_flag[EKF_M_ID]) printEKF();
+			break;
+		case MEASUREMENT_M_ID:
+			memcpy(&m->measurements[MAX_CHANNELS], &message_body, sizeof(Measurement_M));
+			chan = m->measurements[MAX_CHANNELS].chan;
+			if((chan >= 0) && (chan < MAX_CHANNELS))
+				memcpy(&m->measurements[chan], &m->measurements[MAX_CHANNELS], sizeof(Measurement_M));
+			else
+				packetFailure();
+			break;
+		case PSEUDORANGE_M_ID:
+			memcpy(&m->pseudoranges[MAX_CHANNELS], &message_body, sizeof(Pseudorange_M));
+			chan = m->pseudoranges[MAX_CHANNELS].chan;
+			if((chan >= 0) && (chan < MAX_CHANNELS))
+			{
+				memcpy(&m->pseudoranges[chan], &m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
+				if(log_flag[PSEUDORANGE_M_ID]) printPseudo(chan);
+			}
+			else
+				packetFailure();
+			break;
+		case EPHEMERIS_M_ID:
+			memcpy(&m->ephemerides[NUM_CODES], &message_body, sizeof(Ephemeris_M));
+			chan = m->ephemerides[NUM_CODES].sv;
+			if((chan >= 0) && (chan < NUM_CODES))
+				memcpy(&m->ephemerides[chan], &m->ephemerides[NUM_CODES], sizeof(Ephemeris_M));
+			else
+				packetFailure();
+			break;
+		case ALMANAC_M_ID:
+			memcpy(&m->almanacs[NUM_CODES], &message_body, sizeof(Almanac_M));
+			chan = m->almanacs[NUM_CODES].sv;
+			if((chan >= 0) && (chan < NUM_CODES))
+				memcpy(&m->almanacs[chan], &m->almanacs[NUM_CODES], sizeof(Almanac_M));
+			else
+				packetFailure();
+			break;
+		case EPHEMERIS_VALID_M_ID:
+			memcpy(&m->ephemeris_status, &message_body, sizeof(Ephemeris_Status_M));
+			break;
+		case FIFO_M_ID:
+			memcpy(&m->fifo, &message_body, sizeof(FIFO_M));
+			break;
+		case SV_PREDICTION_M_ID:
+			memcpy(&m->sv_predictions[NUM_CODES], &message_body, sizeof(SV_Prediction_M));
+			chan = m->sv_predictions[NUM_CODES].sv;
+			if((chan >= 0) && (chan < NUM_CODES))
+				memcpy(&m->sv_predictions[chan], &m->sv_predictions[NUM_CODES], sizeof(SV_Prediction_M));
+			else
+				packetFailure();
+			break;
+		case ACQ_COMMAND_M_ID:
+			memcpy(&m->acq_command[NUM_CODES], &message_body, sizeof(Acq_Command_M));
+			chan = m->acq_command[NUM_CODES].sv;
+			if((chan >= 0) && (chan < NUM_CODES))
+				memcpy(&m->acq_command[chan], &m->acq_command[NUM_CODES], sizeof(Acq_Command_M));
+			else
+				packetFailure();
+			break;
+		case COMMAND_ACK_M_ID:
+			memcpy(&m->command_ack, &message_body, sizeof(Command_Ack_M));
+			processAck();
+			break;
+		default:
+			packetFailure();
+			break;
+	}
+
+	Unlock();
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void GUI_Serial::readGPS()
 {
-	int32 nbytes, bread, k, chan;
-	uint8 v;
+	uint8 abyte;
 
-	Message_Struct *m = &messages;
-
-	if(message_sync)
+	/* Get the byte to process */
+	while(Read(&abyte))
 	{
+		byte_count++;
 
-		/* Check to make sure the first 4 bytes are "0xAAAAAAAA" */
-		byte_count += Read(&syncword, sizeof(uint32));
-
-		if(syncword == 0xAAAAAAAA)
+		switch(syncstate)
 		{
-			message_sync++;
-		}
-		else
-		{
-			message_sync = 0;
-			packet_count[LAST_M_ID]++;
-			return;
-		}
+			case 0: /* Get the preamble */
+			{
+				syncword <<= 8;
+				syncword += (uint32)abyte;
 
-
-		/* If so get the packet header */
-		byte_count += Read(&packet_header, sizeof(CCSDS_Packet_Header));
-		DecodeCCSDSPacketHeader(&decoded_packet, &packet_header);
-
-		/* Catch some failures */
-		if(decoded_packet.length < 0 ||  decoded_packet.length > 512)
-		{
-			message_sync = 0;
-			packet_count[LAST_M_ID]++;
-			return;
-		}
-
-		if(decoded_packet.id < FIRST_M_ID ||  decoded_packet.id > LAST_M_ID)
-		{
-			message_sync = 0;
-			packet_count[LAST_M_ID]++;
-			return;
-		}
-
-		Lock();
-
-		/* For the bytes/sec calculation */
-		byte_count += decoded_packet.length;
-
-		packet_count[decoded_packet.id]++;
-
-		/* Now copy in the body */
-		switch(decoded_packet.id)
-		{
-			case BOARD_HEALTH_M_ID:
-				Read(&m->board_health, sizeof(Board_Health_M));
-				break;
-			case TASK_HEALTH_M_ID:
-				Read(&m->task_health, sizeof(Task_Health_M));
-				if(log_flag[PSEUDORANGE_M_ID]) printTask();
-				break;
-			case CHANNEL_M_ID:
-				Read(&m->channel[MAX_CHANNELS], sizeof(Channel_M));
-				chan = m->channel[MAX_CHANNELS].chan;
-				if((chan >= 0) && (chan < MAX_CHANNELS))
-				{
-					memcpy(&m->channel[chan], &m->channel[MAX_CHANNELS], sizeof(Channel_M));
-					if(log_flag[CHANNEL_M_ID]) printChan(chan);
-				}
-				else
-				{
-					message_sync = 0;
-					packet_count[LAST_M_ID]++;
-				}
-				break;
-			case SPS_M_ID:
-				Read(&m->sps, sizeof(SPS_M));
-				if(log_flag[SPS_M_ID]) printPVT();
-				break;
-			case CLOCK_M_ID:
-				Read(&m->clock, sizeof(Clock_M));
-				if(log_flag[CLOCK_M_ID]) printClock();
-				break;
-			case SV_POSITION_M_ID:
-				Read(&m->sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
-				chan = m->sv_positions[MAX_CHANNELS].chan;
-				if((chan >= 0) && (chan < MAX_CHANNELS))
-				{
-					memcpy(&m->sv_positions[chan], &m->sv_positions[MAX_CHANNELS], sizeof(SV_Position_M));
-				}
-				else
-				{
-					message_sync = 0;
-					packet_count[LAST_M_ID]++;
-				}
-				break;
-			case EKF_M_ID:
-				Read(&m->task_health, sizeof(Task_Health_M));
-				if(log_flag[EKF_M_ID]) printEKF();
-				break;
-			case MEASUREMENT_M_ID:
-				Read(&m->measurements[MAX_CHANNELS], sizeof(Measurement_M));
-				chan = m->measurements[MAX_CHANNELS].chan;
-				if((chan >= 0) && (chan < MAX_CHANNELS))
-				{
-					memcpy(&m->measurements[chan], &m->measurements[MAX_CHANNELS], sizeof(Measurement_M));
-				}
-				else
-				{
-					message_sync = 0;
-					packet_count[LAST_M_ID]++;
-				}
-				break;
-			case PSEUDORANGE_M_ID:
-				Read(&m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
-				chan = m->pseudoranges[MAX_CHANNELS].chan;
-				if((chan >= 0) && (chan < MAX_CHANNELS))
-				{
-					memcpy(&m->pseudoranges[chan], &m->pseudoranges[MAX_CHANNELS], sizeof(Pseudorange_M));
-					if(log_flag[PSEUDORANGE_M_ID]) printPseudo(chan);
-				}
-				else
-				{
-					message_sync = 0;
-					packet_count[LAST_M_ID]++;
-				}
-				break;
-			case EPHEMERIS_M_ID:
-				Read(&m->ephemerides[NUM_CODES], sizeof(Ephemeris_M));
-				chan = m->ephemerides[NUM_CODES].sv;
-				if((chan >= 0) && (chan < NUM_CODES))
-				{
-					memcpy(&m->ephemerides[chan], &m->ephemerides[NUM_CODES], sizeof(Ephemeris_M));
-				}
-				else
-				{
-					message_sync = 0;
-					packet_count[LAST_M_ID]++;
-				}
-				break;
-			case ALMANAC_M_ID:
-				Read(&m->almanacs[NUM_CODES], sizeof(Almanac_M));
-				chan = m->almanacs[NUM_CODES].sv;
-				if((chan >= 0) && (chan < NUM_CODES))
-				{
-					memcpy(&m->almanacs[chan], &m->almanacs[NUM_CODES], sizeof(Almanac_M));
-				}
-				else
-				{
-					message_sync = 0;
-					packet_count[LAST_M_ID]++;
-				}
-				break;
-			case EPHEMERIS_VALID_M_ID:
-				Read(&m->ephemeris_status, sizeof(Ephemeris_Status_M));
-				break;
-			case FIFO_M_ID:
-				Read(&m->fifo, sizeof(FIFO_M));
-				break;
-			case SV_PREDICTION_M_ID:
-				Read(&m->sv_predictions[NUM_CODES], sizeof(SV_Prediction_M));
-				chan = m->sv_predictions[NUM_CODES].sv;
-				if((chan >= 0) && (chan < NUM_CODES))
-				{
-					memcpy(&m->sv_predictions[chan], &m->sv_predictions[NUM_CODES], sizeof(SV_Prediction_M));
-				}
-				else
-				{
-					message_sync = 0;
-					packet_count[LAST_M_ID]++;
-				}
-				break;
-			case ACQ_COMMAND_M_ID:
-				Read(&m->acq_command[NUM_CODES], sizeof(Acq_Command_M));
-				chan = m->acq_command[NUM_CODES].sv;
-				if((chan >= 0) && (chan < NUM_CODES))
-				{
-					memcpy(&m->acq_command[chan], &m->acq_command[NUM_CODES], sizeof(Acq_Command_M));
-				}
-				else
-				{
-					message_sync = 0;
-					packet_count[LAST_M_ID]++;
-				}
+				if(syncword == 0xAAAAAAAA)
+					stateZero();
 
 				break;
-			case COMMAND_ACK_M_ID:
-				Read(&m->command_ack, sizeof(Command_Ack_M));
+			}
+			case 1: /* Get the CCSDS header */
+			{
+				pheader[header_bytes] = abyte; header_bytes++;
+
+				if(header_bytes >= sizeof(CCSDS_Packet_Header))
+					stateOne();
+
 				break;
-//			case LAST_M_ID:
-//				Read(&buff[0], decoded_packet.length);
-//				message_sync = 0;
-//				packet_count[LAST_M_ID]++;
-//				break;
+			}
+			case 2: /* Get the message payload */
+			{
+				pmessage[message_bytes] = abyte; message_bytes++;
+
+				if(message_bytes >= message_bytes_2_read)
+					stateTwo();
+
+				break;
+			}
 			default:
-				packet_count[LAST_M_ID]++;
-				Read(&buff[0], decoded_packet.length);
-				break;
+			{
+				syncstate = 0;
+				syncword = 0;
+			}
 		}
+	}
 
-		Unlock();
+}
+/*----------------------------------------------------------------------------------------------*/
 
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::stateZero()
+{
+	syncstate = 1;
+	syncword = 0;
+	header_bytes = 0;
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::stateOne()
+{
+
+	/* Decode the header */
+	DecodeCCSDSPacketHeader(&decoded_header, &message_header);
+
+	/* Do some error checking */
+	if((decoded_header.length > 512) || (decoded_header.length < 1))
+	{
+		packetFailure();
+	}
+	else if(decoded_header.id < FIRST_M_ID ||  decoded_header.id > LAST_M_ID)
+	{
+		packetFailure();
 	}
 	else
 	{
-		v = 0;
-		byte_count += Read(&v, 1);
-
-		syncword <<= 8;
-		syncword += (uint32)v;
-
-		if(syncword == 0xAAAAAAAA)
-		{
-			message_sync = 1;
-
-			/* If so get the packet header */
-			byte_count += Read(&packet_header, sizeof(CCSDS_Packet_Header));
-			DecodeCCSDSPacketHeader(&decoded_packet, &packet_header);
-
-			/* Get the body */
-			byte_count += Read(&buff[0], decoded_packet.length);
-		}
+		message_bytes_2_read = decoded_header.length;
+		message_bytes = 0;
+		syncstate = 2;
 	}
 
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::packetFailure()
+{
+	syncstate = 0;
+	syncword = 0;
+	message_sync = 0;
+	header_bytes = 0;
+	message_bytes = 0;
+	packet_count[LAST_M_ID]++;
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::stateTwo()
+{
+
+	DecodeCCSDSPacketHeader(&decoded_header, &message_header);
+
+	parseMessage();
+
+	message_sync++;
+	syncstate = 0;
+	message_bytes = 0;
+	header_bytes = 0;
+	message_bytes = 0;
+	message_bytes_2_read = 0;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -601,10 +618,30 @@ void GUI_Serial::writeGPS()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void GUI_Serial::formCommand(int32 _id, void *_p)
+void GUI_Serial::processAck()
+{
+
+	int32 lcv;
+
+	for(lcv = 0; lcv < COMMAND_BUFFER_DEPTH; lcv++)
+	{
+		if(messages.command_ack.command_tic == command_count[lcv])
+		{
+			command_ack[lcv] = 0;
+			break;
+		}
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::formCommand(int32 _id, void *_p, bool _pend)
 {
 
 	int32 pend;
+	int32 command_num;
 	Union_C *cb;
 	CCSDS_Packet_Header *ch;
 	CCSDS_Decoded_Header *dc;
@@ -621,9 +658,13 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 
 	Lock();
 
+	command_num = command_head;
+
+	command_count[command_head] = command_tic;
 	command_ready[command_head] = 1;
 	command_sent[command_head] = 0;
-	command_ack[command_head] = command_tic;
+	command_ack[command_head] = 1;
+
 	dc = &decoded_command[command_head];
 	ch = &command_header[command_head];
 	cb = &command_body[command_head];
@@ -733,6 +774,7 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 			break;
 		default:
 			command_ready[command_head] = 0;
+			command_count[command_head] = 0;
 			command_sent[command_head] = 0;
 			command_ack[command_head] = 0;
 			Unlock();
@@ -747,6 +789,18 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 
 	Unlock();
 
+	if(_pend)
+	{
+		/* Wait for the ack of the previous command! */
+		pend = 1;
+		while(pend)
+		{
+			Lock();
+			pend = command_ack[command_num];
+			Unlock();
+			usleep(10000);
+		}
+	}
 }
 /*----------------------------------------------------------------------------------------------*/
 

@@ -50,7 +50,7 @@ void GUI_Select::render(wxDC& dc)
 	if((tic++ % 10) == 0)
 	{
 		val = NUM_CODES;
-		pSerial->formCommand(GET_SV_PREDICTION_C_ID, &val);
+		pSerial->formCommand(GET_SV_PREDICTION_C_ID, &val, false);
 	}
 
 }
@@ -69,6 +69,7 @@ void GUI_Select::renderDoppler()
 
 	wxString str;
 	wxBufferedPaintDC dc(pDoppler, wxBUFFER_CLIENT_AREA);
+	dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND)));
 	dc.Clear();
 
 	maxX = maxY = 2000;
@@ -80,15 +81,13 @@ void GUI_Select::renderDoppler()
 
     /* Draw top,middle,bottom lines */
     dc.SetPen(wxPen(wxColor(0,0,0), 1));
-    dc.DrawLine(mX-1000*scaleX, 0000*scaleY, mX+1000*scaleX, 0000*scaleY);
     dc.DrawLine(mX-1000*scaleX, 1000*scaleY, mX+1000*scaleX, 1000*scaleY);
-    dc.DrawLine(mX-1000*scaleX, 2000*scaleY, mX+1000*scaleX, 2000*scaleY);
 
     /* Draw intermediate lines */
     dc.SetBrush(wxBrush(wxColor(0,0,0)));
     dc.SetFont(wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL));
     dc.SetPen(wxPen(wxColor(0,0,0), 1, wxLONG_DASH ));
-    for(lcv = 0; lcv < 11; lcv++)
+    for(lcv = 1; lcv < 10; lcv++)
     {
     	dc.DrawLine(mX-1000*scaleX, lcv*200*scaleY, mX+1000*scaleX, lcv*200*scaleY);
         str.Printf(wxT("%d"),MAX_DOPPLER-lcv*(2*MAX_DOPPLER/10));
@@ -156,6 +155,7 @@ void GUI_Select::renderSV()
 	maxX = maxY = 1100;
 
 	wxBufferedPaintDC dc(pSV, wxBUFFER_CLIENT_AREA);
+	dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND)));
 	dc.Clear();
 
 	wxCoord w, h;
@@ -258,6 +258,7 @@ void GUI_Select::renderRec()
 	maxX = maxY = 1100;
 
 	wxBufferedPaintDC dc(pRec, wxBUFFER_CLIENT_AREA);
+	dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND)));
 	dc.Clear();
 
 	wxCoord w, h;

@@ -52,6 +52,7 @@ void GUI_Main::renderCN0()
 {
 
 	Channel_M *pchan;
+	SPS_M *pNav = &p->sps;
 	int mX, mY, lcv, gval, rval;
 	double maxX, maxY, svX, svY, dX, dY;
 	double scaleX, scaleY;
@@ -60,6 +61,7 @@ void GUI_Main::renderCN0()
 	wxString str;
 //	wxPaintDC dc(pCN0);
 	wxBufferedPaintDC dc(pCN0, wxBUFFER_CLIENT_AREA);
+	dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND)));
 	dc.Clear();
 
 	maxX = maxY = 1000;
@@ -73,13 +75,12 @@ void GUI_Main::renderCN0()
 	dc.SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxNORMAL, wxNORMAL));
 
 	dc.SetPen(wxPen(wxColor(0,0,0), 1, wxLONG_DASH ));
-    dc.DrawLine(mX-500*scaleX, h-800*scaleY, mX+500*scaleX, h-800*scaleY);
-    dc.DrawLine(mX-500*scaleX, h-400*scaleY, mX+500*scaleX, h-400*scaleY);
-    dc.DrawLine(mX-500*scaleX, h-200*scaleY, mX+500*scaleX, h-200*scaleY);
+	for(lcv = 200; lcv < 1000; lcv+=40)
+		dc.DrawLine(mX-500*scaleX, h-lcv*scaleY, mX+500*scaleX, h-lcv*scaleY);
 
-    /* Draw a circle */
     dc.SetPen(wxPen(wxColor(0,0,0), 1));
-    dc.DrawLine(mX-500*scaleX, h-600*scaleY, mX+500*scaleX, h-600*scaleY);
+	for(lcv = 200; lcv < 1000; lcv+=200)
+		dc.DrawLine(mX-500*scaleX, h-lcv*scaleY, mX+500*scaleX, h-lcv*scaleY);
 
     dc.DrawText(wxT("60 dB-Hz"), mX - 500*scaleX, h - 1000*scaleY);
     dc.DrawText(wxT("50 dB-Hz"), mX - 500*scaleX, h - 800*scaleY);
@@ -90,18 +91,26 @@ void GUI_Main::renderCN0()
     dX = (1000-150)/MAX_CHANNELS;
     dX *= scaleX;
 
-    dc.DrawText(wxT("CH#"),mX-500*scaleX, h - 30*scaleY);
-    dc.DrawText(wxT("SV#"),mX-500*scaleX, h - 60*scaleY);
+    dc.DrawText(wxT("CH #"),mX-500*scaleX, h - 30*scaleY);
+    dc.DrawText(wxT("SV #"),mX-500*scaleX, h - 60*scaleY);
+    dc.DrawText(wxT("Locks"),mX-500*scaleX, h - 90*scaleY);
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		pchan = &p->channel[lcv];
-		if(pchan->count > 2000.0)
+
+		dc.SetFont(wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL));
+
+		if((pchan->count > 2000.0) && (pchan->CN0 > 20.0))
 		{
+
+			if(pNav->nsvs >> lcv)
+				dc.SetFont(wxFont(10, wxDEFAULT, wxNORMAL, wxBOLD));
+
 			str.Printf(wxT("%02d"),(int)pchan->sv+1);
 			dc.DrawText(str, lcv*dX + 150*scaleX, h - 60*scaleY);
 
-			dY = pchan->CN0 - 40.0;
+			dY = pchan->CN0 - 20.0;
 			dY /= 40.0;
 			dY *= 800;
 			dY *= scaleY;
@@ -114,16 +123,22 @@ void GUI_Main::renderCN0()
 			rval = 122.0 - 122.0*(pchan->CN0 - 20.0)/40.0;
 			dc.SetBrush(wxBrush(wxColor(rval,gval,0)));
 			dc.SetPen(wxPen(wxColor(0,0,0), 1));
-			dc.DrawPolygon(4, bar, lcv*dX + 150*scaleX, h-600*scaleY);
+			dc.DrawPolygon(4, bar, lcv*dX + 150*scaleX, h-200*scaleY);
+
+			str.Clear();
+			((int32)pchan->bit_lock) ? 		str += 'B' : str += '_';
+			((int32)pchan->frame_lock) ? 	str += 'F' : str += '_';
+			dc.DrawText(str, lcv*dX + 150*scaleX, h - 90*scaleY);
+
 		}
 		else
 		{
 			dc.DrawText(wxT("__"), lcv*dX + 150*scaleX, h - 60*scaleY);
+			dc.DrawText(wxT("__"), lcv*dX + 150*scaleX, h - 90*scaleY);
 		}
 
 		str.Printf(wxT("%02d"),lcv);
 		dc.DrawText(str, lcv*dX + 150*scaleX, h - 30*scaleY);
-
 	}
 
 }
@@ -145,6 +160,7 @@ void GUI_Main::renderSkyPlot()
 	//wxPaintDC dc(pSkyPlot);
 	//wxBufferedPaintDC dc(pSkyPlot, pSkyPlot->GetSize(), wxBUFFER_CLIENT_AREA);
 	wxBufferedPaintDC dc(pSkyPlot, wxBUFFER_CLIENT_AREA);
+	dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND)));
 	dc.Clear();
 
 	wxCoord w, h;
@@ -220,10 +236,13 @@ void GUI_Main::renderSkyPlot()
 
 }
 
+
 void GUI_Main::renderPVT()
 {
 
+	wxDateTime theTime;
 	wxString str;
+	time_t utcsec;
 	SPS_M *pNav = &p->sps;
 	Clock_M *pClock = &p->clock;
 
@@ -239,5 +258,17 @@ void GUI_Main::renderPVT()
 	str.Printf(wxT("%15.6f"),pClock->bias);					cb->SetLabel(str);
 	str.Printf(wxT("%15.6f"),pClock->rate);					cr->SetLabel(str);
 	str.Printf(wxT("%15.6f"),pClock->time);					gpst->SetLabel(str);
+
+	/* Get into unix time */
+	utcsec = floor(pClock->time);
+	utcsec += pClock->week*SECONDS_IN_WEEK;
+	utcsec += SECONDS_IN_1024_WEEKS;
+	utcsec += 315964819;
+	utcsec += 13;
+
+	theTime.Set(utcsec);
+	date->SetLabel(theTime.FormatISODate());
+	hrs->SetLabel(theTime.FormatISOTime());
+	str.Printf(wxT("%15.6f"),fmod(pClock->time,1.0)); 		sec->SetLabel(str);
 
 }

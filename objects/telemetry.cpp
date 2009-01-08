@@ -36,6 +36,7 @@ void *Telemetry_Thread(void *_arg)
 		aTelemetry->Import();
 		aTelemetry->Export();
 		aTelemetry->IncExecTic();
+		usleep(1000);
 	}
 
 	pthread_exit(0);
@@ -120,42 +121,46 @@ void Telemetry::Import()
 	Channel_M temp;
 	int32 bread, lcv, num_chans;
 
-	read(FIFO_2_Telem_P[READ], &tFIFO, sizeof(FIFO_M));
-
-	IncStartTic();
-
-	/* Lock correlator status */
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	bread = read(FIFO_2_Telem_P[READ], &tFIFO, sizeof(FIFO_M));
+	if(bread == sizeof(FIFO_M))
 	{
-		pChannels[lcv]->Lock();
-		if(pChannels[lcv]->getActive())
+
+		IncStartTic();
+
+		/* Lock correlator status */
+		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		{
-			tChan[lcv] = pChannels[lcv]->getPacket();
-			active[lcv] = 1;
+			pChannels[lcv]->Lock();
+			if(pChannels[lcv]->getActive())
+			{
+				tChan[lcv] = pChannels[lcv]->getPacket();
+				active[lcv] = 1;
+			}
+			else
+			{
+				tChan[lcv].count = 0;
+				active[lcv] = 0;
+			}
+			pChannels[lcv]->Unlock();
 		}
-		else
-		{
-			tChan[lcv].count = 0;
-			active[lcv] = 0;
-		}
-		pChannels[lcv]->Unlock();
+
+		read(PVT_2_Telem_P[READ], &tNav, sizeof(PVT_2_Telem_S));
+
+		bread = sizeof(Acq_Command_M);
+		while(bread == sizeof(Acq_Command_M))
+			bread = read(Acq_2_Telem_P[READ],&tAcq,sizeof(Acq_Command_M));
+
+		bread = sizeof(Ephemeris_Status_M);
+		while(bread == sizeof(Ephemeris_Status_M))
+			bread = read(Ephem_2_Telem_P[READ], &tEphem, sizeof(Ephemeris_Status_M));
+
+		bread = sizeof(SV_Select_2_Telem_S);
+		while(bread == sizeof(SV_Select_2_Telem_S))
+			bread = read(SV_Select_2_Telem_P[READ], &tSelect, sizeof(SV_Select_2_Telem_S));
+
+		UpdateScreen();
+
 	}
-
-	read(PVT_2_Telem_P[READ], &tNav, sizeof(PVT_2_Telem_S));
-
-	bread = sizeof(Acq_Command_M);
-	while(bread == sizeof(Acq_Command_M))
-		bread = read(Acq_2_Telem_P[READ],&tAcq,sizeof(Acq_Command_M));
-
-	bread = sizeof(Ephemeris_Status_M);
-	while(bread == sizeof(Ephemeris_Status_M))
-		bread = read(Ephem_2_Telem_P[READ], &tEphem, sizeof(Ephemeris_Status_M));
-
-	bread = sizeof(SV_Select_2_Telem_S);
-	while(bread == sizeof(SV_Select_2_Telem_S))
-		bread = read(SV_Select_2_Telem_P[READ], &tSelect, sizeof(SV_Select_2_Telem_S));
-
-	UpdateScreen();
 
 }
 /*----------------------------------------------------------------------------------------------*/

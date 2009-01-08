@@ -70,7 +70,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 #define ACQ_STRONG_STATE		(1)			//!< 0 for off, 1 for on, 2 for hot acquisition only
 #define ACQ_MEDIUM_STATE		(2)			//!< 0 for off, 1 for on, 2 for hot acquisition only
-#define ACQ_WEAK_STATE			(0)			//!< 0 for off, 1 for on, 2 for hot acquisition only
+#define ACQ_WEAK_STATE			(2)			//!< 0 for off, 1 for on, 2 for hot acquisition only
 
 #define ACQ_ITERATIONS			(1)			//!< Do this many acqs at a given type before moving to next type
 #define THRESH_STRONG			(1.3e7)		//!< Threshold for strong signal detection

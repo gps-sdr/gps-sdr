@@ -141,9 +141,9 @@ class iGUI_Main : public wxFrame
 		wxStaticText* cr;
 		wxStaticText* gpst;
 		wxStaticText* m_staticText33;
-		wxStaticText* day;
-		wxStaticText* month;
-		wxStaticText* time;
+		wxStaticText* date;
+		wxStaticText* hrs;
+		wxStaticText* sec;
 		
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }

@@ -54,7 +54,7 @@ void GUI_Almanac::render(wxDC& dc)
 	if((tic++ % 10) == 0)
 	{
 		val = NUM_CODES;
-		pSerial->formCommand(GET_EPHEMERIS_VALID_C_ID, &val);
+		pSerial->formCommand(GET_EPHEMERIS_VALID_C_ID, &val, false);
 	}
 }
 
@@ -91,7 +91,7 @@ void GUI_Almanac::onMouse(wxMouseEvent& event)
 
 		if(sv >= 0 && sv <= NUM_CODES)
 		{
-			pSerial->formCommand(GET_ALMANAC_C_ID, &sv);
+			pSerial->formCommand(GET_ALMANAC_C_ID, &sv, true);
 		}
 		else
 			sv = 0;
@@ -107,6 +107,7 @@ void GUI_Almanac::renderDecoded()
 	wxString str;
 
 	wxBufferedPaintDC dc(pDecoded, wxBUFFER_VIRTUAL_AREA);
+	dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND)));
 	dc.Clear();
 
 	pDecoded->GetClientSize(&w, &h);
@@ -143,7 +144,7 @@ void GUI_Almanac::renderDecoded()
 	if(loaded == 0)
 	{
 		loaded = NUM_CODES;
-		pSerial->formCommand(GET_ALMANAC_C_ID, &loaded);
+		pSerial->formCommand(GET_ALMANAC_C_ID, &loaded, true);
 	}
 
 }
@@ -203,12 +204,15 @@ void GUI_Almanac::onSave(wxCommandEvent& event)
 		if(fp != NULL)
 		{
 			lcv = NUM_CODES;
-			pSerial->formCommand(GET_ALMANAC_C_ID, &lcv);
+			pSerial->formCommand(GET_ALMANAC_C_ID, &lcv, true);
 			sleep(1);
 
 			for(lcv = 0; lcv < NUM_CODES; lcv++)
 			{
+				//pSerial->formCommand(GET_ALMANAC_C_ID, &lcv, true);
+
 				a = &p->almanacs[lcv];
+
 				if(a->decoded)
 				{
 					fprintf(fp,"******** Week %d almanac for PRN-%02d ********\n",a->week,lcv+1);
@@ -277,7 +281,7 @@ void GUI_Almanac::onLoad(wxCommandEvent& event)
 				fscanf(fp,"week:                       %4d\n",&a->week);
 				fscanf(fp,"\n");
 
-				pSerial->formCommand(SET_ALMANAC_C_ID, &c);
+				pSerial->formCommand(SET_ALMANAC_C_ID, &c, true);
 			}
 
 			fclose(fp);

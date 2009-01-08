@@ -46,6 +46,7 @@ class Ephemeris : public Threaded_Object
 		void Start();							//!< Start the thread
 		void Parse(int32 _sv);					//!< Parse data message into decimal values
 		void ParsePage(int32 _sv_id);			//!< Parse almanac page
+		void ParseUTC();						//!< Get the UTC message
 		void ClearEphemeris(int32 _sv);			//!< Dump an ephemeris
 		void ClearAlmanac(int32 _sv);			//!< Dump an almanac
 		void WriteEphemeris();					//!< Write ephemerides to a txt file

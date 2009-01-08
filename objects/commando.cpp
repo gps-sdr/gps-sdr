@@ -186,7 +186,7 @@ void Commando::Send_Ack()
 
 	uint32 preamble = 0xAAAAAAAA;
 
-	command_ack.command_tic = command_tic;
+	command_ack.command_tic = decoded_header.tic;
 	command_ack.command_id = decoded_header.id;
 	FormCCSDSPacketHeader(&packet_header, COMMAND_ACK_M_ID, 0, sizeof(Command_Ack_M), 1, command_tic++);
 
@@ -374,8 +374,6 @@ void Commando::getEphemeris()
 		message_buff.ephemeris = pEphemeris->getEphemeris(command_body.get_ephemeris.sv);
 		pEphemeris->Unlock();
 
-
-
 		/* Form the packet header */
 		FormCCSDSPacketHeader(&packet_header, EPHEMERIS_M_ID, 0, sizeof(Ephemeris_M), 0, command_tic++);
 
@@ -398,6 +396,7 @@ void Commando::getEphemeris()
 		}
 
 	}
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
