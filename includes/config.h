@@ -1,29 +1,34 @@
-/*! \file Config.h
-	Default includes for each source file in the project.
-*/
-/************************************************************************************************
-Copyright 2008 Gregory W Heckler
+/*----------------------------------------------------------------------------------------------*/
+/*! \file config.h
+//
+// FILENAME: config.h
+//
+// DESCRIPTION: Control the configuration of the receiver.
+//
+// DEVELOPERS: Gregory W. Heckler (2003-2009)
+//
+// LICENSE TERMS: Copyright (c) Gregory W. Heckler 2009
+//
+// This file is part of the GPS Software Defined Radio (GPS-SDR)
+//
+// The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version. The GPS-SDR is distributed in the hope that
+// it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
+//
+// Note:  Comments within this file follow a syntax that is compatible with
+//        DOXYGEN and are utilized for automated document extraction
+//
+// Reference:
+ */
+/*----------------------------------------------------------------------------------------------*/
 
-This file is part of the GPS Software Defined Radio (GPS-SDR)
+#ifndef CONFIG_H_
+#define CONFIG_H_
 
-The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
-GNU General Public License as published by the Free Software Foundation; either version 2 of the
-License, or (at your option) any later version.
-
-The GPS-SDR is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the:
-
-Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-************************************************************************************************/
-
-
-#ifndef CONFIG_H
-#define CONFIG_H
-
+#define LINUX_OS
 
 /* The most important thing, the NUMBER OF CORRELATORS IN THE RECEIVER and the NUMBER OF CPUs */
 /*----------------------------------------------------------------------------------------------*/
@@ -31,6 +36,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #define CPU_CORES				(2)							//!< 1 for a single core, 2 for a dual core system, etc
 #define CORR_PER_CPU			(MAX_CHANNELS/CPU_CORES)	//!< Distribute them up evenly (this should be an INTEGER!)
 #define MAX_ANTENNAS			(1)							//!< The number of antennas
+#define TASK_STACK_SIZE			(2048)						//!< For Nucleus/Linux compatibility
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -47,15 +53,13 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /* Work on what kind of Data?? */
 /*----------------------------------------------------------------------------------------------*/
 #define USRP_RECORDER			(1)			//!< Data collected with USRP
-#define GRS_RECORDER			(0)			//!< Data recorder with GIZMOS recorder
  /*----------------------------------------------------------------------------------------------*/
 
 
 /* MISC GPS Constants */
 /*----------------------------------------------------------------------------------------------*/
-#define NUM_CODES				(32)		//!< Number of CDMA codes
-#define NUM_CODES_WAAS			(51)		//!< Number of CDMA codes + WAAS PRNs
-
+#define MAX_SV					(32)		//!< Number of PRN codes
+#define SHU_SIGNALS				(16)		//!< Status and health signals
 /*! WAAS PRNs will be referred to internally as PRN 32...50 (zero indexed) */
 #define NON_ALLOCATED_PRN		(36)		//!< A non-allocated PRN number, used to generate acquisition thresholds
 /*----------------------------------------------------------------------------------------------*/

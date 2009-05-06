@@ -1,60 +1,102 @@
+/*----------------------------------------------------------------------------------------------*/
 /*! \file commands.h
-	Define commands used for RS422 interface
+//
+// FILENAME: commands.g
+//
+// DESCRIPTION: Define commands used for RS422 interface
+//
+// USED ON:  GPS Receiver named "Navigator"
+//
+// DEVELOPED BY:  GSFC Components and Hardware Systems Branch (Code 596)
+//
+// HISTORY: first used on RNS to fly on Hubble SM4 (STS125) Developed 2007,2008
+//          elevated to Class B for use on GPM  development 2009-
+//          added spinner capabilities for use on MMS  development 2009-
+//          GPM and MMS variants concurrently developed.
+//
+// DEVELOPERS: Greg Heckler (2008-2009)  RNS,GPM,MMS (original development team)
+//
+// PROPRIETARY NOTICE:  Copyright (c) NASA GSFC 2008,2009.  All rights reserved.
+//
+// VERSION CONTROL:  This code is configuration managed using Subversion.
+//      The Subversion server and tool is maintained as part of the FFTB.
+//      The detailed change history is available within Subversion.
+//
+// Subversion Id: $Id$
+//
+// Note:  Comments within this file follow a syntax that is compatible with
+//        DOXYGEN and are utilized for automated document extraction
+//
+// Reference:
 */
-/************************************************************************************************
-Copyright 2008 Gregory W Heckler
+/*----------------------------------------------------------------------------------------------*/
 
-This file is part of the GPS Software Defined Radio (GPS-SDR)
-
-The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
-GNU General Public License as published by the Free Software Foundation; either version 2 of the
-License, or (at your option) any later version.
-
-The GPS-SDR is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the:
-
-Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-************************************************************************************************/
-
-#ifndef COMMANDS_H
-#define COMMANDS_H
+#ifndef COMMANDS_H_
+#define COMMANDS_H_
 
 #define CCSDS_APID_BASE	(0x0)	//!< The CCSDS APID Base number for our receiver
 
-/* Enum the command #s, DO NOT REORDER, ONLY APPEND! */
+/*! @ingroup COMMANDS
+ *  @brief Enum the command #s, DO NOT REORDER, ONLY APPEND! */
 enum CCSDS_COMMAND_IDS
 {
 	FIRST_C_ID,
+	NULL_C_ID,
 	RESET_ALL_C_ID,
 	RESET_PVT_C_ID,
 	RESET_EKF_C_ID,
 	RESET_CHANNEL_C_ID,
 	RESET_ALMANAC_C_ID,
 	RESET_EPHEMERIS_C_ID,
-	SET_PVT_C_ID,
+	RESET_PPS_C_ID,
+	RESET_WATCHDOG_C_ID,
+	SET_PERIODIC_C_ID,
 	SET_ALMANAC_C_ID,
 	SET_EPHEMERIS_C_ID,
-	SET_ACQ_CONFIG_C_ID,
-	GET_MEASUREMENT_C_ID,
-	GET_PSEUDORANGE_C_ID,
+	SET_EEPROM_C_ID,
+	SET_MEMORY_C_ID,
 	GET_ALMANAC_C_ID,
 	GET_EPHEMERIS_C_ID,
-	GET_ACQ_CONFIG_C_ID,
 	GET_SV_PREDICTION_C_ID,
-	GET_EPHEMERIS_VALID_C_ID,
-	GET_BOARD_HEALTH_C_ID,
-	GET_ACQ_COMMAND_C_ID,
-	GET_SV_POSITION_C_ID,
-	GET_CHANNEL_C_ID,
+	GET_EPHEMERIS_STATUS_C_ID,
+	GET_SV_SELECT_STATUS_C_ID,
+	GET_EEPROM_C_ID,
+	GET_EEPROM_CHKSUM_C_ID,
+	GET_MEMORY_C_ID,
+	GET_MEMORY_CHKSUM_C_ID,
 	LAST_C_ID
 };
 
-/*! \ingroup COMMANDS
-	Dump everything (PVT/Ephemeris/Almanac/Channels/EKF)
+
+/*! @ingroup COMMANDS
+ *  @brief Enum the command acknowledge codes */
+enum CCSDS_ACKNOWLEDGE_IDS
+{
+	SUCCESS_A_ID,			//!< Generic success
+	FAILURE_A_ID,			//!< Generic failure
+	INVALID_COMMAND_A_ID,	//!< Bad command ID
+	INVALID_ADDRESS_A_ID, 	//!< Bad address
+	INVALID_LENGTH_A_ID,	//!< Length invalid for given command
+	INVALID_EEPROM_A_ID,	//!< Invalid eeprom choice
+	INVALID_SV_A_ID,		//!< Invalid SV choice
+	INVALID_CHECKSUM_A_ID,	//!< Failed checksum for an EEPROM burn
+	INVALID_MESSAGE_A_ID,	//!< Invalid message id
+	NULL_A_ID,				//!< Null command
+};
+
+
+/*! @ingroup COMMANDS
+ *  @brief Null command, does nothing!
+*/
+typedef struct Null_C
+{
+	int32 command_id;	//!< Command identifier
+	int32 flag;			//!< Flag for no reason
+} Null_C;
+
+
+/*! @ingroup COMMANDS
+ *  @brief Dump everything (PVT/Ephemeris/Almanac/Channels/EKF)
 */
 typedef struct Reset_All_C
 {
@@ -62,8 +104,8 @@ typedef struct Reset_All_C
 	int32 flag;			//!< Flag for no reason
 } Reset_All_C;
 
-/*! \ingroup COMMANDS
-	Reset the PVT
+/*! @ingroup COMMANDS
+ *  @brief Reset the PVT
 */
 typedef struct Reset_PVT_C
 {
@@ -72,8 +114,8 @@ typedef struct Reset_PVT_C
 } Reset_PVT_C;
 
 
-/*! \ingroup COMMANDS
-	Reset the EKF
+/*! @ingroup COMMANDS
+ *  @brief Reset the EKF
 */
 typedef struct Reset_EKF_C
 {
@@ -82,8 +124,8 @@ typedef struct Reset_EKF_C
 } Reset_EKF_C;
 
 
-/*! \ingroup COMMANDS
-	Dump the desired channel
+/*! @ingroup COMMANDS
+ *  @brief Reset the desired channel
 */
 typedef struct Reset_Channel_C
 {
@@ -92,8 +134,8 @@ typedef struct Reset_Channel_C
 } Reset_Channel_C;
 
 
-/*! \ingroup COMMANDS
-	Clear the given ephemeris
+/*! @ingroup COMMANDS
+ *  @brief Clear the given ephemeris
 */
 typedef struct Reset_Ephemeris_C
 {
@@ -102,8 +144,8 @@ typedef struct Reset_Ephemeris_C
 } Reset_Ephemeris_C;
 
 
-/*! \ingroup COMMANDS
-	Clear the given almanac
+/*! @ingroup COMMANDS
+ *  @brief Clear the given almanac
 */
 typedef struct Reset_Almanac_C
 {
@@ -112,48 +154,39 @@ typedef struct Reset_Almanac_C
 } Reset_Almanac_C;
 
 
-/*! \ingroup COMMANDS
-	Get a raw measurement
+/*! @ingroup COMMANDS
+ *  @brief Clear the PPS sate
 */
-typedef struct Get_Measurement_C
+typedef struct Reset_PPS_C
 {
 	int32 command_id;	//!< Command identifier
-	int32 flag;			//!< On/off
-} Get_Measurement_C;
+	int32 flag;			//!< Flag for no reason
+} Reset_PPS_C;
 
 
-/*! \ingroup COMMANDS
-	Get a pseudorange
+/*! @ingroup COMMANDS
+ *  @brief Reset the board by witholding the watchdog
 */
-typedef struct Get_Pseudorange_C
+typedef struct Reset_Watchdog_C
 {
 	int32 command_id;	//!< Command identifier
-	int32 flag;			//!< On/off
-} Get_Pseudorange_C;
+	int32 flag;			//!< Flag for no reason
+} Reset_Watchdog_C;
 
 
-/*! \ingroup COMMANDS
-	Emit the given ephemerides
+/*! @ingroup COMMANDS
+ *  @brief Control the rates of periodic messages
 */
-typedef struct Get_Ephemeris_C
+typedef struct Set_Periodic_C
 {
-	int32 command_id;	//!< Command identifier
-	int32 sv;			//!< SV #, or all if sv >= NUM_CODES || sv < 0
-} Get_Ephemeris_C;
+	int32 command_id;		//!< Command identifier
+	uint32 message_id;		//!< Which message id should I set
+	uint32 decimation;		//!< Decimation rate (0 for OFF)
+} Set_Periodic_C;
 
 
-/*! \ingroup COMMANDS
-	Emit the given almanac
-*/
-typedef struct Get_Almanac_C
-{
-	int32 command_id;	//!< Command identifier
-	int32 sv;			//!< SV #, or all if sv >= NUM_CODES || sv < 0
-} Get_Almanac_C;
-
-
-/*! \ingroup COMMANDS
-	Stuff the given almanac
+/*! @ingroup COMMANDS
+ *  @brief Stuff the given almanac
 */
 typedef struct Set_Almanac_C
 {
@@ -163,8 +196,8 @@ typedef struct Set_Almanac_C
 } Set_Almanac_C;
 
 
-/*! \ingroup COMMANDS
-	Stuff the given ephemeris
+/*! @ingroup COMMANDS
+ *  @brief Stuff the given ephemeris
 */
 typedef struct Set_Ephemeris_C
 {
@@ -174,126 +207,157 @@ typedef struct Set_Ephemeris_C
 } Set_Ephemeris_C;
 
 
-/*! \ingroup COMMANDS
-	Configure the acquisition
+/*! @ingroup COMMANDS
+ *  @brief Burn a block (or subblock) of EEPROM, up to 256 bytes
 */
-typedef struct Set_Acq_Config_C
+typedef struct Set_EEPROM_C
 {
 	int32 command_id;		//!< Command identifier
-	Acq_Config_M acq_config;
-} Set_Acq_Config_C;
+	int32 bank;				//!< 0 for EEPROM0, 1 for EEPROM 1
+	int32 offset;			//!< Offset from base (dwords)
+	int32 dwords;			//!< Number of 32 bit dwords
+	uint32 checksum;		//!< Checksum of payload
+	uint32 payload[64];		//!< Data to be written
+} Set_EEPROM_C;
 
 
-/*! \ingroup COMMANDS
-	Do a warm start.
+/*! @ingroup COMMANDS
+ *  @brief Write an area of SRAM, up to 256 bytes
 */
-typedef struct Set_PVT_C
+typedef struct Set_Memory_C
 {
 	int32 command_id;		//!< Command identifier
-	double x;				//!< ECEF X position (meters)
-	double y;				//!< ECEF Y position (meters)
-	double z;				//!< ECEF Z position (meters)
-	double vx;				//!< ECEF X velocity (meters/second)
-	double vy;				//!< ECEF Y velocity (meters/second)
-	double vz;				//!< ECEF Z velocity (meters/second)
-	double second;			//!< GPS second
-	double week;			//!< GPS week
-} Set_PVT_C;
+	int32 address;			//!< Raw address
+	int32 bytes;			//!< Number of bytes
+	uint32 checksum;		//!< Checksum of payload
+	uint8 payload[256];		//!< Data to be written
+} Set_Memory_C;
 
 
-/*! \ingroup COMMANDS
-	Emit an acquisition config message.
+/*! @ingroup COMMANDS
+ *  @brief Emit the given almanac
 */
-typedef struct Get_Acq_Config_C
+typedef struct Get_Almanac_C
 {
-	int32 command_id;		//!< Command identifier
-	int32 flag; 			//!< Not used
-} Get_Acq_Config_C;
+	int32 command_id;	//!< Command identifier
+	int32 sv;			//!< SV #, or all if sv >= NUM_CODES || sv < 0
+} Get_Almanac_C;
 
 
-/*! \ingroup COMMANDS
-	Emit a SV prediction from SV_Select
+/*! @ingroup COMMANDS
+ *  @brief Emit the given ephemerides
+*/
+typedef struct Get_Ephemeris_C
+{
+	int32 command_id;	//!< Command identifier
+	int32 sv;			//!< SV #, or all if sv >= NUM_CODES || sv < 0
+} Get_Ephemeris_C;
+
+
+/*! @ingroup COMMANDS
+ *  @brief Emit a SV prediction from SV_Select
 */
 typedef struct Get_SV_Prediction_C
 {
 	int32 command_id;		//!< Command identifier
-	int32 sv; 				//!< SV $
+	int32 sv; 				//!< SV #
 } Get_SV_Prediction_C;
 
 
-/*! \ingroup COMMANDS
-	Emit ephemeris/acquisition decode status
+/*! @ingroup COMMANDS
+ *  @brief Emit ephemeris/acquisition decode status
 */
-typedef struct Get_Ephemeris_Valid_C
+typedef struct Get_Ephemeris_Status_C
 {
 	int32 command_id;		//!< Command identifier
 	int32 flag; 			//!< Not used
-} Get_Ephemeris_Valid_C;
+} Get_Ephemeris_Status_C;
 
 
-/*! \ingroup COMMANDS
-	Emit a board health message
+/*! @ingroup COMMANDS
+ *  @brief Emit sv select status
 */
-typedef struct Get_Board_Health_C
+typedef struct Get_SV_Select_Status_C
 {
 	int32 command_id;		//!< Command identifier
 	int32 flag; 			//!< Not used
-} Get_Board_Health_C;
+} Get_SV_Select_Status_C;
 
 
-/*! \ingroup COMMANDS
-	Emit an acquisition result
+/*! @ingroup COMMANDS
+ *  @brief Get a block of EEPROM, up to 256 bytes
 */
-typedef struct Get_Acq_Command_C
+typedef struct Get_EEPROM_C
 {
-	int32 command_id;	//!< Command identifier
-	int32 sv; 			//!< SV #
-} Get_Acq_Command_C;
+	int32 command_id;		//!< Command identifier
+	int32 bank;				//!< 0 for EEPROM0, 1 for EEPROM 1
+	int32 offset;			//!< Offset from base (dwords)
+	int32 dwords;			//!< Number of 32 bit dwords
+} Get_EEPROM_C;
 
 
-/*! \ingroup COMMANDS
-	Emit an acquisition result
+/*! @ingroup COMMANDS
+ *  @brief Compute checksum of EEPROM at address
 */
-typedef struct Get_SV_Position_C
+typedef struct Get_EEPROM_Chksum_C
 {
-	int32 command_id;	//!< Command identifier
-	int32 flag; 		//!< On/off
-} Get_SV_Position_C;
+	int32 command_id;		//!< Command identifier
+	int32 bank;				//!< 0 for EEPROM0, 1 for EEPROM 1
+	int32 offset;			//!< Offset from base (dwords)
+	int32 dwords;			//!< Number of 32 bit dwords
+} Get_EEPROM_Chksum_C;
 
 
-/*! \ingroup COMMANDS
-	Emit the channel status
+/*! @ingroup COMMANDS
+ *  @brief Get a block of SRAM, up to 256 bytes
 */
-typedef struct Get_Channel_C
+typedef struct Get_Memory_C
 {
-	int32 command_id;	//!< Command identifier
-	int32 flag; 		//!< On/off
-} Get_Channel_C;
+	int32 command_id;		//!< Command identifier
+	int32 address;			//!< Raw address
+	int32 bytes;			//!< Number of bytes
+} Get_Memory_C;
 
 
-typedef union Union_C
+/*! @ingroup COMMANDS
+ *  @brief Compute checksum of Memory at address
+*/
+typedef struct Get_Memory_Chksum_C
 {
+	int32 command_id;		//!< Command identifier
+	int32 address;			//!< Raw address
+	int32 bytes;			//!< Number of bytes
+} Get_Memory_Chksum_C;
+
+
+/*! @ingroup COMMANDS
+ *  @brief Union containing all commands
+*/
+typedef union Command_Union
+{
+	Null_C				null;
 	Reset_All_C			reset_all;
 	Reset_PVT_C			reset_pvt;
 	Reset_EKF_C			reset_ekf;
 	Reset_Channel_C		reset_channel;
-	Reset_Ephemeris_C	reset_ephemeris;
 	Reset_Almanac_C		reset_almanac;
-	Set_PVT_C			set_pvt;
+	Reset_Ephemeris_C	reset_ephemeris;
+	Reset_PPS_C			reset_pps;
+	Reset_Watchdog_C	reset_watchdog;
+	Set_Periodic_C		set_periodic;
 	Set_Almanac_C		set_almanac;
 	Set_Ephemeris_C		set_ephemeris;
-	Set_Acq_Config_C	set_acq_config;
-	Get_Measurement_C	get_measurement;
-	Get_Pseudorange_C	get_pseudorange;
-	Get_Ephemeris_C		get_ephemeris;
+	Set_EEPROM_C		set_eeprom;
+	Set_Memory_C		set_memory;
 	Get_Almanac_C		get_almanac;
-	Get_Acq_Config_C	get_acq_config;
+	Get_Ephemeris_C		get_ephemeris;
 	Get_SV_Prediction_C 	get_sv_prediction;
-	Get_Ephemeris_Valid_C 	get_ephemeris_valid;
-	Get_Board_Health_C 		get_board_health;
-	Get_Acq_Command_C		get_acq_command;
-	Get_SV_Position_C		get_sv_position;
-	Get_Channel_C			get_channel;
-} Union_C;
+	Get_Ephemeris_Status_C 	get_ephemeris_status;
+	Get_SV_Select_Status_C 	get_sv_select_status;
+	Get_EEPROM_C			get_eeprom;
+	Get_EEPROM_Chksum_C		get_eeprom_chksum;
+	Get_Memory_C			get_memory;
+	Get_Memory_Chksum_C		get_memory_chksum;
+} Command_Union;
 
 #endif /* COMMANDS_H_ */

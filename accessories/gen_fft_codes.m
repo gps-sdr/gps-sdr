@@ -33,11 +33,13 @@ prn_i = reshape(prn_i,[1 2048*51]);
 fp = fopen('prn_codes.h','wt');
 
 % Write out the values
+fprintf(fp,'#ifndef PRN_CODES_H_\n');
 fprintf(fp,'int16 PRN_Codes[208896] = {');
 for(lcv = 1:length(prn_i)-1)
     fprintf(fp,'%0d,%0d,\n',prn_r(lcv),prn_i(lcv));
 end
 lcv = lcv+1;
 fprintf(fp,'%0d,%0d};',prn_r(lcv),prn_i(lcv));
+fprintf(fp,'#endif\n');
 fprintf(fp,'\n\n\n');
 fclose(fp);

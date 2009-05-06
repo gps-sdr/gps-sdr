@@ -1,40 +1,37 @@
-/*! \file Correlator.cpp
-	Implements member functions of Correlator class.
+/*----------------------------------------------------------------------------------------------*/
+/*! \file correlator.cpp
+//
+// FILENAME: correlator.cpp
+//
+// DESCRIPTION: Implements member functions of Correlator class.
+//
+// DEVELOPERS: Gregory W. Heckler (2003-2009)
+//
+// LICENSE TERMS: Copyright (c) Gregory W. Heckler 2009
+//
+// This file is part of the GPS Software Defined Radio (GPS-SDR)
+//
+// The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version. The GPS-SDR is distributed in the hope that
+// it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
+//
+// Note:  Comments within this file follow a syntax that is compatible with
+//        DOXYGEN and are utilized for automated document extraction
+//
+// Reference:
 */
-/************************************************************************************************
-Copyright 2008 Gregory W Heckler
-
-This file is part of the GPS Software Defined Radio (GPS-SDR)
-
-The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
-GNU General Public License as published by the Free Software Foundation; either version 2 of the
-License, or (at your option) any later version.
-
-The GPS-SDR is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the:
-
-Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-************************************************************************************************/
+/*----------------------------------------------------------------------------------------------*/
 
 #include "correlator.h"
-
-/* Be sure to init static variable prior to use by actual objects */
-CPX *Correlator::sine_table = new CPX[(2*CARRIER_BINS+1)*2*SAMPS_MS];
-CPX **Correlator::sine_rows = new CPX*[2*CARRIER_BINS+1];
-MIX *Correlator::main_code_table = new MIX[NUM_CODES*(2*CODE_BINS+1)*2*SAMPS_MS];
-MIX **Correlator::main_code_rows = new MIX*[NUM_CODES*(2*CODE_BINS+1)];
 
 /*----------------------------------------------------------------------------------------------*/
 void *Correlator_Thread(void *_arg)
 {
 
-	Correlator *aCorrelator = pCorrelators[*(int32 *)_arg];
-
-	aCorrelator->SetPid();
+	Correlator *aCorrelator = pCorrelator;
 
 	while(grun)
 	{
@@ -54,67 +51,55 @@ void Correlator::Start()
 {
 
 	/* With new priority specified */
-	//if((chan % CORR_PER_CPU) == 0)
-	{
-		Start_Thread(Correlator_Thread, &chan);
+	Start_Thread(Correlator_Thread, NULL);
 
-		if(gopt.verbose)
-			printf("Started correlator %d\n",chan);
-	}
-
+	if(gopt.verbose)
+		printf("Correlator thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
-//
-///*----------------------------------------------------------------------------------------------*/
-//void Correlator::Stop()
-//{
-//
-//	/* With new priority specified */
-//	//if((chan % CORR_PER_CPU) == 0)
-//	{
-//		Threaded_Object:Stop();
-//	}
-//
-//}
-///*----------------------------------------------------------------------------------------------*/
-
 
 /*----------------------------------------------------------------------------------------------*/
-Correlator::Correlator(int32 _chan)
+Correlator::Correlator():Threaded_Object("CORTASK")
 {
 
 	int32 lcv;
 
-	chan = _chan;
 	packet_count = 0;
-	state.active = 0;
-	aChannel = pChannels[chan];
 
-	/* Malloc memory for local code vector */
-	code_table = new MIX[(2*CODE_BINS+1)*2*SAMPS_MS];
-	code_rows = new MIX*[2*CODE_BINS+1];
-	for(lcv = 0; lcv < 2*CODE_BINS+1; lcv++)
-		code_rows[lcv] = &code_table[lcv*2*SAMPS_MS];
-
-	if(chan == 0)
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		/* Get the pointers */
-		for(lcv = 0; lcv < 2*CARRIER_BINS+1; lcv++)
-			sine_rows[lcv] = &sine_table[lcv*2*SAMPS_MS];
-
-		/* Create the wipeoff */
-		for(lcv = -CARRIER_BINS; lcv <= CARRIER_BINS; lcv++)
-			sine_gen(sine_rows[lcv+CARRIER_BINS], -IF_FREQUENCY-(float)lcv*CARRIER_SPACING, SAMPLE_FREQUENCY, 2*SAMPS_MS);
-
-		for(lcv = 0; lcv < (2*CODE_BINS+1)*NUM_CODES; lcv++)
-			main_code_rows[lcv] = &main_code_table[lcv*2*SAMPS_MS];
-
-		SamplePRN();
+		//aChannel[lcv] = pChannels[lcv];
+		states[lcv].active = 0;
 	}
 
+	/* Malloc memory for local code vector */
+//	code_table = new MIX[(2*CODE_BINS+1)*2*SAMPS_MS];
+//	code_rows = new MIX*[2*CODE_BINS+1];
+//	for(lcv = 0; lcv < 2*CODE_BINS+1; lcv++)
+//		code_rows[lcv] = &code_table[lcv*2*SAMPS_MS];
+
+	/* Hold the pre computed tables */
+	main_sine_table = new CPX[(2*CARRIER_BINS+1)*2*SAMPS_MS];
+	main_sine_rows = new CPX*[2*CARRIER_BINS+1];
+	main_code_table = new MIX[MAX_SV*(2*CODE_BINS+1)*2*SAMPS_MS];
+	main_code_rows = new MIX*[MAX_SV*(2*CODE_BINS+1)];
+
+	/* Get the pointers */
+	for(lcv = 0; lcv < 2*CARRIER_BINS+1; lcv++)
+		main_sine_rows[lcv] = &main_sine_table[lcv*2*SAMPS_MS];
+
+	/* Create the wipeoff */
+	for(lcv = -CARRIER_BINS; lcv <= CARRIER_BINS; lcv++)
+		sine_gen(main_sine_rows[lcv+CARRIER_BINS], -IF_FREQUENCY-(float)lcv*CARRIER_SPACING, SAMPLE_FREQUENCY, 2*SAMPS_MS);
+
+	for(lcv = 0; lcv < (2*CODE_BINS+1)*MAX_SV; lcv++)
+		main_code_rows[lcv] = &main_code_table[lcv*2*SAMPS_MS];
+
+	SamplePRN();
+
 	if(gopt.verbose)
-		printf("Creating Correlator %d\n",chan);
+		printf("Creating Correlator\n");
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -124,19 +109,13 @@ Correlator::Correlator(int32 _chan)
 Correlator::~Correlator()
 {
 
-	delete [] code_table;
-	delete [] code_rows;
-
-	if(chan == 0)
-	{
-		delete [] sine_table;
-		delete [] sine_rows;
-		delete [] main_code_table;
-		delete [] main_code_rows;
-	}
+	delete [] main_sine_table;
+	delete [] main_sine_rows;
+	delete [] main_code_table;
+	delete [] main_code_rows;
 
 	if(gopt.verbose)
-		printf("Destructing Correlator %d\n",chan);
+		printf("Destructing Correlator\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -144,51 +123,46 @@ Correlator::~Correlator()
 /*----------------------------------------------------------------------------------------------*/
 void Correlator::Import()
 {
+	int32 chan;
 	int32 bread;
 	int32 lcv;
-	int32 last;
-	Acq_Command_M temp;
-	ms_packet *p = NULL;
+	Acq_Command_S temp;
 
 	/* Wait for a command to start a new channel */
-	if(state.active == 0)
+	bread = read(SVS_2_COR_P[READ], &result, sizeof(Acq_Command_S));
+	if(bread == sizeof(Acq_Command_S))
 	{
-		bread = read(Trak_2_Corr_P[chan][READ], &result, sizeof(Acq_Command_M));
-		if(bread == sizeof(Acq_Command_M))
+		chan = result.chan;
+		InitCorrelator(&states[chan]);
+
+		aChannel[chan]->Lock();
+
+		switch(result.type)
 		{
-			InitCorrelator();
-
-			aChannel->Lock();
-
-			switch(result.type)
-			{
-				case ACQ_STRONG:
-					aChannel->Start(result.sv, result, 1);
-					break;
-				case ACQ_MEDIUM:
-					aChannel->Start(result.sv, result, 10);
-					break;
-				case ACQ_WEAK:
-					aChannel->Start(result.sv, result, 10);
-					break;
-			}
-
-			aChannel->Unlock();
+			case ACQ_STRONG:
+				aChannel[chan]->Start(result.sv, result, 1);
+				break;
+			case ACQ_MEDIUM:
+				aChannel[chan]->Start(result.sv, result, 10);
+				break;
+			case ACQ_WEAK:
+				aChannel[chan]->Start(result.sv, result, 10);
+				break;
 		}
+
+		aChannel[chan]->Unlock();
 	}
 
-	/* Should do this ONCE with built in blocking! */
-	last = packet.count;
-	pFIFO->Dequeue(chan, &packet);
-//	pFIFO->Wait(chan); //Pend until everyone has called dequeue
+	/* This call should block until new data is available */
+	pFIFO->Dequeue(&packet);
 
-	while(packet.count == last)
-	{
-		usleep(gopt.corr_sleep);
-		pFIFO->Dequeue(chan, &packet);
-	}
+	/* Send a packet to the acquisition (nonblocking) */
+	write(COR_2_ACQ_P[WRITE], &packet, sizeof(ms_packet));
 
 	packet_count++;
+
+	if((packet_count % 1000) == 0)
+		printf("Packets %d\n",packet_count);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -197,84 +171,92 @@ void Correlator::Import()
 /*----------------------------------------------------------------------------------------------*/
 void Correlator::Correlate()
 {
+	int32 lcv, leftover, rollover;
 	Correlation_S *c;
+	Correlator_State_S *s;
+	NCO_Command_S *f;
+	Measurement_M *m;
+	Measurement_M *mb;
 	CPX *if_data;
-	int32 leftover;
 
 	IncStartTic();
 
-	if(packet.measurement)
-		TakeMeasurement();
+	//	if(packet.measurement)
+	//		TakeMeasurement();
 
-	if(state.active)
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
-		if_data = &packet.data[0];
-		c = &corr;
-		leftover = SAMPS_MS;
-
-		/* If the rollover occurs in this packet */
-		if(state.rollover <= SAMPS_MS)
+		if(states[lcv].active)
 		{
-			/* Do the actual accumulation */
-			Accum(c, if_data, state.rollover);
+			s = &states[lcv];
+			c = &correlations[lcv];
+			if_data = &packet.data[0];
+			leftover = SAMPS_MS;
 
-			/* Remaining number of samples to be processed in this ms packet of data */
-			leftover = SAMPS_MS - state.rollover;
-			if_data += state.rollover;
-
-			/* Update the code/carrier phase etc */
-			UpdateState(state.rollover);
-
-			/* Dump the accumulation */
-			DumpAccum(c);
-
-			if(state.active == 0)
-				return;
-
-			/* Now process remaining segment of IF data  */
-			if(state.rollover <= leftover) /* Rollover occurs in THIS packet of data */
+			/* If the rollover occurs in this packet */
+			if(s->rollover <= SAMPS_MS)
 			{
 				/* Do the actual accumulation */
-				Accum(c, if_data, state.rollover);
+				Accum(s, c, if_data, s->rollover);
 
 				/* Remaining number of samples to be processed in this ms packet of data */
-				leftover -= state.rollover;
-				if_data += state.rollover;
+				leftover = SAMPS_MS - s->rollover;
+				if_data += s->rollover;
 
 				/* Update the code/carrier phase etc */
-				UpdateState(state.rollover);
+				UpdateState(s, s->rollover);
 
 				/* Dump the accumulation */
-				DumpAccum(c);
-				if(state.active == 0)
+				DumpAccum(s, c, f);
+
+				if(s->active == 0)
 					return;
 
-				/* Do the actual accumulation */
-				Accum(c, if_data, leftover);
+				/* Now process remaining segment of IF data  */
+				if(s->rollover <= leftover) /* Rollover occurs in THIS packet of data */
+				{
+					/* Do the actual accumulation */
+					Accum(s, c, if_data, s->rollover);
 
-				/* Update the code/carrier phase etc */
-				UpdateState(leftover);
+					/* Remaining number of samples to be processed in this ms packet of data */
+					leftover -= s->rollover;
+					if_data += s->rollover;
+
+					/* Update the code/carrier phase etc */
+					UpdateState(s, s->rollover);
+
+					/* Dump the accumulation */
+					DumpAccum(s, c, f);
+					if(s->active == 0)
+						return;
+
+					/* Do the actual accumulation */
+					Accum(s, c, if_data, leftover);
+
+					/* Update the code/carrier phase etc */
+					UpdateState(s, leftover);
+
+				}
+				else /* Rollover occurs in NEXT packet of data */
+				{
+					/* Do the actual accumulation */
+					Accum(s, c, if_data, leftover);
+
+					/* Update the code/carrier phase */
+					UpdateState(s, leftover);
+				}
 
 			}
-			else /* Rollover occurs in NEXT packet of data */
+			else /* Just accumulate, no dumping */
 			{
 				/* Do the actual accumulation */
-				Accum(c, if_data, leftover);
+				Accum(s, c, if_data, SAMPS_MS);
 
 				/* Update the code/carrier phase */
-				UpdateState(leftover);
+				UpdateState(s, SAMPS_MS);
 			}
-
-		}
-		else /* Just accumulate, no dumping */
-		{
-			/* Do the actual accumulation */
-			Accum(c, if_data, SAMPS_MS);
-
-			/* Update the code/carrier phase */
-			UpdateState(SAMPS_MS);
-		}
-	}
+		} //!< end if active
+	} //!< end for
 
 	IncStopTic();
 
@@ -283,7 +265,7 @@ void Correlator::Correlate()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Correlator::TakeMeasurement()
+void Correlator::TakeMeasurement(Correlator_State_S *s, Measurement_M *m, Measurement_M *mb)
 {
 
 	int32 lcv, tic;
@@ -293,129 +275,126 @@ void Correlator::TakeMeasurement()
 	tic = packet.measurement;
 
 	/* Step 1, copy in measurement from ICP_TICS ago */
-	memcpy(&meas, &meas_buff[(tic - ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND], sizeof(Measurement_M));
+	memcpy(m, &mb[(tic - ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND], sizeof(Measurement_M));
 
 	/* Get carrier phase prev from 2*ICP_TICKS ago */
-	meas.carrier_phase_prev = meas_buff[(tic - 2*ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND].carrier_phase;
+	m->carrier_phase_prev = mb[(tic - 2*ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND].carrier_phase;
 
 	/* Get current carrier phase */
-	meas.carrier_phase = state.carrier_phase;
+	m->carrier_phase = s->carrier_phase;
 
 	/* Store rest of measurement in buffer to do the delay */
-	pmeas = &meas_buff[tic % (TICS_PER_SECOND)];
-	pmeas->chan				 = chan;
-	pmeas->code_phase 		 = state.code_phase;
-	pmeas->code_phase_mod 	 = state.code_phase_mod;
-	pmeas->carrier_phase 	 = state.carrier_phase;
-	pmeas->carrier_phase_mod = state.carrier_phase_mod;
-	pmeas->code_nco 		 = state.code_nco;
-	pmeas->carrier_nco 		 = state.carrier_nco;
-	pmeas->_1ms_epoch 		 = state._1ms_epoch;
-	pmeas->_20ms_epoch 		 = state._20ms_epoch;
-	pmeas->_z_count 		 = state._z_count;
-	pmeas->sv				 = state.sv;
-	pmeas->count			 = packet.count;
-	pmeas->navigate			 = state.navigate;
+	pmeas = &mb[tic % (TICS_PER_SECOND)];
+	//pmeas->chan				 = chan;
+//	pmeas->code_phase 		 = s->code_phase;
+//	pmeas->code_phase_mod 	 = s->code_phase_mod;
+//	pmeas->carrier_phase 	 = s->carrier_phase;
+//	pmeas->carrier_phase_mod = s->carrier_phase_mod;
+//	pmeas->code_nco 		 = s->code_nco;
+//	pmeas->carrier_nco 		 = s->carrier_nco;
+//	pmeas->_1ms_epoch 		 = s->_1ms_epoch;
+//	pmeas->_20ms_epoch 		 = s->_20ms_epoch;
+//	pmeas->_z_count 		 = s->_z_count;
+//	pmeas->sv				 = s->sv;
+//	pmeas->count			 = packet.count;
+//	pmeas->navigate			 = s->navigate;
 
-	n_dp = meas_buff[(tic - 2*ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND].navigate;
-	n_p = meas_buff[(tic - ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND].navigate;
-	n_c = meas_buff[tic % TICS_PER_SECOND].navigate;
+	n_dp = mb[(tic - 2*ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND].navigate;
+	n_p = mb[(tic - ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND].navigate;
+	n_c = mb[tic % TICS_PER_SECOND].navigate;
 
 	/* Mark navigate only if all 3 are navigate */
-	meas.navigate = n_dp && n_p && n_c;
+	m->navigate = n_dp && n_p && n_c;
 
 	/* Write over measurement */
-	write(Corr_2_PVT_P[chan][WRITE], &meas, sizeof(Measurement_M));
+	//write(Corr_2_PVT_P[chan][WRITE], m, sizeof(Measurement_M));
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Correlator::UpdateState(int32 samps)
+void Correlator::UpdateState(Correlator_State_S *s, int32 samps)
 {
 
-
-
 	/* Update phase states */
-	state.code_phase 	 		+= samps*state.code_nco/SAMPLE_FREQUENCY;
-	state.carrier_phase			+= samps*state.carrier_nco/SAMPLE_FREQUENCY;
+	s->code_phase 	 		+= samps*s->code_nco/SAMPLE_FREQUENCY;
+	s->carrier_phase		+= samps*s->carrier_nco/SAMPLE_FREQUENCY;
 
 	/* Do this to catch code epoch rollovers */
-	state.code_phase_mod		+= samps*state.code_nco/SAMPLE_FREQUENCY;
-	state.carrier_phase_mod		+= samps*state.carrier_nco/SAMPLE_FREQUENCY;
+	s->code_phase_mod		+= samps*s->code_nco/SAMPLE_FREQUENCY;
+	s->carrier_phase_mod	+= samps*s->carrier_nco/SAMPLE_FREQUENCY;
 
 	/* A double rollover MIGHT occur? */
-	if(state.code_phase_mod >= 2.0*(double)CODE_CHIPS)
+	if(s->code_phase_mod >= 2.0*(double)CODE_CHIPS)
 	{
-		state._1ms_epoch += 2;
-		if(state._1ms_epoch >= 20)
+		s->_1ms_epoch += 2;
+		if(s->_1ms_epoch >= 20)
 		{
-			state._1ms_epoch %= 20;
-			state._20ms_epoch++;
+			s->_1ms_epoch %= 20;
+			s->_20ms_epoch++;
 
-			if(state._20ms_epoch >= 300)
+			if(s->_20ms_epoch >= 300)
 			{
-				state._20ms_epoch = 0;
-				state._z_count += 6;
+				s->_20ms_epoch = 0;
+				s->_z_count += 6;
 
-				if(state._z_count > SECONDS_IN_WEEK)
-					state._z_count = 0;
+				if(s->_z_count > SECONDS_IN_WEEK)
+					s->_z_count = 0;
 			}
 		}
 	} /* If the C/A code rolls over then the 1ms and 20ms counters need incremented */
-	else if(state.code_phase_mod >= (double)CODE_CHIPS)
+	else if(s->code_phase_mod >= (double)CODE_CHIPS)
 	{
-		state._1ms_epoch++;
-		if(state._1ms_epoch >= 20)
+		s->_1ms_epoch++;
+		if(s->_1ms_epoch >= 20)
 		{
-			state._1ms_epoch %= 20;
-			state._20ms_epoch++;
+			s->_1ms_epoch %= 20;
+			s->_20ms_epoch++;
 
-			if(state._20ms_epoch >= 300)
+			if(s->_20ms_epoch >= 300)
 			{
-				state._20ms_epoch = 0;
-				state._z_count += 6;
+				s->_20ms_epoch = 0;
+				s->_z_count += 6;
 
-				if(state._z_count > SECONDS_IN_WEEK)
-					state._z_count = 0;
+				if(s->_z_count > SECONDS_IN_WEEK)
+					s->_z_count = 0;
 			}
 		}
 	}
 
 	/* Update partial phase states */
-	state.carrier_phase_mod  	 = fmod(state.carrier_phase_mod, 1.0);
-	state.code_phase_mod	  	 = fmod(state.code_phase_mod, CODE_CHIPS);
+	s->carrier_phase_mod  	 = fmod(s->carrier_phase_mod, 1.0);
+	s->code_phase_mod	  	 = fmod(s->code_phase_mod, CODE_CHIPS);
 
-	state.rollover -= samps;
+	s->rollover -= samps;
 
 	/* Update pointers to presampled Doppler and PRN vectors */
-	state.psine    += samps;
-	state.pcode[0] += samps;
-	state.pcode[1] += samps;
-	state.pcode[2] += samps;
-	state.scount   += samps;
-
+	s->psine    += samps;
+	s->pcode[0] += samps;
+	s->pcode[1] += samps;
+	s->pcode[2] += samps;
+	s->scount   += samps;
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Correlator::Accum(Correlation_S *c, CPX *data, int32 samps)
+void Correlator::Accum(Correlator_State_S *s, Correlation_S *c, CPX *data, int32 samps)
 {
 
 	CPX_ACCUM EPL[3];
 
 	//SineGen(samps);
-	//state.psine = sine_rows[chan];
+	//state.psine = main_sine_rows[chan];
 
 	/* First do the wipeoff */
-	sse_cmulsc(data, state.psine, scratch, samps, 14);
+	sse_cmulsc(data, s->psine, scratch, samps, 14);
 
 	/* Now do the accumulation */
-	//sse_prn_accum(scratch, state.pcode[0], state.pcode[1], state.pcode[2], samps, &EPL[0]);
-	sse_prn_accum_new(scratch, state.pcode[0], state.pcode[1], state.pcode[2], samps, &EPL[0]);
+	//sse_prn_accum(scratch, s->pcode[0], s->pcode[1], s->pcode[2], samps, &EPL[0]);
+	sse_prn_accum_new(scratch, s->pcode[0], s->pcode[1], s->pcode[2], samps, &EPL[0]);
 
 	c->I[0] += (int32) EPL[0].i;
 	c->I[1] += (int32) EPL[1].i;
@@ -430,7 +409,7 @@ void Correlator::Accum(Correlation_S *c, CPX *data, int32 samps)
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Correlator::DumpAccum(Correlation_S *c)
+void Correlator::DumpAccum(Correlator_State_S *s, Correlation_S *c,  NCO_Command_S *f)
 {
 	float f1, f2, fix, ang;
 	float code_phase;
@@ -438,14 +417,14 @@ void Correlator::DumpAccum(Correlation_S *c)
 	float sang, cang, tI, tQ;
 
 	/* First rotate correlation based on nco frequency and actually frequency used for correlation */
-	f1 = ((state.sbin - CARRIER_BINS) * CARRIER_SPACING) + IF_FREQUENCY;
-	f2 = state.carrier_nco;
-	fix = (float)PI*(f2-f1)*(float)state.scount/(float)SAMPLE_FREQUENCY;
+	f1 = ((s->sbin - CARRIER_BINS) * CARRIER_SPACING) + IF_FREQUENCY;
+	f2 = s->carrier_nco;
+	fix = (float)PI*(f2-f1)*(float)s->scount/(float)SAMPLE_FREQUENCY;
 
-	ang = state.carrier_phase_prev*(float)TWO_PI + fix;
+	ang = s->carrier_phase_prev*(float)TWO_PI + fix;
 	ang = -ang; cang = cos(ang); sang = sin(ang);
 
-	state.carrier_phase_prev = state.carrier_phase_mod;
+	s->carrier_phase_prev = s->carrier_phase_mod;
 
 	tI = c->I[0];	tQ = c->Q[0];
 	c->I[0] = (int32)floor(cang*tI - sang*tQ);
@@ -459,83 +438,83 @@ void Correlator::DumpAccum(Correlation_S *c)
 	c->I[2] = (int32)floor(cang*tI - sang*tQ);
 	c->Q[2] = (int32)floor(sang*tI + cang*tQ);
 
-	/* Get the feedback */
-	aChannel->Accum(c, &feedback);
+	/* Get the f */
+	//aChannel->Accum(c, f);
 
-	 /* Apply feedback */
-	ProcessFeedback(&feedback);
+	 /* Apply f */
+	ProcessFeedback(s, f);
 
 	/* Is this needed? */
-	state.count++;
+	s->count++;
 
 	/* Now clear out accumulation */
 	c->I[0] = c->I[1] = c->I[2] = 0;
 	c->Q[0] = c->Q[1] = c->Q[2] = 0;
 
 	/* Calculate when next rollover occurs (in samples) */
-	state.rollover = (int32) ceil(((double)CODE_CHIPS - state.code_phase_mod)*SAMPLE_FREQUENCY/state.code_nco);
+	s->rollover = (int32) ceil(((double)CODE_CHIPS - s->code_phase_mod)*SAMPLE_FREQUENCY/s->code_nco);
 
-	bin = (int32) floor((state.code_phase_mod + 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
+	bin = (int32) floor((s->code_phase_mod + 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;
-	state.pcode[0] = code_rows[bin];
-	state.cbin[0] = bin;
+	s->pcode[0] = s->code_rows[bin];
+	s->cbin[0] = bin;
 
-	bin = (int32) floor((state.code_phase_mod + 0.0)*CODE_BINS + 0.5) + CODE_BINS/2;
+	bin = (int32) floor((s->code_phase_mod + 0.0)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;
-	state.pcode[1] = code_rows[bin];
-	state.cbin[1] = bin;
+	s->pcode[1] = s->code_rows[bin];
+	s->cbin[1] = bin;
 
-	bin = (int32) floor((state.code_phase_mod - 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
+	bin = (int32) floor((s->code_phase_mod - 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;
-	state.pcode[2] = code_rows[bin];
-	state.cbin[2] = bin;
+	s->pcode[2] = s->code_rows[bin];
+	s->cbin[2] = bin;
 
 	/* Update pointer to pre-sampled sine vector */
-	bin = (int32) floor((state.carrier_nco - IF_FREQUENCY)/CARRIER_SPACING + 0.5) + CARRIER_BINS;
+	bin = (int32) floor((s->carrier_nco - IF_FREQUENCY)/CARRIER_SPACING + 0.5) + CARRIER_BINS;
 
 	/* Catch errors if Doppler goes out of range */
 	if(bin < 0)	bin = 0; if(bin > 2*CARRIER_BINS) bin = 2*CARRIER_BINS;
-	state.psine = sine_rows[bin];
-	state.sbin = bin;
+	s->psine = main_sine_rows[bin];
+	s->sbin = bin;
 
 	/* Remember to nuke this! */
-	state.scount = 0;
+	s->scount = 0;
 
 }
 /*----------------------------------------------------------------------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Correlator::ProcessFeedback(NCO_Command_S *f)
+void Correlator::ProcessFeedback(Correlator_State_S *s, NCO_Command_S *f)
 {
 
-	state.carrier_nco  	= f->carrier_nco;
-	state.code_nco 	   	= f->code_nco;
-	state.navigate		= f->navigate;
+	s->carrier_nco  = f->carrier_nco;
+	s->code_nco 	= f->code_nco;
+	s->navigate		= f->navigate;
 
-	nco_phase_inc = (uint32)floor((double)state.carrier_nco*(double)2.097152000000000e+03);
+	nco_phase_inc = (uint32)floor((double)s->carrier_nco*(double)2.097152000000000e+03);
 
 	if(f->reset_1ms)
-		state._1ms_epoch = 0;
+		s->_1ms_epoch = 0;
 
 	if(f->reset_20ms)
-		state._20ms_epoch = 60;
+		s->_20ms_epoch = 60;
 
 	if(f->set_z_count)
-		state._z_count = f->z_count;
+		s->_z_count = f->z_count;
 
 	/* Update correlator state */
 	if(f->kill)
 	{
 		/* Clear out some buffers */
-		memset(&state, 		0x0, sizeof(Correlator_State_S));
-		memset(&meas, 		0x0, sizeof(Measurement_M));
-		memset(&meas_buff, 	0x0, TICS_PER_SECOND*sizeof(Measurement_M));
+		memset(s, 		0x0, sizeof(Correlator_State_S));
+//		memset(&meas, 		0x0, sizeof(Measurement_M));
+//		memset(&meas_buff, 	0x0, TICS_PER_SECOND*sizeof(Measurement_M));
 
 		/* Set correlator status to inactive */
-		pChannels[chan]->Lock();
-		pChannels[chan]->setActive(false);
-		pChannels[chan]->Unlock();
+//		pChannels[chan]->Lock();
+//		pChannels[chan]->setActive(false);
+//		pChannels[chan]->Unlock();
 	}
 
 }
@@ -561,8 +540,8 @@ void Correlator::SineGen(int32 _samps)
 	for(lcv = 0; lcv < _samps; lcv++)
 	{
 		index = nco_phase >> 21;
-		sine_rows[chan][lcv].i = lookup[index].i;
-		sine_rows[chan][lcv].q = lookup[index].q;
+//		main_sine_rows[chan][lcv].i = lookup[index].i;
+//		main_sine_rows[chan][lcv].q = lookup[index].q;
 		nco_phase += nco_phase_inc;
 	}
 
@@ -580,7 +559,7 @@ void Correlator::SamplePRN()
 
 	k = 0;
 
-	for(sv = 0; sv < NUM_CODES; sv++)
+	for(sv = 0; sv < MAX_SV; sv++)
 	{
 
 		code_gen(&scratch[0], sv);
@@ -616,16 +595,16 @@ void Correlator::SamplePRN()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Correlator::GetPRN(int32 _sv)
+void Correlator::GetPRN(Correlator_State_S *s)
 {
 
 	int32 lcv;
 
-	if(_sv >= 0 && _sv <= 31)
+	if((s->sv >= 0) && (s->sv <= 31))
 	{
 		for(lcv = 0; lcv < (2*CODE_BINS+1); lcv++)
 		{
-			memcpy(code_rows[lcv], main_code_rows[lcv + _sv*(2*CODE_BINS+1)], 2*SAMPS_MS*sizeof(CPX));
+			s->code_rows[lcv] = main_code_rows[lcv + s->sv*(2*CODE_BINS+1)];
 		}
 	}
 
@@ -634,7 +613,7 @@ void Correlator::GetPRN(int32 _sv)
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Correlator::InitCorrelator()
+void Correlator::InitCorrelator(Correlator_State_S *s)
 {
 	double code_phase;
 	double dt;
@@ -642,66 +621,66 @@ void Correlator::InitCorrelator()
 	int32 inc;
 
 	/* Update delay based on current packet count */
-	dt = (double)packet.count - (double)result.count;
-	dt *= (double).001;
-	dt *= (double)result.doppler*(double)CODE_RATE/(double)L1;
-	result.delay += (double)CODE_CHIPS + dt;
-	result.delay = fmod(result.delay,(double) CODE_CHIPS);
+//	dt = (double)packet.count - (double)result.count;
+//	dt *= (double).001;
+//	dt *= (double)result.doppler * (double)CODE_RATE/(double)L1;
 
-	state.sv					= result.sv;
-	state.navigate				= false;
-	state.active 				= 1;
-	state.count					= 0;
-	state.scount				= 0;
-	state.code_phase 			= result.delay;
-	state.code_phase_mod 		= result.delay;
-	state.carrier_phase 		= 0;
-	state.carrier_phase_mod 	= 0;
-	state.code_nco				= CODE_RATE + result.doppler*CODE_RATE/L1;
-	state.carrier_nco			= IF_FREQUENCY + result.doppler;
-	state._1ms_epoch 			= 0;
-	state._20ms_epoch			= 0;
-	state.rollover 				= (int32) ceil(((double)CODE_CHIPS - state.code_phase)*SAMPLE_FREQUENCY/state.code_nco); /* Calculate rollover point */
+	result.code_phase += (double)CODE_CHIPS + dt;
+	result.code_phase = fmod(result.code_phase,(double) CODE_CHIPS);
 
-	GetPRN(state.sv);
+	s->sv					= result.sv;
+	s->navigate				= false;
+	s->active 				= 1;
+	s->count				= 0;
+	s->scount				= 0;
+	s->code_phase 			= result.code_phase;
+	s->code_phase_mod 		= result.code_phase;
+	s->carrier_phase 		= 0;
+	s->carrier_phase_mod 	= 0;
+	s->code_nco				= CODE_RATE + result.doppler*CODE_RATE/L1;
+	s->carrier_nco			= IF_FREQUENCY + result.doppler;
+	s->_1ms_epoch 			= 0;
+	s->_20ms_epoch			= 0;
+	s->rollover 			= (int32) ceil(((double)CODE_CHIPS - s->code_phase)*SAMPLE_FREQUENCY/s->code_nco); /* Calculate rollover point */
 
-	nco_phase_inc = (uint32)floor((double)state.carrier_nco*(double)2.097152000000000e+03);
+	GetPRN(s);
+
+	nco_phase_inc = (uint32)floor((double)s->carrier_nco*(double)2.097152000000000e+03);
 	nco_phase = 0;
 
 	//inc = (int32)floor(result.delay*2048.0/1023.0);
 
 	/* Initialize the code bin pointers */
-	bin = (int32) floor((state.code_phase_mod + 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
+	bin = (int32) floor((s->code_phase_mod + 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;
-	state.pcode[0] = code_rows[bin];
-	state.pcode[0] += inc;
-	state.cbin[0] = bin;
+	s->pcode[0] = s->code_rows[bin];
+	s->pcode[0] += inc;
+	s->cbin[0] = bin;
 
-	bin = (int32) floor((state.code_phase_mod + 0.0)*CODE_BINS + 0.5) + CODE_BINS/2;
+	bin = (int32) floor((s->code_phase_mod + 0.0)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;
-	state.pcode[1] = code_rows[bin];
-	state.pcode[1] += inc;
-	state.cbin[1] = bin;
+	s->pcode[1] = s->code_rows[bin];
+	s->pcode[1] += inc;
+	s->cbin[1] = bin;
 
-	bin = (int32) floor((state.code_phase_mod - 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
+	bin = (int32) floor((s->code_phase_mod - 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;
 	if(bin < 0)	bin = 0; if(bin > 2*CODE_BINS) bin = 2*CODE_BINS;
-	state.pcode[2] = code_rows[bin];
-	state.pcode[2] += inc;
-	state.cbin[2] = bin;
+	s->pcode[2] = s->code_rows[bin];
+	s->pcode[2] += inc;
+	s->cbin[2] = bin;
 
 	/* Update pointer to pre-sampled sine vector */
-	bin = (int32) floor((state.carrier_nco - IF_FREQUENCY)/CARRIER_SPACING + 0.5) + CARRIER_BINS;
+	bin = (int32) floor((s->carrier_nco - IF_FREQUENCY)/CARRIER_SPACING + 0.5) + CARRIER_BINS;
 
 	/* Catch errors if Doppler goes out of range */
 	if(bin < 0)	bin = 0; if(bin > 2*CARRIER_BINS) bin = 2*CARRIER_BINS;
-	state.psine = sine_rows[bin];
-	state.sbin = bin;
+	s->psine = main_sine_rows[bin];
+	s->sbin = bin;
 
 	//printf("Correlator initialized %d,%d,%f,%f,%f,%d,%d\n",chan,result.sv,state.carrier_nco,state.code_nco,state.code_phase,packet.count,result.count);
 
 }
 /*----------------------------------------------------------------------------------------------*/
-
 
 
 

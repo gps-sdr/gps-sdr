@@ -1,26 +1,47 @@
-/*! \file Init.cpp
-	Initializes receiver
+/*----------------------------------------------------------------------------------------------*/
+/*! \file init.cpp
+//
+// FILENAME: init.cpp
+//
+// DESCRIPTION: Initializes the receiver software
+//
+// DEVELOPERS: Gregory W. Heckler (2003-2009)
+//
+// LICENSE TERMS: Copyright (c) Gregory W. Heckler 2009
+//
+// This file is part of the GPS Software Defined Radio (GPS-SDR)
+//
+// The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version. The GPS-SDR is distributed in the hope that
+// it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
+//
+// Note:  Comments within this file follow a syntax that is compatible with
+//        DOXYGEN and are utilized for automated document extraction
+//
+// Reference:
 */
-/************************************************************************************************
-Copyright 2008 Gregory W Heckler
+/*----------------------------------------------------------------------------------------------*/
 
-This file is part of the GPS Software Defined Radio (GPS-SDR)
 
-The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
-GNU General Public License as published by the Free Software Foundation; either version 2 of the
-License, or (at your option) any later version.
-
-The GPS-SDR is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the:
-
-Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-************************************************************************************************/
-
+/*----------------------------------------------------------------------------------------------*/
 #include "includes.h"
+//#include "fft.h"				//!< Fixed point FFT object
+#include "fifo.h"				//!< Circular buffer for Importing IF data
+#include "keyboard.h"			//!< Handle user input via keyboard
+#include "channel.h"			//!< Tracking channels
+#include "correlator.h"			//!< Correlator
+#include "acquisition.h"		//!< Acquisition
+//#include "pvt.h"				//!< PVT solution
+//#include "ephemeris.h"			//!< Ephemeris decode
+//#include "telemetry.h"			//!< Ncurses telemetry
+//#include "serial_telemetry.h"	//!< Serial/GUI telemetry
+//#include "commando.h"			//!< Command interface
+//#include "sv_select.h"			//!< Drives acquisition/reacquisition process
+//#include "post_process.h"		//!< Run the receiver from a file
+/*----------------------------------------------------------------------------------------------*/
 
 /*! Print out command arguments to std_out */
 /*----------------------------------------------------------------------------------------------*/
@@ -129,7 +150,7 @@ void Parse_Arguments(int32 argc, char* argv[])
 	gopt.doppler_min 	= -MAX_DOPPLER;
 	gopt.doppler_max 	= MAX_DOPPLER;
 	gopt.corr_sleep 	= 500;
-	gopt.startup		= COLD_START;
+	gopt.startup		= 0;
 	gopt.usrp_internal	= 0;
 	strcpy(gopt.filename_direct, "data.bda");
 	strcpy(gopt.filename_reflected, "rdata.bda");
@@ -196,7 +217,7 @@ void Parse_Arguments(int32 argc, char* argv[])
 		}
 		else if(strcmp(argv[lcv],"-w") == 0)
 		{
-			gopt.startup = WARM_START;
+			gopt.startup = 1;
 		}
 		else if(strcmp(argv[lcv],"-gui") == 0)
 		{
@@ -294,48 +315,47 @@ int32 Object_Init(void)
 	/* Get start of receiver */
 	gettimeofday(&starttime, NULL);
 
-	/* Create Keyboard objec to handle user input */
-	pKeyboard = new Keyboard;
+	/* Create Keyboard object to handle user input */
+	pKeyboard = new Keyboard();
 
 	/* Now do the hard work? */
 	pAcquisition = new Acquisition(IF_SAMPLE_FREQUENCY, IF_FREQUENCY);
 
-	pEphemeris = new Ephemeris;
-
+//	pEphemeris = new Ephemeris;
+//
 	/* Get data from either the USRP or disk */
 	pFIFO = new FIFO;
 
-	pSV_Select = new SV_Select;
+//	pSV_Select = new SV_Select;
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		pChannels[lcv] = new Channel(lcv);
 
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-		pCorrelators[lcv] =  new Correlator(lcv);
+	pCorrelator =  new Correlator();
 
-	if(gopt.ncurses)
-		pTelemetry = new Telemetry();
-	else
-		pSerial_Telemetry = new Serial_Telemetry(gopt.serial);
-
-	pCommando = new Commando();
-
-	pPVT = new PVT(gopt.startup);
-
-	if(gopt.post_process)
-		pPost_Process = new Post_Process(gopt.filename_direct);
-
-	pthread_mutex_init(&mAcq, NULL);
-	pthread_mutex_unlock(&mAcq);
-	int32 gAcq_high = false;
-
-	//if(gopt.verbose)
-	{
-		printf("Cleared Object Init\n");
-		fflush(stdout);
-	}
-
-	return(1);
+//	if(gopt.ncurses)
+//		pTelemetry = new Telemetry();
+//	else
+//		pSerial_Telemetry = new Serial_Telemetry(gopt.serial);
+//
+//	pCommando = new Commando();
+//
+//	pPVT = new PVT(gopt.startup);
+//
+//	if(gopt.post_process)
+//		pPost_Process = new Post_Process(gopt.filename_direct);
+//
+//	pthread_mutex_init(&mAcq, NULL);
+//	pthread_mutex_unlock(&mAcq);
+//	int32 gAcq_high = false;
+//
+//	//if(gopt.verbose)
+//	{
+//		printf("Cleared Object Init\n");
+//		fflush(stdout);
+//	}
+//
+//	return(1);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -347,44 +367,23 @@ int32 Pipes_Init(void)
 {
 	int32 lcv;
 
-	/* Acq and track play together */
-	pipe((int *)Trak_2_Acq_P);
-	pipe((int *)Acq_2_Trak_P);
-	pipe((int *)FIFO_2_Telem_P);
-	fcntl(FIFO_2_Telem_P[READ], F_SETFL, O_NONBLOCK);
+	pipe((int *)SVS_2_ACQ_P);
+	pipe((int *)ACQ_2_SVS_P);
+	pipe((int *)SVS_2_COR_P);
+	pipe((int *)COR_2_PVT_P);
+	pipe((int *)CHN_2_EPH_P);
+	pipe((int *)PVT_2_TLM_P);
+	pipe((int *)EPH_2_TLM_P);
+	pipe((int *)SVS_2_TLM_P);
+	pipe((int *)PVT_2_SVS_P);
+	pipe((int *)TLM_2_CMD_P);
+	pipe((int *)CMD_2_TLM_P);
+	pipe((int *)COR_2_ACQ_P);
 
-	pipe((int *)FIFO_2_PVT_P);
-	pipe((int *)PVT_2_Telem_P);
-	pipe((int *)Chan_2_Ephem_P);
+	fcntl(COR_2_ACQ_P[WRITE], F_SETFL, O_NONBLOCK);
+	fcntl(SVS_2_COR_P[READ], F_SETFL, O_NONBLOCK);
 
-	pipe((int *)Ephem_2_Telem_P);
-	fcntl(Ephem_2_Telem_P[READ], F_SETFL, O_NONBLOCK);
-
-	pipe((int *)Acq_2_Telem_P);
-	fcntl(Acq_2_Telem_P[READ], F_SETFL, O_NONBLOCK);
-
-	pipe((int *)SV_Select_2_Telem_P);
-	fcntl(SV_Select_2_Telem_P[READ], F_SETFL, O_NONBLOCK);
-
-	pipe((int *)PVT_2_SV_Select_P);
-	fcntl(PVT_2_SV_Select_P[WRITE], F_SETFL, O_NONBLOCK);
-	fcntl(PVT_2_SV_Select_P[READ], F_SETFL, O_NONBLOCK);
-
-	/* Commando pipes */
-	pipe((int *)Telem_2_Cmd_P);
-	pipe((int *)Cmd_2_Telem_P);
-	fcntl(Cmd_2_Telem_P[READ], F_SETFL, O_NONBLOCK);
-
-	/* Channel and correlator */
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-	{
-		pipe((int *)Trak_2_Corr_P[lcv]);
-		pipe((int *)Corr_2_PVT_P[lcv]);
-		pipe((int *)PVT_2_Corr_P[lcv]);
-		fcntl(Trak_2_Corr_P[lcv][READ], F_SETFL, O_NONBLOCK);
-	}
-
-	//if(gopt.verbose)
+	if(gopt.verbose)
 	{
 		printf("Cleared Pipes Init\n");
 		fflush(stdout);
@@ -408,45 +407,42 @@ int32 Thread_Init(void)
 	/* Start the keyboard thread to handle user input from stdio */
 	pKeyboard->Start();
 
-	/* Startup the PVT sltn */
-	pPVT->Start();
-
+//	/* Startup the PVT sltn */
+//	pPVT->Start();
+//
 	/* Start up the FIFO */
 	pFIFO->Start();
-
-	/* Start up the correlators */
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-	{
-		pCorrelators[lcv]->Start();
-	}
+//
+//	/* Start up the correlators */
+	pCorrelator->Start();
 
 	/* Start up the acquistion */
 	pAcquisition->Start();
 
-	/* Start up the ephemeris */
-	pEphemeris->Start();
-
-	/* Start up the command interface */
-	pCommando->Start();
-
-	/* Start the SV select thread */
-	pSV_Select->Start();
-
-	//if(gopt.verbose)
-	{
-		printf("Cleared Thread Init\n");
-		fflush(stdout);
-	}
-
-	/* Last thing to do */
-	if(gopt.ncurses)
-		pTelemetry->Start();
-	else
-		pSerial_Telemetry->Start();
-
-	/* Do the post process */
-	if(gopt.post_process)
-		pPost_Process->Start();
+//	/* Start up the ephemeris */
+//	pEphemeris->Start();
+//
+//	/* Start up the command interface */
+//	pCommando->Start();
+//
+//	/* Start the SV select thread */
+//	pSV_Select->Start();
+//
+//	//if(gopt.verbose)
+//	{
+//		printf("Cleared Thread Init\n");
+//		fflush(stdout);
+//	}
+//
+//	/* Last thing to do */
+//	if(gopt.ncurses)
+//		pTelemetry->Start();
+//	else
+//		pSerial_Telemetry->Start();
+//
+//	/* Do the post process */
+//	if(gopt.post_process)
+//		pPost_Process->Start();
 
 	return(1);
 

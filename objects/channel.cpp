@@ -1,29 +1,34 @@
-/*! \file Channel.cpp
-	Implements member functions of Channel class.
+/*----------------------------------------------------------------------------------------------*/
+/*! \file channel.cpp
+//
+// FILENAME: channel.cpp
+//
+// DESCRIPTION: Implements member functions of Channel class.
+//
+// DEVELOPERS: Gregory W. Heckler (2003-2009)
+//
+// LICENSE TERMS: Copyright (c) Gregory W. Heckler 2009
+//
+// This file is part of the GPS Software Defined Radio (GPS-SDR)
+//
+// The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version. The GPS-SDR is distributed in the hope that
+// it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
+//
+// Note:  Comments within this file follow a syntax that is compatible with
+//        DOXYGEN and are utilized for automated document extraction
+//
+// Reference:
 */
-/************************************************************************************************
-Copyright 2008 Gregory W Heckler
-
-This file is part of the GPS Software Defined Radio (GPS-SDR)
-
-The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
-GNU General Public License as published by the Free Software Foundation; either version 2 of the
-License, or (at your option) any later version.
-
-The GPS-SDR is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the:
-
-Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-************************************************************************************************/
+/*----------------------------------------------------------------------------------------------*/
 
 #include "channel.h"
 
 /*----------------------------------------------------------------------------------------------*/
-Channel::Channel(int32 _chan)
+Channel::Channel(int32 _chan):Threaded_Object("CHNTASK")
 {
 	char fname[1024];
 
@@ -84,7 +89,7 @@ void Channel::Clear()
 	I_avg = 1;
 	Q_var = 1;
 	P_avg = 1e4;
-	CN0 = 15;
+	cn0 = 15;
 	NP = 10;
 
 	/* Bit lock stuff */
@@ -126,7 +131,7 @@ void Channel::Clear()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Channel::Start(int32 _sv, Acq_Command_M result, int32 _corr_len)
+void Channel::Start(int32 _sv, Acq_Command_S result, int32 _corr_len)
 {
 
 	/* Clear out the channel */
@@ -288,7 +293,7 @@ void Channel::DumpAccum()
 	Q_var += ((float)Q[1]*(float)Q[1] - Q_var) * .02;
 	P_avg += ((float)P[1]/float(len) - P_avg) * .1;
 
-	/* Try out new CN0 estimate, PG 393 of Global Positioning System, Theory and Applications */
+	/* Try out new cn0 estimate, PG 393 of Global Positioning System, Theory and Applications */
 	if((_1ms_epoch == 0) && freq_lock)
 	{
 		NBP = I_sum20*I_sum20 + Q_sum20*Q_sum20;
@@ -301,15 +306,15 @@ void Channel::DumpAccum()
 			NP += (NBP/WBP - NP) * .02;
 
 		if((NP - 1.0)/(20.0 - NP) > 0.0)
-			CN0 = 10*log10((NP - 1.0)/(20.0 - NP)) + 30.0 + .25;
+			cn0 = 10*log10((NP - 1.0)/(20.0 - NP)) + 30.0 + .25;
 
-		if(CN0 < 15.0)
+		if(cn0 < 15.0)
 		{
-			CN0 = 15.0;
+			cn0 = 15.0;
 		}
 	}
 
-	/* Old school CN0 */
+	/* Old school cn0 */
 	CN0_old = 10*log10(I_avg*I_avg/(2*Q_var)) - 10*log10(aPLL.t);
 
 	/* Dump pertinent data */
@@ -641,7 +646,7 @@ void Channel::ProcessDataBit()
 					ephem_packet.subframe = subframe;
 					ephem_packet.sv = sv;
 
-					write(Chan_2_Ephem_P[WRITE], &ephem_packet, sizeof(Chan_2_Ephem_S));
+					write(CHN_2_EPH_P[WRITE], &ephem_packet, sizeof(Channel_2_Ephemeris_S));
 
 					if(!z_lock)
 					{
@@ -893,13 +898,13 @@ void Channel::Error()
 
 	float mcn0;
 
-	mcn0 = CN0 > CN0_old ? CN0 : CN0_old;
+	mcn0 = cn0 > CN0_old ? cn0 : CN0_old;
 
 	/* Monitor DLL */
 	if((P_avg < 2e4) && (count > 2000))
 		Kill();
 
-	/* Monitor CN0 for false PLL lock */
+	/* Monitor cn0 for false PLL lock */
 	if(count > 10000 && mcn0 < 17.0)
 		Kill();
 
@@ -911,7 +916,7 @@ void Channel::Error()
 	if(fabs(carrier_nco-IF_FREQUENCY) > CARRIER_BINS*CARRIER_SPACING)
 		Kill();
 
-	/* Adjust integration length based on CN0 */
+	/* Adjust integration length based on cn0 */
 	if(count > 5000)
 	{
 		if((mcn0 > 39.0) && (len != 1))
@@ -952,24 +957,24 @@ void Channel::Export()
 
 	int32 bwrote;
 
-	packet.chan 		= (float)chan;
-	packet.state		= (float)state;
-	packet.sv 			= (float)sv;
-	packet.antenna		= (float)antenna;
-	packet.len 			= (float)len;
-	packet.w			= (float)aPLL.w;
-	packet.x 			= (float)aPLL.x;
-	packet.z 			= (float)aPLL.z;
-	packet.CN0 			= (float)CN0;
-	packet.p_avg 		= (float)P_avg;
-	packet.bit_lock 	= (float)bit_lock;
-	packet.frame_lock 	= (float)frame_lock;
-	packet.navigate		= (float)navigate;
-	packet.count		= (float)count;
-	packet.subframe 	= (float)subframe;
-	packet.best_epoch 	= (float)best_epoch;
-	packet.code_nco 	= (float)code_nco;
-	packet.carrier_nco 	= (float)carrier_nco;
+	packet.chan 		= chan;
+	packet.state		= state;
+	packet.sv 			= sv;
+	packet.antenna		= antenna;
+	packet.len 			= len;
+	packet.w			= aPLL.w;
+	packet.x 			= aPLL.x;
+	packet.z 			= aPLL.z;
+	packet.cn0 			= cn0;
+	packet.p_avg 		= P_avg;
+	packet.bit_lock 	= bit_lock;
+	packet.frame_lock 	= frame_lock;
+	packet.navigate		= navigate;
+	packet.count		= count;
+	packet.subframe 	= subframe;
+	packet.best_epoch 	= best_epoch;
+	packet.code_nco 	= code_nco;
+	packet.carrier_nco 	= carrier_nco;
 
 	if(gopt.log_channel && (fp != NULL))
 		fwrite(&packet, sizeof(Channel_M), 1,  fp);

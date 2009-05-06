@@ -1,23 +1,31 @@
-/************************************************************************************************
-Copyright 2008 Gregory W Heckler
+/*----------------------------------------------------------------------------------------------*/
+/*! \file acquisition.cpp
+//
+// FILENAME: acquisition.cpp
+//
+// DESCRIPTION: Implements member functions of the Acquisition class.
+//
+// DEVELOPERS: Gregory W. Heckler (2003-2009)
+//
+// LICENSE TERMS: Copyright (c) Gregory W. Heckler 2009
+//
+// This file is part of the GPS Software Defined Radio (GPS-SDR)
+//
+// The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version. The GPS-SDR is distributed in the hope that
+// it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
+//
+// Note:  Comments within this file follow a syntax that is compatible with
+//        DOXYGEN and are utilized for automated document extraction
+//
+// Reference:
+*/
+/*----------------------------------------------------------------------------------------------*/
 
-This file is part of the GPS Software Defined Radio (GPS-SDR)
-
-The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
-GNU General Public License as published by the Free Software Foundation; either version 2 of the
-License, or (at your option) any later version.
-
-The GPS-SDR is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the:
-
-Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-************************************************************************************************/
-
-#include "includes.h"
+#include "acquisition.h"
 #include "prn_codes.h"	//!< Include the pre-fftd PRN codes (done with MATLAB)
 
 //#define ACQ_DEBUG
@@ -27,8 +35,6 @@ void *Acquisition_Thread(void *_arg)
 {
 
 	Acquisition *aAcquisition = pAcquisition;
-
-	aAcquisition->SetPid();
 
 	while(grun)
 	{
@@ -47,7 +53,7 @@ void *Acquisition_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void Acquisition::Start()
 {
-	/* With new priority specified */
+
 	Start_Thread(Acquisition_Thread, NULL);
 
 	if(gopt.verbose)
@@ -60,7 +66,7 @@ void Acquisition::Start()
 /*!
  * Acquisition(): Constructor
  * */
-Acquisition::Acquisition(float _fsample, float _fif)
+Acquisition::Acquisition(float _fsample, float _fif):Threaded_Object("ACQTASK")
 {
 
 	int32 lcv, lcv2;
@@ -82,7 +88,7 @@ Acquisition::Acquisition(float _fsample, float _fif)
 	resamps_ms = SAMPS_MS; //Always decimate to 2048 samples/ms for C/A code
 
 	/* Step one, grab pre-fftd codes from header file */
-	for(lcv = 0; lcv < NUM_CODES_WAAS; lcv++)
+	for(lcv = 0; lcv < MAX_SV; lcv++)
 		fft_codes[lcv] = (CPX *)&PRN_Codes[2*lcv*resamps_ms];
 
 	/* Allocate some buffers that will be used later on */
@@ -239,12 +245,12 @@ void Acquisition::doPrepIF(int32 _type, CPX *_buff)
 /*!
  * doAcqStrong: Acquire using a 1 ms coherent integration
  * */
-Acq_Command_M Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
+Acq_Command_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax)
 {
 
 	FILE *fp;
 	int32 lcv, lcv2, mag, magt, index, indext;
-	Acq_Command_M *result = &results[_sv];
+	Acq_Command_S *result = &results[_sv];
 	CPX *p;
 
 	index = indext = mag = magt = 0;
@@ -276,9 +282,10 @@ Acq_Command_M Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax
 			{
 				mag = magt;
 				index = indext;
-				result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
-				result->doppler = (float)(lcv*1000) + (float)lcv2*250;
-				result->magnitude = (float)mag;
+				//result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
+				result->code_phase = index;
+				result->doppler = (lcv*1000) + (float)lcv2*250;
+				result->magnitude = mag;
 			}
 
 		}
@@ -303,9 +310,9 @@ Acq_Command_M Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax
 /*!
  * doAcqMedium: Acquire using a 10 ms coherent integrationACQ_WEAK
  * */
-Acq_Command_M Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
+Acq_Command_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax)
 {
-	Acq_Command_M *result;
+	Acq_Command_S *result;
 	int32 lcv, lcv2, lcv3, mag, magt, index, indext, j, k, dopp, skip;
 	int32 iaccum, qaccum;
 	CPX temp[10];
@@ -404,9 +411,10 @@ Acq_Command_M Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax
 					{
 						mag = magt;
 						index = indext % resamps_ms;
-						result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
-						result->doppler = (float)(lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0;
-						result->magnitude = (float)mag;
+						//result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
+						result->code_phase = index;
+						result->doppler = (lcv*1000) + (lcv2*250) + (indext/resamps_ms)*25.0;
+						result->magnitude = mag;
 					}
 
 				}
@@ -437,10 +445,10 @@ Acq_Command_M Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax
 /*!
  * doAcqWeak: Acquire using a 10 ms coherent integration and 15 incoherent integrations
  * */
-Acq_Command_M Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
+Acq_Command_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 {
 
-	Acq_Command_M *result;
+	Acq_Command_S *result;
 	int32 lcv, lcv2, lcv3, mag, magt, index, indext, k, i, j, skip, dopp;
 	int32 iaccum, qaccum;
 	int32 data[32];
@@ -560,9 +568,10 @@ Acq_Command_M Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 					{
 						mag = magt;
 						index = indext % resamps_ms;
-						result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
-						result->doppler = (float)(lcv*1000) + (float)(lcv2*250) + (indext/resamps_ms)*25.0;
-						result->magnitude = (float)mag;
+						//result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
+						result->code_phase = index;
+						result->doppler = (lcv*1000) + (lcv2*250) + (indext/resamps_ms)*25.0;
+						result->magnitude = mag;
 					}
 
 				}
@@ -640,8 +649,8 @@ void Acquisition::Import()
 	ret.tv_nsec = 100000;
 
 	/* First wait for a request */
-	bread = read(Trak_2_Acq_P[READ], &request, sizeof(Acq_Command_M));
-	memcpy(&results[request.sv],&request,sizeof(Acq_Command_M));
+	bread = read(SVS_2_ACQ_P[READ], &request, sizeof(Acq_Command_S));
+	memcpy(&results[request.sv],&request,sizeof(Acq_Command_S));
 
 	switch(request.type)
 	{
@@ -660,25 +669,15 @@ void Acquisition::Import()
 
 	//printf("Got request %d\n",request.corr);
 
-	/* Set the flag to high to let FIFO know the acq will be collecting data */
-	pthread_mutex_lock(&mAcq);
-	gAcq_high = true;
-	pthread_mutex_unlock(&mAcq);
-
 	/* Collect necessary data */
 	lastcount = 0; ms = 0;
 	while((ms < ms_per_read) && grun)
 	{
 		/* Get the tail */
 		last = packet.count;
-		pFIFO->Dequeue(MAX_CHANNELS, &packet);
-//		pFIFO->Wait(MAX_CHANNELS); //Pend until everyone has called dequeue
 
-		while(packet.count == last)
-		{
-			usleep(250);
-			pFIFO->Dequeue(MAX_CHANNELS, &packet);
-		}
+		/* Read a packet in */
+		read(COR_2_ACQ_P[READ], p, sizeof(ms_packet));
 
 		memcpy(&buff[SAMPS_MS*ms], &packet.data, SAMPS_MS*sizeof(CPX));
 
@@ -699,25 +698,20 @@ void Acquisition::Import()
 
 	}
 
-	/* Done collecting data */
-	pthread_mutex_lock(&mAcq);
-	gAcq_high = false;
-	pthread_mutex_unlock(&mAcq);
-
 	ncross = 0;
 
 	/* If the SV is already being tracked skip the acquisition */
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-	{
-		pChannels[lcv]->Lock();
-		if(pChannels[lcv]->getActive())
-			if(pChannels[lcv]->getCN0() > 45.0)	//If the CN0 is really high
-			{
-				ncross++;
-				cross_doppler[lcv] = (int32)floor(pChannels[lcv]->getNCO() - IF_FREQUENCY);
-			}
-		pChannels[lcv]->Unlock();
-	}
+//	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+//	{
+//		pChannels[lcv]->Lock();
+//		if(pChannels[lcv]->getActive())
+//			if(pChannels[lcv]->getCN0() > 45.0)	//If the CN0 is really high
+//			{
+//				ncross++;
+//				cross_doppler[lcv] = (int32)floor(pChannels[lcv]->getNCO() - IF_FREQUENCY);
+//			}
+//		pChannels[lcv]->Unlock();
+//	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -732,7 +726,7 @@ void Acquisition::Export(char * _fname)
 
 	int32 lcv;
 	FILE *fp;
-	Acq_Command_M *p;
+	Acq_Command_S *p;
 
 	if(_fname == NULL)
 	{
@@ -749,18 +743,16 @@ void Acquisition::Export(char * _fname)
 			return;
 	}
 
-
-	for(lcv = 0; lcv < NUM_CODES; lcv++)
+	for(lcv = 0; lcv < MAX_SV; lcv++)
 	{
 		p = &results[lcv];
-		fprintf(fp, "%02d,%02d,%10.2f,%10.0f,%15.0f,%1d\n",p->type,lcv+1,p->delay,p->doppler,p->magnitude,p->success);
+		fprintf(fp, "%02d,%02d,%d,%d,%d,%1d\n",p->type,lcv+1,p->code_phase,p->doppler,p->magnitude,p->success);
 	}
 	fclose(fp);
 
 	/* Write result to the tracking task */
 	results[request.sv].count = request.count;
-	write(Acq_2_Trak_P[WRITE], &results[request.sv], sizeof(Acq_Command_M));
-	write(Acq_2_Telem_P[WRITE], &results[request.sv], sizeof(Acq_Command_M));
+	write(ACQ_2_SVS_P[WRITE], &results[request.sv], sizeof(Acq_Command_S));
 
 }
 /*----------------------------------------------------------------------------------------------*/

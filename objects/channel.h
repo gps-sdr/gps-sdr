@@ -1,29 +1,35 @@
-/*! \file OBJECT.h
-	Defines the class OBJECT
+/*----------------------------------------------------------------------------------------------*/
+/*! \file channel.h
+//
+// FILENAME: channel.h
+//
+// DESCRIPTION: Defines the Channel class.
+//
+// DEVELOPERS: Gregory W. Heckler (2003-2009)
+//
+// LICENSE TERMS: Copyright (c) Gregory W. Heckler 2009
+//
+// This file is part of the GPS Software Defined Radio (GPS-SDR)
+//
+// The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version. The GPS-SDR is distributed in the hope that
+// it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
+//
+// Note:  Comments within this file follow a syntax that is compatible with
+//        DOXYGEN and are utilized for automated document extraction
+//
+// Reference:
 */
-/************************************************************************************************
-Copyright 2008 Gregory W Heckler
-
-This file is part of the GPS Software Defined Radio (GPS-SDR)
-
-The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
-GNU General Public License as published by the Free Software Foundation; either version 2 of the
-License, or (at your option) any later version.
-
-The GPS-SDR is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the:
-
-Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-************************************************************************************************/
+/*----------------------------------------------------------------------------------------------*/
 
 #ifndef OBJECT_H
 #define OBJECT_H
 
 #include "includes.h"
+#include "fft.h"
 
 #define FREQ_LOCK_POINTS (512)
 
@@ -47,8 +53,8 @@ class Channel : public Threaded_Object
 		int32 sv;				//!< current SV
 		int32 state;
 		int32 antenna;
-		Channel_M	packet;			//!< dump to named pipe
-		Chan_2_Ephem_S  	ephem_packet;	//!< dump to ephemeris
+		Channel_M packet;
+		Channel_2_Ephemeris_S ephem_packet; //!< dump to ephemeris
 		/*----------------------------------------------------------------------------------------------*/
 
 		/* Loop data */
@@ -72,7 +78,7 @@ class Channel : public Threaded_Object
 		float I_avg;			//!< Moving average of I
 		float Q_var;			//!< Variance of Q
 		float P_avg;			//!< Moving average of P
-		float CN0;				//!< Current CN0 estimate
+		float cn0;				//!< Current CN0 estimate
 		float CN0_old;			//!< Old CN0 estimate (used to detect meta stable loop convergence)
 		float NP;				//!< New CN0 estimate thing
 		/*----------------------------------------------------------------------------------------------*/
@@ -124,7 +130,7 @@ class Channel : public Threaded_Object
 
 		Channel(int32 _chan);
 		~Channel();
-		void Start(int32 sv, Acq_Command_M result, int32 _corr_len);
+		void Start(int32 sv, Acq_Command_S result, int32 _corr_len);
 		void Clear();
 		void Kill();									//!< Shutdown the channel
 		void DumpAccum();								//!< Dump the accumulation and do rest of processing
@@ -144,7 +150,7 @@ class Channel : public Threaded_Object
 		void Export();									//!< Return NCO command to correlator
 		Channel_M getPacket();
 		void Accum(Correlation_S *corr, NCO_Command_S *_feedback);	//!< Process an accumulation
-		float getCN0(){return(CN0);};
+		float getCN0(){return(cn0);};
 		float getNCO(){return(carrier_nco);};
 		int32 getActive(){return(active);};
 		void setActive(int32 _active){active = _active;};

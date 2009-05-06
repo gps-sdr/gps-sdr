@@ -1,26 +1,47 @@
-/*! \file Shutdown.cpp
-	Shuts down the receiver gracefully
+/*----------------------------------------------------------------------------------------------*/
+/*! \file shutdown.cpp
+//
+// FILENAME: shutdown.cpp
+//
+// DESCRIPTION: Terminates the receiver software gracefully
+//
+// DEVELOPERS: Gregory W. Heckler (2003-2009)
+//
+// LICENSE TERMS: Copyright (c) Gregory W. Heckler 2009
+//
+// This file is part of the GPS Software Defined Radio (GPS-SDR)
+//
+// The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version. The GPS-SDR is distributed in the hope that
+// it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
+//
+// Note:  Comments within this file follow a syntax that is compatible with
+//        DOXYGEN and are utilized for automated document extraction
+//
+// Reference:
 */
-/************************************************************************************************
-Copyright 2008 Gregory W Heckler
+/*----------------------------------------------------------------------------------------------*/
 
-This file is part of the GPS Software Defined Radio (GPS-SDR)
 
-The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
-GNU General Public License as published by the Free Software Foundation; either version 2 of the
-License, or (at your option) any later version.
-
-The GPS-SDR is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the:
-
-Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-************************************************************************************************/
-
+/*----------------------------------------------------------------------------------------------*/
 #include "includes.h"
+#include "fifo.h"				//!< Circular buffer for Importing IF data
+#include "keyboard.h"			//!< Handle user input via keyboard
+#include "channel.h"			//!< Tracking channels
+#include "correlator.h"			//!< Correlator
+#include "acquisition.h"		//!< Acquisition
+//#include "pvt.h"				//!< PVT solution
+//#include "ephemeris.h"		//!< Ephemeris decode
+//#include "telemetry.h"		//!< Ncurses telemetry
+//#include "serial_telemetry.h"	//!< Serial/GUI telemetry
+//#include "commando.h"			//!< Command interface
+//#include "sv_select.h"		//!< Drives acquisition/reacquisition process
+//#include "post_process.h"		//!< Run the receiver from a file
+/*----------------------------------------------------------------------------------------------*/
+
 
 /*----------------------------------------------------------------------------------------------*/
 /*! First stop all threads */
@@ -33,36 +54,35 @@ void Thread_Shutdown(void)
 	pKeyboard->Stop();
 
 	/* Stop the telemetry */
-	if(gopt.ncurses)
-		pTelemetry->Stop();
-	else
-		pSerial_Telemetry->Stop();
-
+//	if(gopt.ncurses)
+//		pTelemetry->Stop();
+//	else
+//		pSerial_Telemetry->Stop();
+//
 	/* Stop the FIFO */
 	pFIFO->Stop();
-
-	/* Uh-oh */
-	pPVT->Stop();
-
-	/* Start up the correlators */
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-		pCorrelators[lcv]->Stop();
+//
+//	/* Uh-oh */
+//	pPVT->Stop();
+//
+//	/* Stop the correlator */
+	pCorrelator->Stop();
 
 	/* Stop the acquistion */
 	pAcquisition->Stop();
-
-	/* Stop the ephemeris */
-	pEphemeris->Stop();
-
-	/* Stop the command interface */
-	pCommando->Stop();
-
-	/* Stop the tracking */
-	pSV_Select->Stop();
-
-	/* Stop spoofing my named pipe yo */
-	if(gopt.post_process)
-		pPost_Process->Stop();
+//
+//	/* Stop the ephemeris */
+//	pEphemeris->Stop();
+//
+//	/* Stop the command interface */
+//	pCommando->Stop();
+//
+//	/* Stop the tracking */
+//	pSV_Select->Stop();
+//
+//	/* Stop spoofing my named pipe yo */
+//	if(gopt.post_process)
+//		pPost_Process->Stop();
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -75,35 +95,30 @@ void Pipes_Shutdown(void)
 
 	int32 lcv;
 
-	/* Acq and track play together */
-	close(Trak_2_Acq_P[READ]);
-	close(Trak_2_Acq_P[WRITE]);
-	close(Acq_2_Trak_P[READ]);
-	close(Acq_2_Trak_P[WRITE]);
-	close(FIFO_2_Telem_P[READ]);
-	close(FIFO_2_Telem_P[WRITE]);
-	close(FIFO_2_PVT_P[READ]);
-	close(FIFO_2_PVT_P[WRITE]);
-	close(Acq_2_Telem_P[READ]);
-	close(Acq_2_Telem_P[WRITE]);
-	close(PVT_2_Telem_P[READ]);
-	close(PVT_2_Telem_P[WRITE]);
-	close(Chan_2_Ephem_P[READ]);
-	close(Chan_2_Ephem_P[WRITE]);
-	close(Telem_2_Cmd_P[READ]);
-	close(Telem_2_Cmd_P[WRITE]);
-	close(Cmd_2_Telem_P[READ]);
-	close(Cmd_2_Telem_P[WRITE]);
-
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-	{
-		close(Trak_2_Corr_P[lcv][READ]);
-		close(Trak_2_Corr_P[lcv][WRITE]);
-		close(Corr_2_PVT_P[lcv][READ]);
-		close(Corr_2_PVT_P[lcv][WRITE]);
-		close(PVT_2_Corr_P[lcv][READ]);
-		close(PVT_2_Corr_P[lcv][WRITE]);
-	}
+	close(SVS_2_ACQ_P[READ]);
+	close(ACQ_2_SVS_P[READ]);
+	close(SVS_2_COR_P[READ]);
+	close(COR_2_PVT_P[READ]);
+	close(CHN_2_EPH_P[READ]);
+	close(PVT_2_TLM_P[READ]);
+	close(EPH_2_TLM_P[READ]);
+	close(SVS_2_TLM_P[READ]);
+	close(PVT_2_SVS_P[READ]);
+	close(TLM_2_CMD_P[READ]);
+	close(CMD_2_TLM_P[READ]);
+	close(COR_2_ACQ_P[READ]);
+	close(SVS_2_ACQ_P[WRITE]);
+	close(ACQ_2_SVS_P[WRITE]);
+	close(SVS_2_COR_P[WRITE]);
+	close(COR_2_PVT_P[WRITE]);
+	close(CHN_2_EPH_P[WRITE]);
+	close(PVT_2_TLM_P[WRITE]);
+	close(EPH_2_TLM_P[WRITE]);
+	close(SVS_2_TLM_P[WRITE]);
+	close(PVT_2_SVS_P[WRITE]);
+	close(TLM_2_CMD_P[WRITE]);
+	close(CMD_2_TLM_P[WRITE]);
+	close(COR_2_ACQ_P[WRITE]);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -115,25 +130,22 @@ void Object_Shutdown(void)
 {
 	int32 lcv;
 
-	pthread_mutex_destroy(&mAcq);
-
-	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-		delete pCorrelators[lcv];
+	delete pCorrelator;
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		delete pChannels[lcv];
 
-	if(gopt.post_process)
-		delete pPost_Process;
+//	if(gopt.post_process)
+//		delete pPost_Process;
 
 	delete pKeyboard;
 	delete pAcquisition;
-	delete pEphemeris;
-	delete pFIFO;
-	delete pSV_Select;
-	delete pTelemetry;
-	delete pPVT;
-	delete pCommando;
+//	delete pEphemeris;
+//	delete pFIFO;
+//	delete pSV_Select;
+//	delete pTelemetry;
+//	delete pPVT;
+//	delete pCommando;
 
 }
 /*----------------------------------------------------------------------------------------------*/

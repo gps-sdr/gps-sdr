@@ -42,8 +42,9 @@ EXTRAS= gps-usrp	\
 TEST =	simd-test	\
 		fft-test	\
 		acq-test
-		
+
 all: $(EXE)
+	@echo ---- Build Complete ----
 
 extras:	guiclean $(EXTRAS)
 

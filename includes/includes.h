@@ -1,30 +1,29 @@
+/*----------------------------------------------------------------------------------------------*/
 /*! \file includes.h
-	Default includes for each source file in the project.
+//
+// FILENAME: includes.h
+//
+// DESCRIPTION: Default includes for all files within the project
+//
+// DEVELOPERS: Gregory W. Heckler (2003-2009)
+//
+// LICENSE TERMS: Copyright (c) Gregory W. Heckler 2009
+//
+// This file is part of the GPS Software Defined Radio (GPS-SDR)
+//
+// The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version. The GPS-SDR is distributed in the hope that
+// it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
+//
+// Note:  Comments within this file follow a syntax that is compatible with
+//        DOXYGEN and are utilized for automated document extraction
+//
+// Reference:
 */
-/************************************************************************************************
-Copyright 2008 Gregory W Heckler
-
-This file is part of the GPS Software Defined Radio (GPS-SDR)
-
-The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
-GNU General Public License as published by the Free Software Foundation; either version 2 of the
-License, or (at your option) any later version.
-
-The GPS-SDR is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with GPS-SDR; if not,
-write to the:
-
-Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-************************************************************************************************/
-
-#ifdef GLOBALS_HERE
-	#define EXTERN /**/
-#else
-	#define EXTERN extern
-#endif
+/*----------------------------------------------------------------------------------------------*/
 
 /* Include standard headers, OS stuff */
 /*----------------------------------------------------------------------------------------------*/
@@ -48,9 +47,10 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include <curses.h>
 #include <limits.h>
 #include <termios.h>
+#include <semaphore.h>
 /*----------------------------------------------------------------------------------------------*/
 
-/*Herein Lies Many Important File, note thy order is important!*/
+/* Herein Lies Many Important File, note thy order is important! */
 /*----------------------------------------------------------------------------------------------*/
 #include "config.h"				//!< Configure receiver
 #include "signaldef.h"			//!< Define attributes of input data
@@ -59,29 +59,26 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "messages.h"			//!< Defines output telemetry
 #include "commands.h"			//!< Defines command input
 #include "structs.h"			//!< Structs used for interprocess communication
+#include "sdr_structs.h"		//!< Structs used for interprocess communication
 #include "protos.h"				//!< Functions & thread prototypes
 #include "simd.h"				//!< Include the SIMD functionality
+#include "globals.h"
 /*----------------------------------------------------------------------------------------------*/
 
 /* Include the "Threaded Objects" */
 /*----------------------------------------------------------------------------------------------*/
 #include "threaded_object.h"	//!< Base class for threaded object
-#include "fft.h"				//!< Fixed point FFT object
-#include "fifo.h"				//!< Circular buffer for Importing IF data
-#include "keyboard.h"			//!< Handle user input via keyboard
-#include "channel.h"			//!< Tracking channels
-#include "correlator.h"			//!< Correlator
-#include "acquisition.h"		//!< Acquisition
-#include "pvt.h"				//!< PVT solution
-#include "ephemeris.h"			//!< Ephemeris decode
-#include "telemetry.h"			//!< Ncurses telemetry
-#include "serial_telemetry.h"	//!< Serial/GUI telemetry
-#include "commando.h"			//!< Command interface
-#include "sv_select.h"			//!< Drives acquisition/reacquisition process
-#include "post_process.h"		//!< Run the receiver from a file
-/*----------------------------------------------------------------------------------------------*/
-
-/* This must go last */
-/*----------------------------------------------------------------------------------------------*/
-#include "globals.h"			//!< Global variables and objects
+//#include "fft.h"				//!< Fixed point FFT object
+//#include "fifo.h"				//!< Circular buffer for Importing IF data
+//#include "keyboard.h"			//!< Handle user input via keyboard
+//#include "channel.h"			//!< Tracking channels
+//#include "correlator.h"			//!< Correlator
+//#include "acquisition.h"		//!< Acquisition
+//#include "pvt.h"				//!< PVT solution
+//#include "ephemeris.h"			//!< Ephemeris decode
+//#include "telemetry.h"			//!< Ncurses telemetry
+//#include "serial_telemetry.h"	//!< Serial/GUI telemetry
+//#include "commando.h"			//!< Command interface
+//#include "sv_select.h"			//!< Drives acquisition/reacquisition process
+//#include "post_process.h"		//!< Run the receiver from a file
 /*----------------------------------------------------------------------------------------------*/
