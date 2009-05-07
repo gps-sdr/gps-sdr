@@ -76,7 +76,7 @@ Acquisition::Acquisition(float _fsample, float _fif):Threaded_Object("ACQTASK")
 
 	/* Acq state */
 	sv = 0;
-	state = ACQ_STRONG;
+	state = ACQ_TYPE_STRONG;
 
 	/* Grab some constants */
 	fif = _fif;
@@ -293,7 +293,7 @@ Acq_Command_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax
 
 	result->sv = _sv;
 
-	result->type = ACQ_STRONG;
+	result->type = ACQ_TYPE_STRONG;
 
 	if(result->magnitude > THRESH_STRONG)
 		result->success = 1;
@@ -428,7 +428,7 @@ Acq_Command_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax
 
 	result->sv = _sv;
 
-	result->type = ACQ_MEDIUM;
+	result->type = ACQ_TYPE_MEDIUM;
 
 	if(result->magnitude > THRESH_MEDIUM)
 		result->success = 1;
@@ -584,7 +584,7 @@ Acq_Command_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 
 	result->sv = _sv;
 
-	result->type = ACQ_WEAK;
+	result->type = ACQ_TYPE_WEAK;
 
 	if(result->magnitude > THRESH_WEAK)
 		result->success = 1;
@@ -609,16 +609,16 @@ void Acquisition::Acquire()
 
 	switch(request.type)
 	{
-		case ACQ_STRONG:
-			doPrepIF(ACQ_STRONG, buff);
+		case ACQ_TYPE_STRONG:
+			doPrepIF(ACQ_TYPE_STRONG, buff);
 			doAcqStrong(request.sv, request.mindopp, request.maxdopp);
 			break;
-		case ACQ_MEDIUM:
-			doPrepIF(ACQ_MEDIUM, buff);
+		case ACQ_TYPE_MEDIUM:
+			doPrepIF(ACQ_TYPE_MEDIUM, buff);
 			doAcqMedium(request.sv, request.mindopp, request.maxdopp);
 			break;
-		case ACQ_WEAK:
-			doPrepIF(ACQ_WEAK, buff);
+		case ACQ_TYPE_WEAK:
+			doPrepIF(ACQ_TYPE_WEAK, buff);
 			doAcqWeak(request.sv, request.mindopp, request.maxdopp);
 			break;
 		default:
@@ -642,7 +642,6 @@ void Acquisition::Import()
 	int32 ms;
 	int32 ms_per_read;
 	int32 lcv;
-	ms_packet *p = NULL;
 	timespec ret;
 
 	ret.tv_sec = 0;
@@ -654,13 +653,13 @@ void Acquisition::Import()
 
 	switch(request.type)
 	{
-		case ACQ_STRONG:
+		case ACQ_TYPE_STRONG:
 			ms_per_read = 1;
 			break;
-		case ACQ_MEDIUM:
+		case ACQ_TYPE_MEDIUM:
 			ms_per_read = 10;
 			break;
-		case ACQ_WEAK:
+		case ACQ_TYPE_WEAK:
 			ms_per_read = 310;
 			break;
 		default:
@@ -677,7 +676,7 @@ void Acquisition::Import()
 		last = packet.count;
 
 		/* Read a packet in */
-		read(COR_2_ACQ_P[READ], p, sizeof(ms_packet));
+		read(COR_2_ACQ_P[READ], &packet, sizeof(ms_packet));
 
 		memcpy(&buff[SAMPS_MS*ms], &packet.data, SAMPS_MS*sizeof(CPX));
 

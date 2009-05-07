@@ -62,7 +62,7 @@
 #include "sdr_structs.h"		//!< Structs used for interprocess communication
 #include "protos.h"				//!< Functions & thread prototypes
 #include "simd.h"				//!< Include the SIMD functionality
-#include "globals.h"
+#include "globals.h"			//!< Global objects live here
 /*----------------------------------------------------------------------------------------------*/
 
 /* Include the "Threaded Objects" */

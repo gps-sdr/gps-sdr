@@ -29,6 +29,7 @@
 #define ACQUISITION_H_
 
 #include "includes.h"
+#include "sv_select.h"
 //#include "channel.h"
 #include "fifo.h"
 #include "fft.h"

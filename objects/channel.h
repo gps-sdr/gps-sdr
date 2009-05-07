@@ -31,6 +31,14 @@
 #include "includes.h"
 #include "fft.h"
 
+enum Channel_State
+{
+	CHANNEL_EMPTY,			//!< Channel inactive
+	CHANNEL_FINE_ACQUIRE,	//!< Channel is in open loop gathering correlations for fine frequency estimate
+	CHANNEL_BIT_LOCK,		//!< Channel is trying to achieve bit lock
+	CHANNEL_NORMAL			//!< Channel is tracking normally (post bit lock)
+};
+
 #define FREQ_LOCK_POINTS (512)
 
 /*! \ingroup CLASSES
@@ -153,6 +161,7 @@ class Channel : public Threaded_Object
 		float getCN0(){return(cn0);};
 		float getNCO(){return(carrier_nco);};
 		int32 getActive(){return(active);};
+		int32 getState(){return(state);};
 		void setActive(int32 _active){active = _active;};
 		int32 getSV(){return(sv);};
 };

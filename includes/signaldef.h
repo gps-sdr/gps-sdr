@@ -29,6 +29,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 
 	#define IF_SAMPLE_FREQUENCY	(2048000)	//!< How many CPX samples in a second
 	#define IF_FREQUENCY		(160000)	//!< IF frequency
+	#define ZERO_DOPPLER_RATE	(IF_FREQUENCY)
 	#define IF_SAMPS_MS 		(2048)		//!< Samples per millisecond
 
 #endif

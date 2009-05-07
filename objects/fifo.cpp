@@ -175,7 +175,6 @@ void FIFO::Import()
 
 	IncStopTic();
 
-	/* Resample? */
 	count++;
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -185,9 +184,6 @@ void FIFO::Import()
 void FIFO::Enqueue()
 {
 
-	int32 lcv;
-	ms_packet *p;
-
 	sem_wait(&sem_empty);
 
 	memcpy(&head->data[0], &if_buff[0], SAMPS_MS*sizeof(CPX));
@@ -196,8 +192,6 @@ void FIFO::Enqueue()
 
 	sem_post(&sem_full);
 
-	Unlock();
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -205,9 +199,6 @@ void FIFO::Enqueue()
 /*----------------------------------------------------------------------------------------------*/
 void FIFO::Dequeue(ms_packet *p)
 {
-
-	if(tail->next != head)
-		tail = tail->next;
 
 	sem_wait(&sem_full);
 

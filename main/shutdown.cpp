@@ -33,12 +33,12 @@
 #include "channel.h"			//!< Tracking channels
 #include "correlator.h"			//!< Correlator
 #include "acquisition.h"		//!< Acquisition
-//#include "pvt.h"				//!< PVT solution
-//#include "ephemeris.h"		//!< Ephemeris decode
+#include "pvt.h"				//!< PVT solution
+#include "ephemeris.h"			//!< Ephemeris decode
 //#include "telemetry.h"		//!< Ncurses telemetry
 //#include "serial_telemetry.h"	//!< Serial/GUI telemetry
 //#include "commando.h"			//!< Command interface
-//#include "sv_select.h"		//!< Drives acquisition/reacquisition process
+#include "sv_select.h"			//!< Drives acquisition/reacquisition process
 //#include "post_process.h"		//!< Run the receiver from a file
 /*----------------------------------------------------------------------------------------------*/
 
@@ -53,33 +53,33 @@ void Thread_Shutdown(void)
 	/* Start the keyboard thread to handle user input from stdio */
 	pKeyboard->Stop();
 
+	/* Stop the FIFO */
+	pFIFO->Stop();
+
 	/* Stop the telemetry */
 //	if(gopt.ncurses)
 //		pTelemetry->Stop();
 //	else
 //		pSerial_Telemetry->Stop();
-//
-	/* Stop the FIFO */
-	pFIFO->Stop();
-//
-//	/* Uh-oh */
-//	pPVT->Stop();
-//
-//	/* Stop the correlator */
+
+	/* Uh-oh */
+	pPVT->Stop();
+
+	/* Stop the correlator */
 	pCorrelator->Stop();
 
 	/* Stop the acquistion */
 	pAcquisition->Stop();
-//
-//	/* Stop the ephemeris */
-//	pEphemeris->Stop();
-//
+
+	/* Stop the ephemeris */
+	pEphemeris->Stop();
+
 //	/* Stop the command interface */
 //	pCommando->Stop();
-//
-//	/* Stop the tracking */
-//	pSV_Select->Stop();
-//
+
+	/* Stop the tracking */
+	pSV_Select->Stop();
+
 //	/* Stop spoofing my named pipe yo */
 //	if(gopt.post_process)
 //		pPost_Process->Stop();
@@ -93,32 +93,35 @@ void Thread_Shutdown(void)
 void Pipes_Shutdown(void)
 {
 
-	int32 lcv;
-
-	close(SVS_2_ACQ_P[READ]);
-	close(ACQ_2_SVS_P[READ]);
 	close(SVS_2_COR_P[READ]);
-	close(COR_2_PVT_P[READ]);
 	close(CHN_2_EPH_P[READ]);
 	close(PVT_2_TLM_P[READ]);
-	close(EPH_2_TLM_P[READ]);
 	close(SVS_2_TLM_P[READ]);
+	close(EKF_2_TLM_P[READ]);
+	close(CMD_2_TLM_P[READ]);
+	close(ACQ_2_SVS_P[READ]);
+	close(EKF_2_SVS_P[READ]);
 	close(PVT_2_SVS_P[READ]);
 	close(TLM_2_CMD_P[READ]);
-	close(CMD_2_TLM_P[READ]);
+	close(SVS_2_ACQ_P[READ]);
 	close(COR_2_ACQ_P[READ]);
-	close(SVS_2_ACQ_P[WRITE]);
-	close(ACQ_2_SVS_P[WRITE]);
+	close(ISRP_2_PVT_P[READ]);
+	close(ISRM_2_PVT_P[READ]);
+
 	close(SVS_2_COR_P[WRITE]);
-	close(COR_2_PVT_P[WRITE]);
 	close(CHN_2_EPH_P[WRITE]);
 	close(PVT_2_TLM_P[WRITE]);
-	close(EPH_2_TLM_P[WRITE]);
 	close(SVS_2_TLM_P[WRITE]);
+	close(EKF_2_TLM_P[WRITE]);
+	close(CMD_2_TLM_P[WRITE]);
+	close(ACQ_2_SVS_P[WRITE]);
+	close(EKF_2_SVS_P[WRITE]);
 	close(PVT_2_SVS_P[WRITE]);
 	close(TLM_2_CMD_P[WRITE]);
-	close(CMD_2_TLM_P[WRITE]);
+	close(SVS_2_ACQ_P[WRITE]);
 	close(COR_2_ACQ_P[WRITE]);
+	close(ISRP_2_PVT_P[WRITE]);
+	close(ISRM_2_PVT_P[WRITE]);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -140,11 +143,11 @@ void Object_Shutdown(void)
 
 	delete pKeyboard;
 	delete pAcquisition;
-//	delete pEphemeris;
+	delete pEphemeris;
 //	delete pFIFO;
-//	delete pSV_Select;
+	delete pSV_Select;
 //	delete pTelemetry;
-//	delete pPVT;
+	delete pPVT;
 //	delete pCommando;
 
 }

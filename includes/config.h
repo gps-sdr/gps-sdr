@@ -30,6 +30,13 @@
 
 #define LINUX_OS
 
+/* Software Version */
+/*----------------------------------------------------------------------------------------------*/
+#define SOFTWARE_VERSION_MAJOR		(2)
+#define SOFTWARE_VERSION_MINOR		(5)
+#define SOFTWARE_VERSION_POSTFIX	(0)
+/*----------------------------------------------------------------------------------------------*/
+
 /* The most important thing, the NUMBER OF CORRELATORS IN THE RECEIVER and the NUMBER OF CPUs */
 /*----------------------------------------------------------------------------------------------*/
 #define MAX_CHANNELS			(12)						//!< Number of channel objects
@@ -65,41 +72,47 @@
 /*----------------------------------------------------------------------------------------------*/
 
 
-/* Acquisition defines */
+/*! Config the SV Select */
 /*----------------------------------------------------------------------------------------------*/
-#define MASK_ANGLE				(5)			//!< Add this many degrees to altitude dependant mask
-#define ACQ_STRONG				(0)			//!< Acq strong type
-#define ACQ_MEDIUM				(1)			//!< Acq medium type
-#define ACQ_WEAK 				(2)			//!< Acq weak type
-
-#define ACQ_STRONG_STATE		(1)			//!< 0 for off, 1 for on, 2 for hot acquisition only
-#define ACQ_MEDIUM_STATE		(2)			//!< 0 for off, 1 for on, 2 for hot acquisition only
-#define ACQ_WEAK_STATE			(2)			//!< 0 for off, 1 for on, 2 for hot acquisition only
-
-#define ACQ_ITERATIONS			(1)			//!< Do this many acqs at a given type before moving to next type
-#define THRESH_STRONG			(1.3e7)		//!< Threshold for strong signal detection
-#define THRESH_MEDIUM			(1.5e7)		//!< Threshold for medium signal detection
-#define THRESH_WEAK				(1.5e7)		//!< Threshold for weak signal detection
-#define MAX_DOPPLER				(45000)		//!< Set the maximum Doppler frequency
-#define DOPPLER_RANGE			(1000)		//!< Search this Doppler range for hot acquisitions
+#define MASK_ANGLE				(0)				//!< Add this many degrees to altitude dependant mask
+#define MAX_ANTENNA				(1)				//!< 6 ADCs on board
+#define ACQ_MODULO_WEAK			(8)				//!< Do this many weak acqs per 32 PRN strong search
+#define MAX_DOPPLER_ABSOLUTE	(100000)		//!< Limit any and all Dopplers the be within this range
+#define MAX_DOPPLER_STRONG		(18000)			//!< Cold Doppler search space for strong signal
+#define MAX_DOPPLER_MEDIUM		(9000)			//!< Cold Doppler search space for strong signal
+#define MAX_DOPPLER_WEAK		(9000)			//!< Cold Doppler search space for weak signal
+#define MAX_DOPPLER_WARM		(1000)			//!< Search this much Doppler space if state information is available
+#define ACQ_OPERATION_STRONG	(ACQ_OPERATION_COLD)		//!< Acq strong mode (2 = cold & warm)
+#define ACQ_OPERATION_MEDIUM	(ACQ_OPERATION_WARM)		//!< Acq strong mode (2 = cold & warm)
+#define ACQ_OPERATION_WEAK		(ACQ_OPERATION_DISABLED)	//!< Acq weak mode (2 = warm only)
+#define THRESH_STRONG			(0)						//!< Thats right zero! 40 dB-Hz and above acquisition threshold
+#define THRESH_MEDIUM			(0)						//!< Thats right zero! 30 dB-Hz and above acquisition threshold
+#define THRESH_WEAK				(0)						//!< 30 dB-Hz and below (down to ~22 dB-Hz <-- LIAR!) acquisition threshold
 /*----------------------------------------------------------------------------------------------*/
 
 
-/* Correlator  Defines */
+/* Correlator Defines */
 /*----------------------------------------------------------------------------------------------*/
 #define CORR_DELAYS				(1)			//!< Number of delays to calculate (plus-minus)
 #define CORR_SPACING			(.5)		//!< How far should the correlators be spaced (chips)
 #define FRAME_SIZE_PLUS_2		(12)		//!< 10 words per frame, 12 = 10 + 2
-#define MEASUREMENT_INT			(100)		//!< Packets of ~1ms data
 #define CODE_BINS				(20)		//!< Partial code offset bins code resolution -> 1 chip/X bins
 #define CARRIER_SPACING			(20)		//!< Spacing of bins (Hz)
-#define CARRIER_BINS			(MAX_DOPPLER/CARRIER_SPACING) //!< Number of pre-sampled carrier wipeoff bins
+#define CARRIER_BINS			(MAX_DOPPLER_ABSOLUTE/CARRIER_SPACING) //!< Number of pre-sampled carrier wipeoff bins
+/*----------------------------------------------------------------------------------------------*/
+
+
+/* Measurement/PVT Defines */
+/*----------------------------------------------------------------------------------------------*/
+#define MEASUREMENT_INT			(100)		//!< Packets of ~1ms data
 #define ICP_TICS				(5)			//!< Number of measurement ints (plus-minus) to calculate ICP,
 											//!< this cannot exceed TICS_PER_SECOND/2 !!!!
+//#define TICS_2_SECONDS			(MEASUREMENT_INT/1000)
+//#define TICS_PER_SECOND			(1000/MEASUREMENT_INT)
 
-#define TICS_2_SECONDS			(MEASUREMENT_INT/1000)
-#define TICS_PER_SECOND			(1000/MEASUREMENT_INT)
-#define	ACQS_PER_SECOND			(20)
+#define MEASUREMENTS_PER_SECOND	(1000/MEASUREMENT_INT)
+#define SECONDS_PER_TICK		(MEASUREMENT_INT/1000)
+#define PVT_ITERATIONS			(10)		//!< Max number of PVT iterations
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -117,22 +130,21 @@
 
 /* Associate each task with a enum */
 /*----------------------------------------------------------------------------------------------*/
-#define	MAX_TASKS				(16)		//!< Max task number (used to allocate arrays)
+#define	MAX_TASKS				(14)			//!< Max task number (used to allocate arrays)
 enum TASK_IDS
 {
-	CORRELATOR_TASK_ID = CPU_CORES,			//!< Bottom tasks are the correlators, which is a variable
-	POST_PROCESS_TASK_ID,
-	FIFO_TASK_ID,
+	TRACKING_ISR_TASK_ID,
+	PVT_TASK_ID,
+	PPS_TASK_ID,
+	GEONS_TASK_ID,
 	COMMANDO_TASK_ID,
-	TELEMETRY_TASK_ID,
-	SERIAL_TELEMETRY_TASK_ID,
-	KEYBOARD_TASK_ID,
+	ACQUISITION_TASK_ID,
 	EPHEMERIS_TASK_ID,
 	SV_SELECT_TASK_ID,
-	ACQUISITION_TASK_ID,
-	PVT_TASK_ID,
+	TELEMETRY_TASK_ID,
 	EKF_TASK_ID,
-	LAST_TASK_ID
+	PATIENCE_TASK_ID,
+	IDLE_TASK_ID
 };
 /*----------------------------------------------------------------------------------------------*/
 

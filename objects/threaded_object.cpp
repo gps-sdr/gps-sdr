@@ -28,7 +28,7 @@
 #include "threaded_object.h"
 
 /*----------------------------------------------------------------------------------------------*/
-Threaded_Object::Threaded_Object(char _task_name[8])
+Threaded_Object::Threaded_Object(const char _task_name[8])
 {
 	int32 lcv;
 
@@ -221,6 +221,7 @@ void *Threaded_Object::getObjectMem()
 void Threaded_Object::IncExecTic()
 {
 	execution_tic++;
+//	printf("%s: %d\n",task_name,execution_tic);
 }
 /*----------------------------------------------------------------------------------------------*/
 

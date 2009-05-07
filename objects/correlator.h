@@ -29,6 +29,7 @@
 #define CORRELATOR_H_
 
 #include "includes.h"
+#include "sv_select.h"
 #include "channel.h"
 #include "fifo.h"
 
@@ -46,12 +47,14 @@ class Correlator : public Threaded_Object
 		Correlation_S  		correlations[MAX_CHANNELS];			//!< Resulting correlation
 		Correlator_State_S	states[MAX_CHANNELS];				//!< Correlator states
 		Measurement_M		measurements[MAX_CHANNELS];			//!< Measurements to dump
-		Measurement_M		meas_buff[MAX_CHANNELS][TICS_PER_SECOND];	//!< Measurements to dump
+		Measurement_M		measurements_buff[MAX_CHANNELS][MEASUREMENTS_PER_SECOND];	//!< Measurements to dump
+		Preamble_2_PVT_S	preamble;
 
 		/* These variables are shared among all the channels */
 		Acq_Command_S 		result; 							//!< An acquisition result has been returned!
 		ms_packet			packet;								//!< 1ms of data
 		int32				packet_count;						//!< Count 1ms packets
+		int32				measurement_tic;					//!< Measurement tic
 		CPX 				*main_sine_table;					//!< Hold the sine wipeoff table
 		CPX 				**main_sine_rows;					//!< Row pointers to above
 		MIX 		 		*main_code_table;					//!< Hold the PRN lookup table for all 32 SVs [2*CODE_BINS+1][2*SAMPS_MS];
@@ -75,9 +78,9 @@ class Correlator : public Threaded_Object
 		void UpdateState(Correlator_State_S *s, int32 samps);								//!< Update correlator state
 		void ProcessFeedback(Correlator_State_S *s, NCO_Command_S *f);						//!< Process the feedback
 		void DumpAccum(Correlator_State_S *s, Correlation_S *c, NCO_Command_S *f);			//!< Dump accumulation to channel for processing
-		void TakeMeasurement(Correlator_State_S *s, Measurement_M *m, Measurement_M *mb);	//!< Take some measurements
-		void Accum(Correlator_State_S *s, Correlation_S *c, CPX *data, int32 samps);	//!< Do the actual accumulation
-		void SineGen(int32 samps);								//!< Dynamic wipeoff generation
+		void TakeMeasurements();																//!< Take some measurements
+		void Accum(Correlator_State_S *s, Correlation_S *c, CPX *data, int32 samps);		//!< Do the actual accumulation
+		void SineGen(int32 samps);															//!< Dynamic wipeoff generation
 };
 
 #endif /* CORRELATOR_H_ */

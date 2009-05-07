@@ -139,13 +139,13 @@ void Correlator::Import()
 
 		switch(result.type)
 		{
-			case ACQ_STRONG:
+			case ACQ_TYPE_STRONG:
 				aChannel[chan]->Start(result.sv, result, 1);
 				break;
-			case ACQ_MEDIUM:
+			case ACQ_TYPE_MEDIUM:
 				aChannel[chan]->Start(result.sv, result, 10);
 				break;
-			case ACQ_WEAK:
+			case ACQ_TYPE_WEAK:
 				aChannel[chan]->Start(result.sv, result, 10);
 				break;
 		}
@@ -161,9 +161,6 @@ void Correlator::Import()
 
 	packet_count++;
 
-	if((packet_count % 1000) == 0)
-		printf("Packets %d\n",packet_count);
-
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -171,18 +168,18 @@ void Correlator::Import()
 /*----------------------------------------------------------------------------------------------*/
 void Correlator::Correlate()
 {
-	int32 lcv, leftover, rollover;
+	int32 lcv, leftover;
+	CPX *if_data;
+	NCO_Command_S *f;
 	Correlation_S *c;
 	Correlator_State_S *s;
-	NCO_Command_S *f;
-	Measurement_M *m;
-	Measurement_M *mb;
-	CPX *if_data;
 
 	IncStartTic();
 
-	//	if(packet.measurement)
-	//		TakeMeasurement();
+	if((packet_count % MEASUREMENT_INT) == 0)
+	{
+		TakeMeasurements();
+	}
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -265,50 +262,78 @@ void Correlator::Correlate()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void Correlator::TakeMeasurement(Correlator_State_S *s, Measurement_M *m, Measurement_M *mb)
+void Correlator::TakeMeasurements()
 {
 
 	int32 lcv, tic;
 	int32 n_dp, n_p, n_c;
+	Correlator_State_S *s;
 	Measurement_M *pmeas;
+	Measurement_M *m;
+	Measurement_M *mb;
 
-	tic = packet.measurement;
+	measurement_tic++;
+	tic = measurement_tic;
 
-	/* Step 1, copy in measurement from ICP_TICS ago */
-	memcpy(m, &mb[(tic - ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND], sizeof(Measurement_M));
+	printf("Packet count: %d\n",packet_count);
 
-	/* Get carrier phase prev from 2*ICP_TICKS ago */
-	m->carrier_phase_prev = mb[(tic - 2*ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND].carrier_phase;
+	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+	{
 
-	/* Get current carrier phase */
-	m->carrier_phase = s->carrier_phase;
+		s = &states[lcv];
+		m = &measurements[lcv];
+		mb = measurements_buff[lcv];
 
-	/* Store rest of measurement in buffer to do the delay */
-	pmeas = &mb[tic % (TICS_PER_SECOND)];
-	//pmeas->chan				 = chan;
-//	pmeas->code_phase 		 = s->code_phase;
-//	pmeas->code_phase_mod 	 = s->code_phase_mod;
-//	pmeas->carrier_phase 	 = s->carrier_phase;
-//	pmeas->carrier_phase_mod = s->carrier_phase_mod;
-//	pmeas->code_nco 		 = s->code_nco;
-//	pmeas->carrier_nco 		 = s->carrier_nco;
-//	pmeas->_1ms_epoch 		 = s->_1ms_epoch;
-//	pmeas->_20ms_epoch 		 = s->_20ms_epoch;
-//	pmeas->_z_count 		 = s->_z_count;
-//	pmeas->sv				 = s->sv;
-//	pmeas->count			 = packet.count;
-//	pmeas->navigate			 = s->navigate;
+		if(s->navigate)
+		{
+			/* Step 1, copy in measurement from ICP_TICS ago */
+			memcpy(m, &mb[(tic - ICP_TICS + MEASUREMENTS_PER_SECOND) % MEASUREMENTS_PER_SECOND], sizeof(Measurement_M));
 
-	n_dp = mb[(tic - 2*ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND].navigate;
-	n_p = mb[(tic - ICP_TICS + TICS_PER_SECOND) % TICS_PER_SECOND].navigate;
-	n_c = mb[tic % TICS_PER_SECOND].navigate;
+			/* Step 2, Get carrier phase prev from 2*ICP_TICKS ago */
+			m->frac_carrier_phase_prev = mb[(tic - 2*ICP_TICS + MEASUREMENTS_PER_SECOND) % MEASUREMENTS_PER_SECOND].frac_carrier_phase;
+			m->carrier_phase_prev = mb[(tic - 2*ICP_TICS + MEASUREMENTS_PER_SECOND) % MEASUREMENTS_PER_SECOND].carrier_phase;
 
-	/* Mark navigate only if all 3 are navigate */
-	m->navigate = n_dp && n_p && n_c;
+			/* Step 3, store rest of measurement in buffer to do the delay */
+			pmeas = &mb[tic % (MEASUREMENTS_PER_SECOND)];
+			pmeas->chan				  = lcv;
+			pmeas->tic				  = tic;
+			pmeas->sv				  = s->sv;
+			pmeas->power			  = 0;
+			pmeas->antenna			  = 0;
+			pmeas->subframe_sec		  = s->_z_count;
+			pmeas->_1ms_epoch         = s->_1ms_epoch;
+			pmeas->_20ms_epoch        = s->_20ms_epoch;
 
-	/* Write over measurement */
-	//write(Corr_2_PVT_P[chan][WRITE], m, sizeof(Measurement_M));
+			/* All these values need scaled!!! */
+			pmeas->code_rate          = s->code_nco;
+			pmeas->code_phase         = s->code_phase;
+			pmeas->frac_code_phase    = s->code_phase_mod;
+			pmeas->carrier_rate		  = s->carrier_nco;
+			pmeas->frac_carrier_phase = s->carrier_phase_mod;
+			pmeas->carrier_phase      = s->carrier_phase;
 
+			/* Step 4, Get current carrier phase to finish ICP measurement */
+			m->carrier_phase          = pmeas->carrier_phase;
+			m->frac_carrier_phase     = pmeas->frac_carrier_phase;
+
+			n_dp = mb[(tic - 2*ICP_TICS + MEASUREMENTS_PER_SECOND) % MEASUREMENTS_PER_SECOND].navigate;
+			n_p = mb[(tic - ICP_TICS + MEASUREMENTS_PER_SECOND) % MEASUREMENTS_PER_SECOND].navigate;
+			n_c = mb[tic % MEASUREMENTS_PER_SECOND].navigate;
+
+			/* Mark navigate only if all 3 are navigate */
+			m->navigate = n_dp && n_p && n_c;
+		}
+		else
+		{
+			pmeas->navigate = false;
+			m->navigate = false;
+		}
+
+	}
+
+	/* Write the preamble, then the measurements */
+	write(ISRP_2_PVT_P[WRITE], &preamble, sizeof(Preamble_2_PVT_S));
+	write(ISRM_2_PVT_P[WRITE], &measurements, MAX_CHANNELS*sizeof(Measurement_M));
 }
 /*----------------------------------------------------------------------------------------------*/
 

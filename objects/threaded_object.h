@@ -69,7 +69,7 @@ class Threaded_Object
 	public:
 
 		/* Default object methods */
-		Threaded_Object(char _task_name[8]);//!< Constructor
+		Threaded_Object(const char _task_name[8]);//!< Constructor
 		~Threaded_Object();		//!< Destructor
 
 		void Lock();			//!< Lock the object's mutex

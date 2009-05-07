@@ -38,40 +38,42 @@
 /*----------------------------------------------------------------------------------------------*/
 EXTERN class Keyboard		*pKeyboard;						//!< Handle user input
 EXTERN class FIFO			*pFIFO;							//!< Get data and pass it into the receiver
-//EXTERN class PVT			*pPVT;							//!< Do the PVT solution
-//EXTERN class Ephemeris		*pEphemeris;					//!< Extract the ephemeris
+EXTERN class PVT			*pPVT;							//!< Do the PVT solution
+EXTERN class Ephemeris		*pEphemeris;					//!< Extract the ephemeris
 EXTERN class Acquisition	*pAcquisition;					//!< Perform acquisitions
 EXTERN class Correlator		*pCorrelator;					//!< Correlator
 EXTERN class Channel		*pChannels[MAX_CHANNELS];		//!< Channels (uses correlations to close the loops)
-//EXTERN class SV_Select		*pSV_Select;					//!< Contains the channels and drives the channel objects
-//EXTERN class Telemetry		*pTelemetry;					//!< Simple ncurses interface
+EXTERN class SV_Select		*pSV_Select;					//!< Contains the channels and drives the channel objects
+EXTERN class Telemetry		*pTelemetry;					//!< Simple ncurses interface
 //EXTERN class Post_Process	*pPost_Process;					//!< Drive the receiver from a recorded file
 //EXTERN class Serial_Telemetry *pSerial_Telemetry;			//!< Dump data to GUI over named pipe or serial
 //EXTERN class Commando		*pCommando;						//!< Process and execute commands
 /*----------------------------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------------------------*/
-EXTERN int32 grun;											//!< Keep all the threads active (technically, this should be mutex protected, but eh, who cares? )
-EXTERN Options_S gopt;										//!< Global receiver options
-EXTERN struct timeval starttime;							//!< Get receiver start time
+EXTERN int32 grun;									//!< Keep all the threads active (technically, this should be mutex protected, but eh, who cares? )
+EXTERN Options_S gopt;								//!< Global receiver options
+EXTERN struct timeval starttime;					//!< Get receiver start time
 /*----------------------------------------------------------------------------------------------*/
 
 
 /* Part 3, Pipes */
 /*----------------------------------------------------------------------------------------------*/
 /* Interplay between acquisition and tracking */
-EXTERN int32 SVS_2_ACQ_P[2];						//!< \ingroup PIPES Request an acquisition because some of the channels are empty
+EXTERN int32 SVS_2_COR_P[2];						//!< \ingroup PIPES Send an acquisition result to the correlator to start a channel
+EXTERN int32 CHN_2_EPH_P[2];						//!< \ingroup PIPES Output raw subframes to Ephemeris
+EXTERN int32 PVT_2_TLM_P[2];						//!< \ingroup PIPES Output PVT state to Telemetry
+EXTERN int32 SVS_2_TLM_P[2];						//!< \ingroup PIPES Output predicted SV states to Telemetry
+EXTERN int32 EKF_2_TLM_P[2];						//!< \ingroup PIPES Output EKF state to Telemetry
+EXTERN int32 CMD_2_TLM_P[2];						//!< \ingroup PIPES Output results of commands to Telemetry
 EXTERN int32 ACQ_2_SVS_P[2];						//!< \ingroup PIPES Request an acquisition because some of the channels are empty
-EXTERN int32 SVS_2_COR_P[2];						//!< \ingroup PIPES Get an acquisition result
-EXTERN int32 COR_2_PVT_P[2];						//!< \ingroup PIPES Output measurements to PVT
-EXTERN int32 CHN_2_EPH_P[2];						//!< \ingroup PIPES Dump raw subframes to Ephemeris
-EXTERN int32 PVT_2_TLM_P[2];						//!< \ingroup PIPES Send latest nav solution to GUI
-EXTERN int32 EPH_2_TLM_P[2];						//!< \ingroup PIPES Send latest ephemeris to GUI
-EXTERN int32 SVS_2_TLM_P[2];						//!< \ingroup PIPES Send predicted SV states to GUI
-EXTERN int32 PVT_2_SVS_P[2];						//!< \ingroup PIPES Output nav state to sat select
-EXTERN int32 TLM_2_CMD_P[2];						//!< \ingroup PIPES Send received commands to Commando
-EXTERN int32 CMD_2_TLM_P[2];						//!< \ingroup PIPES Send results of commands to Telemetry
-EXTERN int32 COR_2_ACQ_P[2];						//!< \ingroup PIPES Send packets of IF data to the Acquisition
+EXTERN int32 EKF_2_SVS_P[2];						//!< \ingroup PIPES Output EKF state to SV Select
+EXTERN int32 PVT_2_SVS_P[2];						//!< \ingroup PIPES Output PVT state to SV Select
+EXTERN int32 TLM_2_CMD_P[2];						//!< \ingroup PIPES Output received commands to Commando
+EXTERN int32 SVS_2_ACQ_P[2];						//!< \ingroup PIPES Request an acquisition because some of the channels are empty
+EXTERN int32 COR_2_ACQ_P[2];						//!< \ingroup PIPES Output packets of IF data to the Acquisition
+EXTERN int32 ISRP_2_PVT_P[2];						//!< \ingroup PIPES Output measurement preamble to PVT
+EXTERN int32 ISRM_2_PVT_P[2];						//!< \ingroup PIPES Output measurements to PVT
 /*----------------------------------------------------------------------------------------------*/
 
 

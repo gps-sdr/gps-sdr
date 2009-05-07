@@ -34,12 +34,11 @@
 #include "channel.h"			//!< Tracking channels
 #include "correlator.h"			//!< Correlator
 #include "acquisition.h"		//!< Acquisition
-//#include "pvt.h"				//!< PVT solution
-//#include "ephemeris.h"			//!< Ephemeris decode
-//#include "telemetry.h"			//!< Ncurses telemetry
-//#include "serial_telemetry.h"	//!< Serial/GUI telemetry
+#include "pvt.h"				//!< PVT solution
+#include "ephemeris.h"			//!< Ephemeris decode
+#include "telemetry.h"			//!< Serial/GUI telemetry
 //#include "commando.h"			//!< Command interface
-//#include "sv_select.h"			//!< Drives acquisition/reacquisition process
+#include "sv_select.h"			//!< Drives acquisition/reacquisition process
 //#include "post_process.h"		//!< Run the receiver from a file
 /*----------------------------------------------------------------------------------------------*/
 
@@ -147,8 +146,8 @@ void Parse_Arguments(int32 argc, char* argv[])
 	gopt.ncurses 		= 1;
 	gopt.gui			= 0;
 	gopt.serial			= 0;
-	gopt.doppler_min 	= -MAX_DOPPLER;
-	gopt.doppler_max 	= MAX_DOPPLER;
+	gopt.doppler_min 	= -MAX_DOPPLER_STRONG;
+	gopt.doppler_max 	= MAX_DOPPLER_STRONG;
 	gopt.corr_sleep 	= 500;
 	gopt.startup		= 0;
 	gopt.usrp_internal	= 0;
@@ -321,27 +320,25 @@ int32 Object_Init(void)
 	/* Now do the hard work? */
 	pAcquisition = new Acquisition(IF_SAMPLE_FREQUENCY, IF_FREQUENCY);
 
-//	pEphemeris = new Ephemeris;
-//
+	/* Decode the almanac and ephemerides */
+	pEphemeris = new Ephemeris;
+
 	/* Get data from either the USRP or disk */
 	pFIFO = new FIFO;
 
-//	pSV_Select = new SV_Select;
+	pSV_Select = new SV_Select;
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		pChannels[lcv] = new Channel(lcv);
 
-	pCorrelator =  new Correlator();
+	pCorrelator = new Correlator();
 
-//	if(gopt.ncurses)
-//		pTelemetry = new Telemetry();
-//	else
-//		pSerial_Telemetry = new Serial_Telemetry(gopt.serial);
-//
+	pTelemetry = new Telemetry();
+
 //	pCommando = new Commando();
-//
-//	pPVT = new PVT(gopt.startup);
-//
+
+	pPVT = new PVT();
+
 //	if(gopt.post_process)
 //		pPost_Process = new Post_Process(gopt.filename_direct);
 //
@@ -361,27 +358,41 @@ int32 Object_Init(void)
 /*----------------------------------------------------------------------------------------------*/
 
 
+
+
 /*! Initialize all pipes */
 /*----------------------------------------------------------------------------------------------*/
 int32 Pipes_Init(void)
 {
 	int32 lcv;
 
-	pipe((int *)SVS_2_ACQ_P);
-	pipe((int *)ACQ_2_SVS_P);
+	/* Create all of the pipes */
 	pipe((int *)SVS_2_COR_P);
-	pipe((int *)COR_2_PVT_P);
 	pipe((int *)CHN_2_EPH_P);
 	pipe((int *)PVT_2_TLM_P);
-	pipe((int *)EPH_2_TLM_P);
 	pipe((int *)SVS_2_TLM_P);
+	pipe((int *)EKF_2_TLM_P);
+	pipe((int *)CMD_2_TLM_P);
+	pipe((int *)ACQ_2_SVS_P);
+	pipe((int *)EKF_2_SVS_P);
 	pipe((int *)PVT_2_SVS_P);
 	pipe((int *)TLM_2_CMD_P);
-	pipe((int *)CMD_2_TLM_P);
+	pipe((int *)SVS_2_ACQ_P);
 	pipe((int *)COR_2_ACQ_P);
+	pipe((int *)ISRP_2_PVT_P);
+	pipe((int *)ISRM_2_PVT_P);
 
+	/* Setup some of the non-blocking pipes */
 	fcntl(COR_2_ACQ_P[WRITE], F_SETFL, O_NONBLOCK);
-	fcntl(SVS_2_COR_P[READ], F_SETFL, O_NONBLOCK);
+	fcntl(EKF_2_SVS_P[WRITE], F_SETFL, O_NONBLOCK);
+	fcntl(SVS_2_TLM_P[WRITE], F_SETFL, O_NONBLOCK);
+	fcntl(PVT_2_SVS_P[WRITE], F_SETFL, O_NONBLOCK);
+	fcntl(EKF_2_SVS_P[READ],  F_SETFL, O_NONBLOCK);
+	fcntl(SVS_2_COR_P[READ],  F_SETFL, O_NONBLOCK);
+	fcntl(SVS_2_TLM_P[READ],  F_SETFL, O_NONBLOCK);
+	fcntl(PVT_2_TLM_P[READ],  F_SETFL, O_NONBLOCK);
+	fcntl(SVS_2_TLM_P[READ],  F_SETFL, O_NONBLOCK);
+	fcntl(EKF_2_TLM_P[READ],  F_SETFL, O_NONBLOCK);
 
 	if(gopt.verbose)
 	{
@@ -407,42 +418,33 @@ int32 Thread_Init(void)
 	/* Start the keyboard thread to handle user input from stdio */
 	pKeyboard->Start();
 
-//	/* Startup the PVT sltn */
-//	pPVT->Start();
-//
-	/* Start up the FIFO */
-	pFIFO->Start();
-//
+	/* Startup the PVT sltn */
+	pPVT->Start();
+
 //	/* Start up the correlators */
 	pCorrelator->Start();
 
 	/* Start up the acquistion */
 	pAcquisition->Start();
 
-//	/* Start up the ephemeris */
-//	pEphemeris->Start();
-//
-//	/* Start up the command interface */
+	/* Start up the ephemeris */
+	pEphemeris->Start();
+
+	/* Start up the command interface */
 //	pCommando->Start();
-//
-//	/* Start the SV select thread */
-//	pSV_Select->Start();
-//
-//	//if(gopt.verbose)
-//	{
-//		printf("Cleared Thread Init\n");
-//		fflush(stdout);
-//	}
-//
-//	/* Last thing to do */
-//	if(gopt.ncurses)
-//		pTelemetry->Start();
-//	else
-//		pSerial_Telemetry->Start();
-//
+
+	/* Start the SV select thread */
+	pSV_Select->Start();
+
+	/* Last thing to do */
+	pTelemetry->Start();
+
 //	/* Do the post process */
 //	if(gopt.post_process)
 //		pPost_Process->Start();
+
+	/* Start up the FIFO */
+	pFIFO->Start();
 
 	return(1);
 
