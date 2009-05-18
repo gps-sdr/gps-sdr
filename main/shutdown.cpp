@@ -35,8 +35,7 @@
 #include "acquisition.h"		//!< Acquisition
 #include "pvt.h"				//!< PVT solution
 #include "ephemeris.h"			//!< Ephemeris decode
-//#include "telemetry.h"		//!< Ncurses telemetry
-//#include "serial_telemetry.h"	//!< Serial/GUI telemetry
+#include "telemetry.h"			//!< Telemetry
 //#include "commando.h"			//!< Command interface
 #include "sv_select.h"			//!< Drives acquisition/reacquisition process
 //#include "post_process.h"		//!< Run the receiver from a file
@@ -57,10 +56,7 @@ void Thread_Shutdown(void)
 	pFIFO->Stop();
 
 	/* Stop the telemetry */
-//	if(gopt.ncurses)
-//		pTelemetry->Stop();
-//	else
-//		pSerial_Telemetry->Stop();
+	pTelemetry->Stop();
 
 	/* Uh-oh */
 	pPVT->Stop();
@@ -146,7 +142,7 @@ void Object_Shutdown(void)
 	delete pEphemeris;
 //	delete pFIFO;
 	delete pSV_Select;
-//	delete pTelemetry;
+	delete pTelemetry;
 	delete pPVT;
 //	delete pCommando;
 

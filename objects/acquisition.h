@@ -30,7 +30,6 @@
 
 #include "includes.h"
 #include "sv_select.h"
-//#include "channel.h"
 #include "fifo.h"
 #include "fft.h"
 
@@ -73,10 +72,6 @@ class Acquisition : public Threaded_Object
 		int32 sv;								//!< Search for this SV
 		int32 state;							//!< Search using this state (STRONG, MEDIUM, or WEAK)
 		int32 corr;								//!< This correlator requested an acquisition
-
-		int32 ncross;							//!< Cross corr blocking
-		int32 cross_doppler[MAX_CHANNELS];		//!< Cross corr blocking
-
 		Acq_Command_S request;					//!< Acquisition transaction
 		Acq_Command_S results[MAX_SV];			//!< Where to store the results
 

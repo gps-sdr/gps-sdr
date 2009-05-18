@@ -48,6 +48,7 @@ class Channel : public Threaded_Object
 {
 
 	friend class SV_Select;
+	friend class Telemetry;
 
 	private:
 
@@ -59,8 +60,8 @@ class Channel : public Threaded_Object
 		int32 active;			//!< is this channel active
 		int32 chan;				//!< channel number
 		int32 sv;				//!< current SV
-		int32 state;
-		int32 antenna;
+		int32 state;			//!< state
+		int32 antenna;			//!< antenna
 		Channel_M packet;
 		Channel_2_Ephemeris_S ephem_packet; //!< dump to ephemeris
 		/*----------------------------------------------------------------------------------------------*/

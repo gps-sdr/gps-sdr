@@ -34,6 +34,7 @@
 #include "telemetry.h"			//!< Handle the 422 telemetry
 //#include "patience.h"			//!< Service the watchdog timer
 //#include "commando.h"			//!< Actually services the commands
+#include "correlator.h"
 #include "acquisition.h"		//!< Interact with and direct acquisition engine
 #include "ephemeris.h"			//!< Decode almanac/ephemeris/utc
 #include "sv_select.h"			//!< Maintain state of GPS constellation using almanac data
@@ -55,7 +56,6 @@ class Telemetry : public Threaded_Object
 		uint32 export_messages;						//!< New data from PVT is here, now transmit
 		uint32 export_ekf;							//!< New data from the EKF is here, now transmit
 		uint32 export_tic;							//!< Count number of exports
-		uint32 last_idle_tic;						//!< Keep track of the idle task
 		uint32 last_start_tic;						//!< Special variable to allow the telemetry to time itself
 		uint32 last_stop_tic;						//!< Special variable to allow the telemetry to time itself
 		uint32 missed_interrupts;					//!< Keep track of missed interrupts
@@ -63,6 +63,7 @@ class Telemetry : public Threaded_Object
 		uint32 msg_rates[LAST_M_ID+1];				//!< Control output of periodic messages, 0 == off, !0 == decimation rate
 		void (Telemetry::*msg_handlers[LAST_M_ID+1])(void);	//!< Function pointers for periodic message handlers
 
+		int32 fifo[2];
 		int32 npipe[2];								//!< Named pipe and/or serial interface
 		int32 npipe_open;							//!< Is the named pipe open!?
 
@@ -100,6 +101,7 @@ class Telemetry : public Threaded_Object
 		~Telemetry();
 		void OpenPipe();
 		void OpenSerial();
+		void ClosePipe();
 		void Start();								//!< Start the thread
 		void Import();								//!< Get data into the thread
 		void Export();								//!< Get data out of the thread

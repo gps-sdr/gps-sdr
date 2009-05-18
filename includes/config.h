@@ -83,7 +83,7 @@
 #define MAX_DOPPLER_WEAK		(9000)			//!< Cold Doppler search space for weak signal
 #define MAX_DOPPLER_WARM		(1000)			//!< Search this much Doppler space if state information is available
 #define ACQ_OPERATION_STRONG	(ACQ_OPERATION_COLD)		//!< Acq strong mode (2 = cold & warm)
-#define ACQ_OPERATION_MEDIUM	(ACQ_OPERATION_WARM)		//!< Acq strong mode (2 = cold & warm)
+#define ACQ_OPERATION_MEDIUM	(ACQ_OPERATION_DISABLED)	//!< Acq strong mode (2 = cold & warm)
 #define ACQ_OPERATION_WEAK		(ACQ_OPERATION_DISABLED)	//!< Acq weak mode (2 = warm only)
 #define THRESH_STRONG			(0)						//!< Thats right zero! 40 dB-Hz and above acquisition threshold
 #define THRESH_MEDIUM			(0)						//!< Thats right zero! 30 dB-Hz and above acquisition threshold
@@ -136,7 +136,6 @@ enum TASK_IDS
 	TRACKING_ISR_TASK_ID,
 	PVT_TASK_ID,
 	PPS_TASK_ID,
-	GEONS_TASK_ID,
 	COMMANDO_TASK_ID,
 	ACQUISITION_TASK_ID,
 	EPHEMERIS_TASK_ID,
@@ -148,5 +147,9 @@ enum TASK_IDS
 };
 /*----------------------------------------------------------------------------------------------*/
 
+/* Account for GPS rollover here */
+/*----------------------------------------------------------------------------------------------*/
+#define CURRENT_GPS_WEEK_ROLLOVER	(1)			//!< The number of GPS week rollovers
+/*----------------------------------------------------------------------------------------------*/
 
 #endif

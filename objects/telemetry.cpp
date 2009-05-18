@@ -28,6 +28,14 @@
 #include "telemetry.h"
 
 /*----------------------------------------------------------------------------------------------*/
+void lost_gui_pipe(int _sig)
+{
+	pTelemetry->ClosePipe();
+	printf("GUI disconnected\n");
+}
+/*----------------------------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------------------------*/
 void *Telemetry_Thread(void *_arg)
 {
 
@@ -45,7 +53,6 @@ void *Telemetry_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::Start()
 {
-	/* With new priority specified */
 	Start_Thread(Telemetry_Thread, NULL);
 
 	if(gopt.verbose)
@@ -65,6 +72,18 @@ Telemetry::Telemetry():Threaded_Object("TLMTASK")
 	npipe[READ] = npipe[WRITE] = 0;
 	pheader = (uint8 *)&command_header;
 	pcommand = (uint8 *)&command_body;
+
+	signal(SIGPIPE, lost_gui_pipe);
+
+	remove("/tmp/GPS2GUI");
+	fifo[WRITE] = mkfifo("/tmp/GPS2GUI", S_IRWXG | S_IRWXU | S_IRWXO);
+	if(fifo[WRITE] == -1)
+		printf("Error creating the named pipe");
+
+	remove("/tmp/GUI2GPS");
+	fifo[READ] = mkfifo("/tmp/GUI2GPS", S_IRWXG | S_IRWXU | S_IRWXO);
+	if(fifo[READ] == -1)
+		printf("Error creating the named pipe");
 
 	/* Build the function pointer array */
 	msg_handlers[FIRST_M_ID] 				= NULL;
@@ -126,6 +145,8 @@ Telemetry::Telemetry():Threaded_Object("TLMTASK")
 	msg_rates[MEMORY_CHKSUM_M_ID] 		= 0;
 	msg_rates[LAST_M_ID] 				= 0;
 
+	if(gopt.verbose)
+		printf("Creating Telemetry\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -136,6 +157,8 @@ Telemetry::~Telemetry()
 
 	close(npipe[READ]);
 	close(npipe[WRITE]);
+	remove("/tmp/GPS2GUI");
+	remove("/tmp/GUI2GPS");
 
 	if(gopt.verbose)
 		printf("Destructing Telemetry\n");
@@ -182,26 +205,17 @@ void Telemetry::OpenSerial()
 /*----------------------------------------------------------------------------------------------*/
 void Telemetry::OpenPipe()
 {
-	int32 fifo[2];
 
 	npipe[READ] = npipe[WRITE] = -1;
-
-	/* Everything set, now create a disk thread & pipe, and do some recording! */
-	fifo[WRITE] = mkfifo("/tmp/GPS2GUI", S_IRWXG | S_IRWXU | S_IRWXO);
-	if ((fifo[WRITE] == -1) && (errno != EEXIST))
-		printf("Error creating the named pipe");
-
-	/* Everything set, now create a disk thread & pipe, and do some recording! */
-	fifo[READ] = mkfifo("/tmp/GUI2GPS", S_IRWXG | S_IRWXU | S_IRWXO);
-	if ((fifo[READ] == -1) && (errno != EEXIST))
-		printf("Error creating the named pipe");
-
 	npipe[READ] = open("/tmp/GUI2GPS", O_RDONLY | O_NONBLOCK);
 	npipe[WRITE] = open("/tmp/GPS2GUI", O_WRONLY | O_NONBLOCK);
 
 	if((npipe[READ] != -1) && (npipe[WRITE] != -1))
 	{
+		fcntl(npipe[READ] , F_SETFL, O_NONBLOCK);
+		fcntl(npipe[WRITE] , F_SETFL, O_NONBLOCK);
 		npipe_open = true;
+		printf("GUI connected\n");
 	}
 	else
 	{
@@ -216,11 +230,20 @@ void Telemetry::OpenPipe()
 
 
 /*----------------------------------------------------------------------------------------------*/
+void Telemetry::ClosePipe()
+{
+	npipe_open = false;
+	close(npipe[READ]);
+	close(npipe[WRITE]);
+	npipe[READ] = NULL;
+	npipe[WRITE] = NULL;
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void Telemetry::Import()
 {
-
-	if(npipe_open == false)
-		OpenPipe();
 
 	/* Wait for data from the PVT */
 	ImportPVT();
@@ -231,8 +254,8 @@ void Telemetry::Import()
 	/* Get data from serial port */
 	ImportSerial();
 
-	/* Bent pipe anything from Commando */
-	ImportCommando();
+//	/* Bent pipe anything from Commando */
+//	ImportCommando();
 
 	/* Increment execution counter */
 	IncExecTic();
@@ -247,12 +270,14 @@ void Telemetry::ImportPVT()
 
 	uint32 bread, sv;
 
-//	read(PPS_2_TLM_P[READ], &pps_s, sizeof(PPS_2_TLM_S));
-
 	bread = read(PVT_2_TLM_P[READ], &pvt_s, sizeof(PVT_2_TLM_S));
 
 	if(bread == sizeof(PVT_2_TLM_S))
+	{
 		export_messages = true;
+		if(npipe_open == false)
+			OpenPipe();
+	}
 
 	bread = read(SVS_2_TLM_P[READ], &svs_s, sizeof(SVS_2_TLM_S));
 	if(bread == sizeof(SVS_2_TLM_S))
@@ -288,50 +313,53 @@ void Telemetry::ImportSerial()
 	int32 bread;
 	uint8 abyte;
 
-	bread = read(npipe[READ], &abyte, sizeof(uint8));
-	while(bread > 0)
+	if(npipe_open)
 	{
-		bytes_read++;
-
-		switch(syncstate)
-		{
-			case 0: /* Get the preamble */
-			{
-				syncword <<= 8;
-				syncword += (uint32)abyte;
-
-				if(syncword == 0xAAAAAAAA)
-					StateZero();
-
-				break;
-			}
-			case 1: /* Get the CCSDS header */
-			{
-				pheader[header_bytes] = abyte; header_bytes++;
-
-				if(header_bytes >= sizeof(CCSDS_Packet_Header))
-					StateOne();
-
-				break;
-			}
-			case 2: /* Get the command payload */
-			{
-				pcommand[command_bytes] = abyte; command_bytes++;
-
-				if(command_bytes >= command_bytes_2_read)
-					StateTwo();
-
-				break;
-			}
-			default:
-			{
-				syncstate = 0;
-				syncword = 0;
-			}
-		}
-
-		/* Get the byte to process */
 		bread = read(npipe[READ], &abyte, sizeof(uint8));
+		while(bread > 0 && npipe_open)
+		{
+			bytes_read++;
+
+			switch(syncstate)
+			{
+				case 0: /* Get the preamble */
+				{
+					syncword <<= 8;
+					syncword += (uint32)abyte;
+
+					if(syncword == 0xAAAAAAAA)
+						StateZero();
+
+					break;
+				}
+				case 1: /* Get the CCSDS header */
+				{
+					pheader[header_bytes] = abyte; header_bytes++;
+
+					if(header_bytes >= sizeof(CCSDS_Packet_Header))
+						StateOne();
+
+					break;
+				}
+				case 2: /* Get the command payload */
+				{
+					pcommand[command_bytes] = abyte; command_bytes++;
+
+					if(command_bytes >= command_bytes_2_read)
+						StateTwo();
+
+					break;
+				}
+				default:
+				{
+					syncstate = 0;
+					syncword = 0;
+				}
+			}
+
+			/* Get the byte to process */
+			bread = read(npipe[READ], &abyte, sizeof(uint8));
+		}
 	}
 
 
@@ -534,44 +562,43 @@ void Telemetry::SendTaskHealth()
 	Task_Health_M *task_health = &message_body.task_health;
 
 	/* Get execution counters */
-//	task_health->execution_tic[TRACKING_ISR_TASK_ID]= tic_tracking_isr;
-//	task_health->execution_tic[COMMANDO_TASK_ID]  	= pCommando->getExecTic();
+	task_health->execution_tic[TRACKING_ISR_TASK_ID]= pCorrelator->getExecTic();
+	task_health->execution_tic[COMMANDO_TASK_ID]  	= 0;
 	task_health->execution_tic[ACQUISITION_TASK_ID] = pAcquisition->getExecTic();
 	task_health->execution_tic[SV_SELECT_TASK_ID] 	= pSV_Select->getExecTic();
 	task_health->execution_tic[EPHEMERIS_TASK_ID] 	= pEphemeris->getExecTic();
-	task_health->execution_tic[TELEMETRY_TASK_ID]  	= pTelemetry->getExecTic();
-//	task_health->execution_tic[PATIENCE_TASK_ID]  	= pPatience->getExecTic();
-//	task_health->execution_tic[EKF_TASK_ID]  		= pEKF->getExecTic();
+	task_health->execution_tic[TELEMETRY_TASK_ID]  	= execution_tic;
+	task_health->execution_tic[PATIENCE_TASK_ID]  	= 0;
+	task_health->execution_tic[EKF_TASK_ID]  		= 0;
 	task_health->execution_tic[PVT_TASK_ID]  		= pPVT->getExecTic();
-//	task_health->execution_tic[PPS_TASK_ID]  		= pPPS->getExecTic();
-//	task_health->execution_tic[IDLE_TASK_ID]  		= pIdle->getExecTic();
+	task_health->execution_tic[PPS_TASK_ID]  		= 0;
+	task_health->execution_tic[IDLE_TASK_ID]  		= 0;
 
 	/* get execution counters */
-//	task_health->start_tic[TRACKING_ISR_TASK_ID]	= tic_tracking_isr;
-//	task_health->start_tic[COMMANDO_TASK_ID]  		= pCommando->getStartTic();
+	task_health->start_tic[TRACKING_ISR_TASK_ID]	= pCorrelator->getStartTic();
+	task_health->start_tic[COMMANDO_TASK_ID]  		= 0;
 	task_health->start_tic[ACQUISITION_TASK_ID] 	= pAcquisition->getStartTic();
 	task_health->start_tic[SV_SELECT_TASK_ID] 		= pSV_Select->getStartTic();
 	task_health->start_tic[EPHEMERIS_TASK_ID] 		= pEphemeris->getStartTic();
 	task_health->start_tic[TELEMETRY_TASK_ID]  		= last_start_tic;
-//	task_health->start_tic[PATIENCE_TASK_ID]  		= pPatience->getStartTic();
-//	task_health->start_tic[EKF_TASK_ID]  			= pEKF->getStartTic();
+	task_health->start_tic[PATIENCE_TASK_ID]  		= 0;
+	task_health->start_tic[EKF_TASK_ID]  			= 0;
 	task_health->start_tic[PVT_TASK_ID]  			= pPVT->getStartTic();
-//	task_health->start_tic[PPS_TASK_ID]  			= pPPS->getStartTic();
-	task_health->start_tic[IDLE_TASK_ID]  			= last_idle_tic;
+	task_health->start_tic[PPS_TASK_ID]  			= 0;
+	task_health->execution_tic[IDLE_TASK_ID]  		= 0;
 
 	/* get execution counters */
-//	task_health->stop_tic[TRACKING_ISR_TASK_ID]		= tic_tracking_isr;
-//	task_health->stop_tic[COMMANDO_TASK_ID]  		= pCommando->getStopTic();
+	task_health->stop_tic[TRACKING_ISR_TASK_ID]		= pCorrelator->getStopTic();
+	task_health->stop_tic[COMMANDO_TASK_ID]  		= 0;
 	task_health->stop_tic[ACQUISITION_TASK_ID] 		= pAcquisition->getStopTic();
 	task_health->stop_tic[SV_SELECT_TASK_ID] 		= pSV_Select->getStopTic();
 	task_health->stop_tic[EPHEMERIS_TASK_ID] 		= pEphemeris->getStopTic();
 	task_health->stop_tic[TELEMETRY_TASK_ID]  		= last_stop_tic;
-//	task_health->stop_tic[PATIENCE_TASK_ID]  		= pPatience->getStopTic();
-//	task_health->stop_tic[EKF_TASK_ID]  			= pEKF->getStopTic();
+	task_health->stop_tic[PATIENCE_TASK_ID]  		= 0;
+	task_health->stop_tic[EKF_TASK_ID]  			= 0;
 	task_health->stop_tic[PVT_TASK_ID]  			= pPVT->getStopTic();
-//	task_health->stop_tic[PPS_TASK_ID]  			= pPPS->getStopTic();
-	task_health->stop_tic[IDLE_TASK_ID]  			= task_health->execution_tic[IDLE_TASK_ID];
-	last_idle_tic = task_health->execution_tic[IDLE_TASK_ID];
+	task_health->stop_tic[PPS_TASK_ID]  			= 0;
+	task_health->execution_tic[IDLE_TASK_ID]  		= 0;
 
 	/* Check for missed interrupts */
 //	missed_interrupts += (cpu_iord_32(TRK_MISSED_INT) & INTERRUPT_MASK) != 0;
@@ -606,24 +633,24 @@ void Telemetry::SendChannelHealth()
 		aChannel = pChannels[lcv];
 
 		/* Only emit active channels */
-//		channel->chan 		= lcv;
-//		channel->state 		= aChannel->state;		//!< channel's state
-//		channel->sv 		= aChannel->sv;			//!< SV/PRN number the channel is tracking
-//		channel->antenna 	= aChannel->antenna;	//!< Antenna channel is tracking off of
-//		channel->len 		= aChannel->accum_len;	//!< accumulation length (1 or 20 ms)
+		channel->chan 		= lcv;
+		channel->state 		= aChannel->state;		//!< Channel's state
+		channel->sv 		= aChannel->sv;			//!< SV/PRN number the channel is tracking
+		channel->antenna 	= aChannel->antenna;	//!< Antenna channel is tracking off of
+		channel->len 		= aChannel->len;		//!< Accumulation length (1 or 20 ms)
 //		channel->w 			= aChannel->w;			//!< 3rd order PLL state
 //		channel->x 			= aChannel->x;			//!< 3rd order PLL state
 //		channel->z 			= aChannel->ff;			//!< 3rd order PLL state
 //		channel->code_nco 	= aChannel->NCO_CODE_INCR;	//!< State of code_nco
 //		channel->carrier_nco = aChannel->NCO_CARR_INCR;	//!< State of carrier_nco
 //		channel->cn0 		= aChannel->cn0;		//!< CN0 estimate
-//		channel->p_avg		= aChannel->pp_fltr;	//!< Filtered version of I^2+Q^2
-//		channel->bit_lock 	= aChannel->bit_lock;	//!< Bit lock?
-//		channel->frame_lock = aChannel->frame_lock;	//!< Frame lock?
-//		channel->navigate 	= aChannel->navigate;	//!< Navigate on this channel flag
-//		channel->count 		= aChannel->active_count;	//!< Number of accumulations that have been processed
-//		channel->subframe	= aChannel->subframe;	//!< Current subframe number
-//		channel->best_epoch = aChannel->new_epoch;	//!< Best estimate of bit edge position
+		channel->p_avg		= aChannel->P_avg;		//!< Filtered version of I^2+Q^2
+		channel->bit_lock 	= aChannel->bit_lock;	//!< Bit lock?
+		channel->frame_lock = aChannel->frame_lock;	//!< Frame lock?
+		channel->navigate 	= aChannel->navigate;	//!< Navigate on this channel flag
+		channel->count 		= aChannel->count;		//!< Number of accumulations that have been processed
+		channel->subframe	= aChannel->subframe;	//!< Current subframe number
+		channel->best_epoch = aChannel->best_epoch;	//!< Best estimate of bit edge position
 //		channel->tic		= pvt_s.sps.tic;
 
 		/* Form the packet */
@@ -865,28 +892,31 @@ void Telemetry::EmitCCSDSPacket(void *_buff, int32 _len)
 	uint8 post = 0xBB;
 
 	/* Write the sync header to the UART */
-	for(lcv = 0; lcv < 4; lcv++)
-		write(npipe[WRITE], &pre, sizeof(uint8));
-
-	/* Write the CCSDS header to the UART */
-	sbuff = (uint8 *)&packet_header;
-	for(lcv = 0; lcv < 6; lcv++)
+	if(npipe_open)
 	{
-		write(npipe[WRITE], sbuff, sizeof(uint8));
-		sbuff++;
-	}
+		for(lcv = 0; lcv < 4; lcv++)
+			write(npipe[WRITE], &pre, sizeof(uint8));
 
-	/* Now write the body to the UART */
-	sbuff = (uint8 *)_buff;
-	for(lcv = 0; lcv < _len; lcv++)
-	{
-		write(npipe[WRITE], sbuff, sizeof(uint8));
-		sbuff++;
-	}
+		/* Write the CCSDS header to the UART */
+		sbuff = (uint8 *)&packet_header;
+		for(lcv = 0; lcv < 6; lcv++)
+		{
+			write(npipe[WRITE], sbuff, sizeof(uint8));
+			sbuff++;
+		}
 
-	/* Write the sync postfix to the UART */
-	for(lcv = 0; lcv < 4; lcv++)
-		write(npipe[WRITE], &post, sizeof(uint8));
+		/* Now write the body to the UART */
+		sbuff = (uint8 *)_buff;
+		for(lcv = 0; lcv < _len; lcv++)
+		{
+			write(npipe[WRITE], sbuff, sizeof(uint8));
+			sbuff++;
+		}
+
+		/* Write the sync postfix to the UART */
+		for(lcv = 0; lcv < 4; lcv++)
+			write(npipe[WRITE], &post, sizeof(uint8));
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/

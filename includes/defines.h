@@ -145,6 +145,7 @@ typedef unsigned int		uint32;
 #define CODE_CHIPS				(1023)
 #define SAMPS_MS				(2048)						//!< All incoming signals are resampled to this sampling frequency
 #define SAMPLE_FREQUENCY		(2048000) 					//!< All incoming signals are resampled to this sampling frequency
+#define INVERSE_SAMPLE_FREQUENCY (4.882812500000000e-7)
 /*----------------------------------------------------------------------------------------------*/
 
 

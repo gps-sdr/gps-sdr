@@ -374,6 +374,8 @@ int main(int argc, char **argv)
 	delete [] fifo_buff;
 	delete [] fifo_rows;
 
+	remove("/tmp/GPSPIPE");
+
 	exit(1);
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -667,6 +669,7 @@ void *fifo_thread(void *arg)
 		printf("FIFO thread start\n");
 
 	/* Everything set, now create a disk thread & pipe, and do some recording! */
+	remove("/tmp/GPSPIPE");
 	fifo = mkfifo("/tmp/GPSPIPE", S_IRWXG | S_IRWXU | S_IRWXO);
 	if ((fifo == -1) && (errno != EEXIST))
         printf("Error creating the named pipe");

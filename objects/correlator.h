@@ -42,7 +42,6 @@ class Correlator : public Threaded_Object
 	private:
 
 		/* Default object variables */
-		class Channel 		*aChannel[MAX_CHANNELS];			//!< The channels
 		NCO_Command_S  		feedback[MAX_CHANNELS];				//!< NCO feedback commands
 		Correlation_S  		correlations[MAX_CHANNELS];			//!< Resulting correlation
 		Correlator_State_S	states[MAX_CHANNELS];				//!< Correlator states
@@ -77,7 +76,7 @@ class Correlator : public Threaded_Object
 		void InitCorrelator(Correlator_State_S *s);											//!< Initialize a correlator/channel with an acquisition result
 		void UpdateState(Correlator_State_S *s, int32 samps);								//!< Update correlator state
 		void ProcessFeedback(Correlator_State_S *s, NCO_Command_S *f);						//!< Process the feedback
-		void DumpAccum(Correlator_State_S *s, Correlation_S *c, NCO_Command_S *f);			//!< Dump accumulation to channel for processing
+		void DumpAccum(Correlator_State_S *s, Correlation_S *c, NCO_Command_S *f, int32 _chan);	//!< Dump accumulation to channel for processing
 		void TakeMeasurements();																//!< Take some measurements
 		void Accum(Correlator_State_S *s, Correlation_S *c, CPX *data, int32 samps);		//!< Do the actual accumulation
 		void SineGen(int32 samps);															//!< Dynamic wipeoff generation

@@ -265,7 +265,7 @@ Acq_Command_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax
 			if(gopt.realtime)
 				usleep(1000);
 
-			/* Multiply in frequency domain, shifting appropiately */
+			/* Multiply in frequency domain, shifting appropriately */
 			sse_cmulsc(&baseband_rows[lcv2][100+lcv], fft_codes[_sv], msbuff, resamps_ms, 10);
 
 			/* Compute iFFT */
@@ -400,23 +400,12 @@ Acq_Command_S Acquisition::doAcqMedium(int32 _sv, int32 _doppmin, int32 _doppmax
 				/* Found a new maximum */
 				if(magt > mag)
 				{
-
-					skip = false;
-					dopp = lcv*1000 + lcv2*250 + (indext/resamps_ms)*25;
-					for(j = 0; j < ncross; j++)
-						if(abs(dopp - cross_doppler[j]) < 100)
-							skip = true;
-
-					if(!skip)
-					{
-						mag = magt;
-						index = indext % resamps_ms;
-						//result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
-						result->code_phase = index;
-						result->doppler = (lcv*1000) + (lcv2*250) + (indext/resamps_ms)*25.0;
-						result->magnitude = mag;
-					}
-
+					mag = magt;
+					index = indext % resamps_ms;
+					//result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
+					result->code_phase = index;
+					result->doppler = (lcv*1000) + (lcv2*250) + (indext/resamps_ms)*25.0;
+					result->magnitude = mag;
 				}
 
 			}//end k
@@ -557,23 +546,12 @@ Acq_Command_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 				/* Found a new maximum */
 				if(magt > mag)
 				{
-
-					skip = false;
-					dopp = lcv*1000 + lcv2*250 + (indext/resamps_ms)*25;
-					for(j = 0; j < ncross; j++)
-						if(abs(dopp - cross_doppler[j]) < 100)
-							skip = true;
-
-					if(!skip)
-					{
-						mag = magt;
-						index = indext % resamps_ms;
-						//result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
-						result->code_phase = index;
-						result->doppler = (lcv*1000) + (lcv2*250) + (indext/resamps_ms)*25.0;
-						result->magnitude = mag;
-					}
-
+					mag = magt;
+					index = indext % resamps_ms;
+					//result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
+					result->code_phase = index;
+					result->doppler = (lcv*1000) + (lcv2*250) + (indext/resamps_ms)*25.0;
+					result->magnitude = mag;
 				}
 
 			}//end k
@@ -696,21 +674,6 @@ void Acquisition::Import()
 		lastcount = packet.count;
 
 	}
-
-	ncross = 0;
-
-	/* If the SV is already being tracked skip the acquisition */
-//	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
-//	{
-//		pChannels[lcv]->Lock();
-//		if(pChannels[lcv]->getActive())
-//			if(pChannels[lcv]->getCN0() > 45.0)	//If the CN0 is really high
-//			{
-//				ncross++;
-//				cross_doppler[lcv] = (int32)floor(pChannels[lcv]->getNCO() - IF_FREQUENCY);
-//			}
-//		pChannels[lcv]->Unlock();
-//	}
 
 }
 /*----------------------------------------------------------------------------------------------*/

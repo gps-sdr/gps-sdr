@@ -37,7 +37,7 @@ EXE =	gps-sdr		\
 		simd-test
 
 EXTRAS= gps-usrp	\
-		gps-gui
+		gps-gse
 		
 TEST =	simd-test	\
 		fft-test	\
@@ -74,7 +74,7 @@ acq-test: acq-test.o $(OBJS)
 	$(ASM) $(CFLAGS) -c $< -o $@
 
 gps-gui:
-	make --directory=./gui
+	make --directory=./gse
 	
 gps-usrp:
 	make --directory=./usrp

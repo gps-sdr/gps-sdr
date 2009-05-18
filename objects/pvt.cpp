@@ -248,7 +248,7 @@ void PVT::Export()
 
 //	write(PVT_2_PPS_P[WRITE], &tlm_s, sizeof(PVT_2_PPS_S));
 	write(PVT_2_SVS_P[WRITE], &tlm_s, sizeof(PVT_2_SVS_S));
-	//write(PVT_2_TLM_P[WRITE], &tlm_s, sizeof(PVT_2_TLM_S));
+	write(PVT_2_TLM_P[WRITE], &tlm_s, sizeof(PVT_2_TLM_S));
 
 	/* Send info to GEONS aligned with the GPS second mod GEONS_MOD */
 //	integer_second = (int32)floor(master_clock.time + .5);

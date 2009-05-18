@@ -146,7 +146,6 @@ void Channel::Start(int32 _sv, Acq_Command_S result, int32 _corr_len)
 	aPLL.z 		= result.doppler;
 
 	len 		= _corr_len;
-	active		= true;
 
 	switch(len)
 	{
@@ -164,6 +163,8 @@ void Channel::Start(int32 _sv, Acq_Command_S result, int32 _corr_len)
 	}
 
 	DLL_W(1.0);
+
+	active		= true;
 }
 /*----------------------------------------------------------------------------------------------*/
 

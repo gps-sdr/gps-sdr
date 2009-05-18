@@ -146,10 +146,11 @@ typedef struct _Correlator_State_S
 	double 	carrier_phase;		//!< Carrier phase (cycles)
 	double  carrier_phase_prev;	//!< Used for phase correction to correlations
 	double 	code_phase_mod;		//!< Code phase (chips), mod 1023
-	double 	carrier_phase_mod;	//!< Carrier phsae (cycles@brief ), mod 1
+	double 	carrier_phase_mod;	//!< Carrier phsae (cycles), mod 1
 	double 	code_nco;			//!< Code NCO
 	double 	carrier_nco;		//!< Carrier NCO
 
+	uint32	chan;
 	uint32	sv;
 	uint32	navigate;			//!< Is this correlator sending out valid measurements
 	uint32	active;				//!< Active flag

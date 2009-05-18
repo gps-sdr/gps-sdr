@@ -221,7 +221,6 @@ void *Threaded_Object::getObjectMem()
 void Threaded_Object::IncExecTic()
 {
 	execution_tic++;
-//	printf("%s: %d\n",task_name,execution_tic);
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -231,7 +230,7 @@ void Threaded_Object::IncStartTic()
 {
 	#ifdef LINUX_OS
 		gettimeofday(&tv, NULL);
-		start_tic = 100*(tv.tv_sec - starttime.tv_sec) + (tv.tv_usec - starttime.tv_usec)/10000;
+		temp_start_tic = 100*(tv.tv_sec - starttime.tv_sec) + (tv.tv_usec - starttime.tv_usec)/10000;
 	#endif
 
 	#ifdef NUCLEUS_OS
@@ -247,6 +246,7 @@ void Threaded_Object::IncStopTic()
 	#ifdef LINUX_OS
 		gettimeofday(&tv, NULL);
 		stop_tic = 100*(tv.tv_sec - starttime.tv_sec) + (tv.tv_usec - starttime.tv_usec)/10000;
+		start_tic = temp_start_tic;
 	#endif
 
 	#ifdef NUCLEUS_OS

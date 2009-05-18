@@ -105,7 +105,7 @@ void SV_Select::Import()
 	read(PVT_2_SVS_P[READ], &pvt_s, sizeof(PVT_2_SVS_S));
 
 	/* Receive from EKF */
-	read(EKF_2_SVS_P[READ], &ekf_s, sizeof(EKF_2_SVS_S));
+	//read(EKF_2_SVS_P[READ], &ekf_s, sizeof(EKF_2_SVS_S));
 
 	 /* Use PVT if it is up to date */
 	if(pnav->stale_ticks == 0)
@@ -220,11 +220,11 @@ void SV_Select::Acquire()
 	read(PVT_2_SVS_P[READ], &pvt_s, sizeof(PVT_2_SVS_S));
 
 	/* Receive from GEONS? */
-	bread = read(EKF_2_SVS_P[READ], &ekf_s, sizeof(EKF_2_SVS_S));
-	if((bread == sizeof(EKF_2_SVS_S)) && (mode == ACQ_MODE_WARM))
-	{
-		Geons_2_Nav();
-	}
+//	bread = read(EKF_2_SVS_P[READ], &ekf_s, sizeof(EKF_2_SVS_S));
+//	if((bread == sizeof(EKF_2_SVS_S)) && (mode == ACQ_MODE_WARM))
+//	{
+//		Geons_2_Nav();
+//	}
 
 	/* Update SV's predicted state */
 	doacq = SetupRequest(current_sv);
@@ -240,6 +240,8 @@ void SV_Select::Acquire()
 		/* Wait for acq to return, do stuff depending on the state */
 		read(ACQ_2_SVS_P[READ], &command, sizeof(Acq_Command_S));
 
+		if(command.success)
+			write(SVS_2_COR_P[WRITE], &command, sizeof(Acq_Command_S));
 	}
 
 	/* Dump state info */
@@ -279,6 +281,7 @@ uint32 SV_Select::SetupRequest(int32 _sv)
 	}
 
 	/* Initialize acquisition command parameters */
+	command.chan		= 0;
 	command.antenna 	= 0;
 	command.type 		= type;
 	command.sv 			= _sv;
@@ -289,6 +292,7 @@ uint32 SV_Select::SetupRequest(int32 _sv)
 	command.mindopp 	= -mdoppler;
 	command.maxdopp 	= mdoppler;
 	command.accel		= 0;
+	command.success		= false;
 
 	/* Set maximum Doppler bounds and return based on acquisition type */
     if(type == ACQ_TYPE_STRONG)
