@@ -37,7 +37,7 @@
 #include "pvt.h"				//!< PVT solution
 #include "ephemeris.h"			//!< Ephemeris decode
 #include "telemetry.h"			//!< Serial/GUI telemetry
-//#include "commando.h"			//!< Command interface
+#include "commando.h"			//!< Command interface
 #include "sv_select.h"			//!< Drives acquisition/reacquisition process
 //#include "post_process.h"		//!< Run the receiver from a file
 /*----------------------------------------------------------------------------------------------*/
@@ -335,7 +335,7 @@ int32 Object_Init(void)
 
 	pTelemetry = new Telemetry();
 
-//	pCommando = new Commando();
+	pCommando = new Commando();
 
 	pPVT = new PVT();
 
@@ -431,7 +431,7 @@ int32 Thread_Init(void)
 	pEphemeris->Start();
 
 	/* Start up the command interface */
-//	pCommando->Start();
+	pCommando->Start();
 
 	/* Start the SV select thread */
 	pSV_Select->Start();

@@ -35,62 +35,20 @@ A = get_chan(chan);
 
 figure(1)
 
-subplot(311)
+subplot(211)
 plot(A(:,3)); ylabel('Integration Length');
 grid on;
 
-subplot(312)
+subplot(212)
 plot(A(:,13),'k')
 hold on; grid on;
 ylabel('I^{2}+Q^{2}');
 
-return
 
-subplot(313)
-plot(A(:,21)-1.023e6) 
-hold on;
-plot(A(:,22)*1.023e6/1.57542e9,'r')
-hold off; grid on;
-ylabel('Code NCO');
 
 figure(2)
-subplot(311)
-plot(A(:,26)); ylabel('Acceleration');
-grid on;
-
-subplot(312)
-plot(A(:,27)); ylabel('Velocity');
-grid on;
-
-subplot(313)
-plot(A(:,28)); ylabel('Carrier NCO');
-grid on;
-
-figure(3)
 
 subplot(211)
-plot(A(:,23),'b')
-grid on;
-ylabel('FLL Lock')
+plot(A(:,12));
+hold on; grid on;
 
-subplot(212)
-plot(A(:,24),'r')
-grid on;
-ylabel('PLL Lock')
-
-
-figure(4)
-subplot(211)
-plot(A(:,11),'b.')
-hold on;
-plot(A(:,14),'r.')
-hold off; grid on;
-legend('Inphase','Quadrature')
-ylabel('Correlation')
-
-subplot(212)
-plot(A(:,19))
-hold on;
-plot(A(:,20),'r')
-hold off; grid on;
-ylabel('CN_{0}')

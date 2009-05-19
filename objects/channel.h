@@ -74,7 +74,6 @@ class Channel : public Threaded_Object
 		double code_nco;		//!< Local code_nco
 		bool frequency_lock;
 		bool phase_lock;
-		NCO_Command_S feedback;	//!< For feedback
 		/*----------------------------------------------------------------------------------------------*/
 
 		/* Correlations */

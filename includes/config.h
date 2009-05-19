@@ -77,8 +77,8 @@
 #define MASK_ANGLE				(0)				//!< Add this many degrees to altitude dependant mask
 #define MAX_ANTENNA				(1)				//!< 6 ADCs on board
 #define ACQ_MODULO_WEAK			(8)				//!< Do this many weak acqs per 32 PRN strong search
-#define MAX_DOPPLER_ABSOLUTE	(100000)		//!< Limit any and all Dopplers the be within this range
-#define MAX_DOPPLER_STRONG		(18000)			//!< Cold Doppler search space for strong signal
+#define MAX_DOPPLER_ABSOLUTE	(50000)			//!< Limit any and all Dopplers the be within this range
+#define MAX_DOPPLER_STRONG		(50000)			//!< Cold Doppler search space for strong signal
 #define MAX_DOPPLER_MEDIUM		(9000)			//!< Cold Doppler search space for strong signal
 #define MAX_DOPPLER_WEAK		(9000)			//!< Cold Doppler search space for weak signal
 #define MAX_DOPPLER_WARM		(1000)			//!< Search this much Doppler space if state information is available

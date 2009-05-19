@@ -563,7 +563,7 @@ void Telemetry::SendTaskHealth()
 
 	/* Get execution counters */
 	task_health->execution_tic[TRACKING_ISR_TASK_ID]= pCorrelator->getExecTic();
-	task_health->execution_tic[COMMANDO_TASK_ID]  	= 0;
+	task_health->execution_tic[COMMANDO_TASK_ID]  	= pCommando->getExecTic();
 	task_health->execution_tic[ACQUISITION_TASK_ID] = pAcquisition->getExecTic();
 	task_health->execution_tic[SV_SELECT_TASK_ID] 	= pSV_Select->getExecTic();
 	task_health->execution_tic[EPHEMERIS_TASK_ID] 	= pEphemeris->getExecTic();
@@ -576,7 +576,7 @@ void Telemetry::SendTaskHealth()
 
 	/* get execution counters */
 	task_health->start_tic[TRACKING_ISR_TASK_ID]	= pCorrelator->getStartTic();
-	task_health->start_tic[COMMANDO_TASK_ID]  		= 0;
+	task_health->start_tic[COMMANDO_TASK_ID]  		= pCommando->getStartTic();
 	task_health->start_tic[ACQUISITION_TASK_ID] 	= pAcquisition->getStartTic();
 	task_health->start_tic[SV_SELECT_TASK_ID] 		= pSV_Select->getStartTic();
 	task_health->start_tic[EPHEMERIS_TASK_ID] 		= pEphemeris->getStartTic();
@@ -589,7 +589,7 @@ void Telemetry::SendTaskHealth()
 
 	/* get execution counters */
 	task_health->stop_tic[TRACKING_ISR_TASK_ID]		= pCorrelator->getStopTic();
-	task_health->stop_tic[COMMANDO_TASK_ID]  		= 0;
+	task_health->stop_tic[COMMANDO_TASK_ID]  		= pCommando->getStopTic();
 	task_health->stop_tic[ACQUISITION_TASK_ID] 		= pAcquisition->getStopTic();
 	task_health->stop_tic[SV_SELECT_TASK_ID] 		= pSV_Select->getStopTic();
 	task_health->stop_tic[EPHEMERIS_TASK_ID] 		= pEphemeris->getStopTic();
@@ -634,6 +634,7 @@ void Telemetry::SendChannelHealth()
 
 		/* Only emit active channels */
 		channel->chan 		= lcv;
+		channel->tic		= pvt_s.sps.tic;
 		channel->state 		= aChannel->state;		//!< Channel's state
 		channel->sv 		= aChannel->sv;			//!< SV/PRN number the channel is tracking
 		channel->antenna 	= aChannel->antenna;	//!< Antenna channel is tracking off of
@@ -651,8 +652,6 @@ void Telemetry::SendChannelHealth()
 		channel->z 			= aChannel->aPLL.z*4096.0;						//!< 3rd order PLL state
 		channel->code_nco 	= aChannel->code_nco*HZ_2_NCO_CODE_INCR;		//!< State of code_nco
 		channel->carrier_nco = aChannel->carrier_nco*HZ_2_NCO_CARR_INCR;	//!< State of carrier_nco
-
-//		channel->tic		= pvt_s.sps.tic;
 
 		/* Form the packet */
 		FormCCSDSPacketHeader(&packet_header, CHANNEL_M_ID, 0, sizeof(Channel_M), 0, packet_tic++);

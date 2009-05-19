@@ -122,7 +122,7 @@ void Channel::Clear()
 
 	/* FFT and buffer for FFT estimate of frequency after initial lock */
 	freq_lock_ticks = 0;
-	freq_lock = false;
+	freq_lock = true;
 	memset(&fft_buff[0], 0x0, FREQ_LOCK_POINTS*sizeof(CPX));
 
 
@@ -256,10 +256,17 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	else
 		_feedback->set_z_count = false;
 
-	if((P[1] > 1.0e4) && converged)
+	//if((P[1] > 1.0e4) && converged)
+	if(converged)
+	{
+		navigate = true;
 		_feedback->navigate = navigate;
+	}
 	else
-		_feedback->navigate = false;
+	{
+		navigate = false;
+		_feedback->navigate = navigate;
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -570,8 +577,7 @@ void Channel::BitStuff()
 
 	uint32 lcv, temp_bit, feedbit;
 
-	//if(bit_lock && (_1ms_epoch == 19))
-	if(_1ms_epoch == 19)
+	if(bit_lock && (_1ms_epoch == 19))
 	{
 
 		/* Make a bit decision */
@@ -919,26 +925,26 @@ void Channel::Error()
 		Kill();
 
 	/* Adjust integration length based on cn0 */
-	if(count > 5000)
-	{
-		if((mcn0 > 39.0) && (len != 1))
-		{
-			len = 1;
-			PLL_W(30.0);
-		}
-
-		if((mcn0 < 37.0) && (len != 10))
-		{
-			len = 10;
-			PLL_W(25.0);
-		}
-
-		if((mcn0 < 30.0) && (len != 20))
-		{
-			len = 20;
-			PLL_W(20.0);
-		}
-	}
+//	if(count > 5000)
+//	{
+//		if((mcn0 > 39.0) && (len != 1))
+//		{
+//			len = 1;
+//			PLL_W(30.0);
+//		}
+//
+//		if((mcn0 < 37.0) && (len != 10))
+//		{
+//			len = 10;
+//			PLL_W(25.0);
+//		}
+//
+//		if((mcn0 < 30.0) && (len != 20))
+//		{
+//			len = 20;
+//			PLL_W(20.0);
+//		}
+//	}
 
 }
 /*----------------------------------------------------------------------------------------------*/

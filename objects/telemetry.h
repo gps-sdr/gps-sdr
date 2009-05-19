@@ -33,7 +33,7 @@
 //#include "idle.h"				//!< Idle CPU counter
 #include "telemetry.h"			//!< Handle the 422 telemetry
 //#include "patience.h"			//!< Service the watchdog timer
-//#include "commando.h"			//!< Actually services the commands
+#include "commando.h"			//!< Actually services the commands
 #include "correlator.h"
 #include "acquisition.h"		//!< Interact with and direct acquisition engine
 #include "ephemeris.h"			//!< Decode almanac/ephemeris/utc

@@ -301,23 +301,23 @@ void GUI_Toplevel::render(wxDC& dc)
 
 	if(pSerial->TryLock() == 0)
 	{
-		//if(pSerial->messages.sps.tic != last_tic)
+		if(pSerial->messages.sps.tic != last_tic)
 		{
 			memcpy(&messages,pSerial->GetMessages(),sizeof(Message_Struct));
 			last_tic = pSerial->messages.sps.tic;
 			update = true;
 		}
-//		else
-//		{
-//			update = true;
-//		}
+		else
+		{
+			update = false;
+		}
 		pSerial->Unlock();
 	}
 
 	/* Render RS422 Panel */
 	renderRS422();
 
-	//if(update)
+	if(update)
 	{
 
 		/* Render Task Panel */

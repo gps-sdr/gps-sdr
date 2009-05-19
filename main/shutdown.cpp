@@ -36,7 +36,7 @@
 #include "pvt.h"				//!< PVT solution
 #include "ephemeris.h"			//!< Ephemeris decode
 #include "telemetry.h"			//!< Telemetry
-//#include "commando.h"			//!< Command interface
+#include "commando.h"			//!< Command interface
 #include "sv_select.h"			//!< Drives acquisition/reacquisition process
 //#include "post_process.h"		//!< Run the receiver from a file
 /*----------------------------------------------------------------------------------------------*/
@@ -70,8 +70,8 @@ void Thread_Shutdown(void)
 	/* Stop the ephemeris */
 	pEphemeris->Stop();
 
-//	/* Stop the command interface */
-//	pCommando->Stop();
+	/* Stop the command interface */
+	pCommando->Stop();
 
 	/* Stop the tracking */
 	pSV_Select->Stop();
@@ -140,11 +140,11 @@ void Object_Shutdown(void)
 	delete pKeyboard;
 	delete pAcquisition;
 	delete pEphemeris;
-//	delete pFIFO;
+	delete pFIFO;
 	delete pSV_Select;
 	delete pTelemetry;
 	delete pPVT;
-//	delete pCommando;
+	delete pCommando;
 
 }
 /*----------------------------------------------------------------------------------------------*/

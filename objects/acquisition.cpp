@@ -176,10 +176,6 @@ Acquisition::~Acquisition()
 	delete [] _500Hzwipeoff;
 	delete [] _750Hzwipeoff;
 
-	#ifdef ACQ_DEBUG
-		close(acq_pipe);
-	#endif
-
 	if(gopt.verbose)
 		printf("Destructing Acquisition\n");
 
@@ -262,8 +258,8 @@ Acq_Command_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax
 		for(lcv2 = 0; lcv2 < 4; lcv2+=1)
 		{
 
-			if(gopt.realtime)
-				usleep(1000);
+//			if(gopt.realtime)
+//				usleep(1000);
 
 			/* Multiply in frequency domain, shifting appropriately */
 			sse_cmulsc(&baseband_rows[lcv2][100+lcv], fft_codes[_sv], msbuff, resamps_ms, 10);
@@ -644,7 +640,9 @@ void Acquisition::Import()
 			ms_per_read = 310;
 	}
 
-	//printf("Got request %d\n",request.corr);
+	/* Flush the pipe */
+	for(lcv = 0; lcv < 10; lcv++)
+		read(COR_2_ACQ_P[READ], &packet, sizeof(ms_packet));
 
 	/* Collect necessary data */
 	lastcount = 0; ms = 0;

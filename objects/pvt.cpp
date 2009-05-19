@@ -113,7 +113,7 @@ void PVT::Import()
 
 		if(temp.navigate == true)
 		{
-			temp.subframe_sec *= 6; //!< Turn into seconds
+			//temp.subframe_sec *= 6; //!< Turn into seconds
 			sv = temp.sv;
 			chan = temp.chan;
 
@@ -823,7 +823,7 @@ uint32 PVT::PreErrorCheck()
 	double radius;
 
 	/* First filter out cross correlations */
-	ErrorCheckCrossCorr();
+	//ErrorCheckCrossCorr();
 
 	/* Channel by channel resets */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)

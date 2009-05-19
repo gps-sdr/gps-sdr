@@ -716,8 +716,8 @@ void GUI_Serial::writeGPS()
 
 	Lock();
 
-	endian_swap(&command_header, sizeof(CCSDS_Packet_Header), 1);
-	endian_swap(&command_body, decoded_command.length, 0);
+//	endian_swap(&command_header, sizeof(CCSDS_Packet_Header), 1);
+//	endian_swap(&command_body, decoded_command.length, 0);
 
 	if(command_ready && (command_sent == 0))
 	{
@@ -737,7 +737,7 @@ void GUI_Serial::writeGPS()
 void GUI_Serial::formCommand(int32 _id, void *_p)
 {
 
-	uint32 pend, cmd_count;				usleep(100);
+	uint32 pend, cmd_count;
 
 	Command_Union *cb;
 	CCSDS_Packet_Header *ch;

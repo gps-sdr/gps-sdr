@@ -45,9 +45,7 @@ EXTERN class Correlator		*pCorrelator;					//!< Correlator
 EXTERN class Channel		*pChannels[MAX_CHANNELS];		//!< Channels (uses correlations to close the loops)
 EXTERN class SV_Select		*pSV_Select;					//!< Contains the channels and drives the channel objects
 EXTERN class Telemetry		*pTelemetry;					//!< Simple ncurses interface
-//EXTERN class Post_Process	*pPost_Process;					//!< Drive the receiver from a recorded file
-//EXTERN class Serial_Telemetry *pSerial_Telemetry;			//!< Dump data to GUI over named pipe or serial
-//EXTERN class Commando		*pCommando;						//!< Process and execute commands
+EXTERN class Commando		*pCommando;						//!< Process and execute commands
 /*----------------------------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------------------------*/

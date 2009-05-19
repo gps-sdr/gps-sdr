@@ -47,7 +47,6 @@ void *Ephemeris_Thread(void *_arg)
 /*----------------------------------------------------------------------------------------------*/
 void Ephemeris::Start()
 {
-
 	/* With new priority specified */
 	Start_Thread(Ephemeris_Thread, NULL);
 
@@ -72,6 +71,8 @@ Ephemeris::Ephemeris():Threaded_Object("EPHTASK")
 	ClearEphemeris(MAX_SV);
 	ClearAlmanac(MAX_SV);
 
+	if(gopt.verbose)
+		printf("Creating Ephemeris\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 

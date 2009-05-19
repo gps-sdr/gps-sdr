@@ -64,6 +64,7 @@ typedef unsigned int		uint32;
 #define TWO_P14				(16384)						//!< 2^14
 #define TWO_P16				(65536)						//!< 2^16
 #define TWO_P19				(524288)					//!< 2^19
+#define TWO_P31				(2147483648.0)				//!< 2^31
 #define TWO_P32 			(4294967296.0)				//!< 2^32 this is too big for an int so add the x.0
 #define TWO_P57 			(1.441151880758559e+017)	//!< 2^57
 

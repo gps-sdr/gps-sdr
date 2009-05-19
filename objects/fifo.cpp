@@ -178,6 +178,10 @@ void FIFO::Enqueue()
 
 	memcpy(&head->data[0], &if_buff[0], SAMPS_MS*sizeof(CPX));
 	head->count = count;
+
+	/* Send a packet to the acquisition (nonblocking) */
+	write(COR_2_ACQ_P[WRITE], head, sizeof(ms_packet));
+
 	head = head->next;
 
 	sem_post(&sem_full);
