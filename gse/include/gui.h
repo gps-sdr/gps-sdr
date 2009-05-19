@@ -85,7 +85,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /* Include standard headers, OS stuff */
 /*----------------------------------------------------------------------------------------------*/
 #include "threaded_object.h"
-#include "pll.h"
+#include "signaldef.h"
 #include "macros.h"
 #include "gui_classes.h"
 #include "gui_object.h"

@@ -217,7 +217,7 @@ void SV_Select::Acquire()
 	}
 
 	/* Up to date PVT */
-	read(PVT_2_SVS_P[READ], &pvt_s, sizeof(PVT_2_SVS_S));
+	//read(PVT_2_SVS_P[READ], &pvt_s, sizeof(PVT_2_SVS_S));
 
 	/* Receive from GEONS? */
 //	bread = read(EKF_2_SVS_P[READ], &ekf_s, sizeof(EKF_2_SVS_S));
@@ -308,11 +308,11 @@ uint32 SV_Select::SetupRequest(int32 _sv)
 	else
 	{
 		/* Turned off */
-    	if(config.strong_operation == ACQ_OPERATION_DISABLED)
+    	if(config.weak_operation == ACQ_OPERATION_DISABLED)
     		return_val = false;
 
     	/* Turned off for cold start */
-    	if((config.strong_operation == ACQ_OPERATION_WARM) && (mode == ACQ_MODE_COLD))
+    	if((config.weak_operation == ACQ_OPERATION_WARM) && (mode == ACQ_MODE_COLD))
     		return_val = false;
 	}
 

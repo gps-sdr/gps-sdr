@@ -176,6 +176,7 @@ void Correlator::Correlate()
 		{
 			s = &states[lcv];
 			c = &correlations[lcv];
+			f = &feedback[lcv];
 			if_data = &packet.data[0];
 			leftover = SAMPS_MS;
 
@@ -263,8 +264,6 @@ void Correlator::TakeMeasurements()
 
 	measurement_tic++;
 	tic = measurement_tic;
-
-	//printf("Packet count: %d\n",packet_count);
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -555,7 +554,7 @@ void Correlator::SineGen(int32 _samps)
 	}
 
 }
-/*----------------------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------active		= true;-------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
@@ -635,7 +634,7 @@ void Correlator::InitCorrelator(Correlator_State_S *s)
 //	dt *= (double)result.doppler * (double)CODE_RATE/(double)L1;
 
 	dt = 0;
-	code_phase = result.code_phase * 1023.0 / 2048.0;
+	code_phase = (double)result.code_phase * 1023.0 / 2048.0;
 	code_phase += (double)CODE_CHIPS + dt;
 	code_phase = fmod(code_phase,(double) CODE_CHIPS);
 
@@ -659,7 +658,8 @@ void Correlator::InitCorrelator(Correlator_State_S *s)
 	nco_phase_inc = (uint32)floor((double)s->carrier_nco*(double)2.097152000000000e+03);
 	nco_phase = 0;
 
-	inc = (int32)floor(code_phase*2048.0/1023.0);
+//	inc = (int32)floor(code_phase*2048.0/1023.0);
+	inc = result.code_phase;
 
 	/* Initialize the code bin pointers */
 	bin = (int32) floor((code_phase + 0.5)*CODE_BINS + 0.5) + CODE_BINS/2;

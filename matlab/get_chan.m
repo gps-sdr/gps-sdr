@@ -1,34 +1,30 @@
 function [A] = get_chan(chan)
 
-% 	float header;
-% 	float chan;
-% 	float sv;
-% 	float bit_lock;
-% 	float frame_lock;
-% 	float subframe;
-% 	float best_epoch;
-% 	float count;
-% 	float len;	
-% 	float I[3];
-% 	float Q[3];
-% 	float I_avg;
-% 	float Q_var;
-% 	float P_avg;
-% 	float CN0;
-% 	float CN0_old;
-% 	float code_nco;
-% 	float carrier_nco;
-% 	float fll_lock;
-% 	float pll_lock;
-% 	float fll_lock_ticks;
-% 	float w;
-% 	float x;
-% 	float z;	
+% uint32 tic;			//!< Corresponds to this receiver tic
+% int32 chan;			//!< The channel number
+% int32 sv;			//!< SV/PRN number the channel is tracking
+% int32 state;		//!< channel's state
+% int32 antenna;		//!< Antenna channel is tracking off of
+% int32 len;			//!< acummulation length (1 or 20 ms)
+% int32 w;			//!< 3rd order PLL state
+% int32 x;			//!< 3rd order PLL state
+% int32 z;			//!< 3rd order PLL state
+% int32 code_nco;		//!< State of code_nco
+% int32 carrier_nco;	//!< State of carrier_nco
+% int32 cn0;			//!< CN0 estimate
+% int32 p_avg;		//!< Filtered version of I^2+Q^2
+% int32 bit_lock;		//!< Bit lock?
+% int32 frame_lock;	//!< Frame lock?
+% int32 navigate;		//!< Navigate on this channel flag
+% int32 count;		//!< Number of accumulations that have been processed
+% int32 subframe;		//!< Current subframe number
+% int32 best_epoch;	//!< Best estimate of bit edge position
 
-pts = 28;
+
+pts = 19;
 
 fp = fopen(sprintf('../chan%02d.dat',chan),'rb');
-A(:,1) = fread(fp,inf,'float'); 
+A(:,1) = fread(fp,inf,'int32'); 
 
 len = floor(length(A)/pts);
 A = A(1:len*pts);

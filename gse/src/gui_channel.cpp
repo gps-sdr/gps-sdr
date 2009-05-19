@@ -67,7 +67,7 @@ void GUI_Channel::render(wxDC& dc)
 	{
 		pchan = &p->channel[lcv];
 
-		//if(pchan->count > 0)
+		if(pchan->count > 0)
 		{
 
 			str2.Clear();
@@ -102,21 +102,19 @@ void GUI_Channel::render(wxDC& dc)
 				pchan->p_avg,
 				(int32)pchan->count/1000);
 
-			tChannel->AppendText(str);
-
-//			if(str.Length() < strwidth)
-//				tChannel->AppendText(str);
-//			else
-//			{
-//				bstr.Printf(wxT("%2d                                                                                       \n"),lcv);
-//				tChannel->AppendText(bstr);
-//			}
+			if(str.Length() < strwidth)
+				tChannel->AppendText(str);
+			else
+			{
+				bstr.Printf(wxT("%2d                                                                                       \n"),lcv);
+				tChannel->AppendText(bstr);
+			}
 		}
-//		else
-//		{
-//			bstr.Printf(wxT("%2d                                                                                       \n"),lcv);
-//			tChannel->AppendText(bstr);
-//		}
+		else
+		{
+			bstr.Printf(wxT("%2d                                                                                       \n"),lcv);
+			tChannel->AppendText(bstr);
+		}
 	}
 
 //	text = tChannel->GetDefaultStyle();

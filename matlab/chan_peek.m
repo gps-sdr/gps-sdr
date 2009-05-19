@@ -11,49 +11,40 @@ function [] = chan_peek(chan)
 close all; clc;
 A = get_chan(chan);
 
-% float header;
-% float chan;
-% float sv;
-% float bit_lock;
-% float frame_lock;
-% float subframe;
-% float best_epoch;
-% float count;
-% float len;	
-% float I[0];
-% float Q[0];
-% float I[1];
-% float Q[1];
-% float I[2];
-% float Q[2];
-% float I_avg;
-% float Q_var;
-% float P_avg;
-% float CN0;
-% float CN0_old;
-% float code_nco;
-% float carrier_nco;
-% float fll_lock;
-% float pll_lock;
-% float fll_lock_ticks;
-% float w;
-% float x;
-% float z;
+% uint32 tic;			//!< Corresponds to this receiver tic
+% int32 chan;			//!< The channel number
+% int32 sv;			//!< SV/PRN number the channel is tracking
+% int32 state;		//!< channel's state
+% int32 antenna;		//!< Antenna channel is tracking off of
+% int32 len;			//!< acummulation length (1 or 20 ms)
+% int32 w;			//!< 3rd order PLL state
+% int32 x;			//!< 3rd order PLL state
+% int32 z;			//!< 3rd order PLL state
+% int32 code_nco;		//!< State of code_nco
+% int32 carrier_nco;	//!< State of carrier_nco
+% int32 cn0;			//!< CN0 estimate
+% int32 p_avg;		//!< Filtered version of I^2+Q^2
+% int32 bit_lock;		//!< Bit lock?
+% int32 frame_lock;	//!< Frame lock?
+% int32 navigate;		//!< Navigate on this channel flag
+% int32 count;		//!< Number of accumulations that have been processed
+% int32 subframe;		//!< Current subframe number
+% int32 best_epoch;	//!< Best estimate of bit edge position
 
-power = A(:,10:12).^2 + A(:,13:15).^2;
+
 
 figure(1)
 
 subplot(311)
-plot(A(:,9)); ylabel('Integration Length');
+plot(A(:,3)); ylabel('Integration Length');
 grid on;
 
 subplot(312)
-plot(power)
-hold on;
-plot(A(:,18).*A(:,9),'k')
-hold off; grid on;
+plot(A(:,13),'k')
+hold on; grid on;
 ylabel('I^{2}+Q^{2}');
+
+return
 
 subplot(313)
 plot(A(:,21)-1.023e6) 

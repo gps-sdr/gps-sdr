@@ -89,14 +89,8 @@ FIFO::FIFO():Threaded_Object("FIFTASK")
 	/* Buffer for the raw IF data */
 	if_buff = new CPX[IF_SAMPS_MS];
 
-	/* Make pipe write non-blocking, this is to prevent the USRP from overflowing,
-	 * which hoses the data steam. It is up to the CLIENT to make sure it is
-	 * receiving continuous data packets */
-	//fcntl(npipe, F_SETFL, O_NONBLOCK);
-
 	tic = overflw = count = 0;
 
-	//agc_scale = 1 << AGC_BITS;
 	agc_scale = 2048;
 
 	sem_init(&sem_full, NULL, 0);
@@ -162,10 +156,6 @@ void FIFO::Import()
 	if(count == 0)
 	{
 		init_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
-	}
-	else if(count < 1000)
-	{
-		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
 	}
 	else
 	{

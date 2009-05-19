@@ -283,7 +283,7 @@ Acq_Command_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax
 				mag = magt;
 				index = indext;
 				//result->delay = CODE_CHIPS - (float)index*CODE_RATE/fbase;
-				result->code_phase = index;
+				result->code_phase = 2048 - index;
 				result->doppler = (lcv*1000) + (float)lcv2*250;
 				result->magnitude = mag;
 			}
@@ -663,7 +663,7 @@ void Acquisition::Import()
 		{
 			if((packet.count - lastcount) != 1)
 			{
-				//printf("Broken GPS stream %d,%d\n",packet.count,lastcount);
+				printf("Broken GPS stream %d,%d\n",packet.count,lastcount);
 				ms = 0; /* Recollect data */
 			}
 		}
@@ -708,7 +708,7 @@ void Acquisition::Export(char * _fname)
 	for(lcv = 0; lcv < MAX_SV; lcv++)
 	{
 		p = &results[lcv];
-		fprintf(fp, "%02d,%02d,%d,%d,%d,%1d\n",p->type,lcv+1,p->code_phase,p->doppler,p->magnitude,p->success);
+		fprintf(fp, "%2d, %2d, %12d, %12d, %12d, %1d\n",p->type,lcv+1,p->code_phase,p->doppler,p->magnitude,p->success);
 	}
 	fclose(fp);
 

@@ -97,10 +97,8 @@ typedef struct _Options_S
 typedef struct ms_packet {
 
 	ms_packet *next;
-	int32 measurement;				//!< This packet is flagged for a measurement
-	int32 count;					//!< number of packets
-	int32 accessed[MAX_CHANNELS+1];	//!< keep track of accesses
-	CPX data[SAMPS_MS];				//!< payload size
+	int32 count;					//!< Number of packets
+	CPX data[SAMPS_MS];				//!< Payload size
 
 } ms_packet;
 /*----------------------------------------------------------------------------------------------*/

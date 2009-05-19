@@ -74,7 +74,7 @@ void Channel::Clear()
 	/* Status info */
 	len = 1;
 	count = 0;
-	active = false;
+	state = CHANNEL_EMPTY;
 	sv = 666;
 
 	/* Loop data */
@@ -164,7 +164,8 @@ void Channel::Start(int32 _sv, Acq_Command_S result, int32 _corr_len)
 
 	DLL_W(1.0);
 
-	active		= true;
+	state = CHANNEL_NORMAL;
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -220,7 +221,7 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	Epoch();
 
 	/* Kill the correlator if the channel has stopped itself */
-	if(active == false)
+	if(state == CHANNEL_EMPTY)
 		_feedback->kill = true;
 	else
 		_feedback->kill = false;
@@ -906,11 +907,11 @@ void Channel::Error()
 		Kill();
 
 	/* Monitor cn0 for false PLL lock */
-	if(count > 10000 && mcn0 < 17.0)
+	if((count > 10000) && (mcn0 < 17.0))
 		Kill();
 
 	/* If 30 seconds have passed and channel has not converged dump it */
-	if(count > 30000 && converged == false)
+	if((count > 30000) && (converged == false))
 		Kill();
 
 	/* The channel should be killed if the nco goes outside the pre generated wipeoff table */
@@ -946,7 +947,7 @@ void Channel::Error()
 /*----------------------------------------------------------------------------------------------*/
 void Channel::Kill()
 {
-	active = false;
+	state = CHANNEL_EMPTY;
 	Clear();
 }
 /*----------------------------------------------------------------------------------------------*/

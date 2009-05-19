@@ -29,6 +29,7 @@
 #define FIFO_H_
 
 #include "includes.h"
+#include "telemetry.h"
 
 #define FIFO_DEPTH (1000)	//!< In ms
 
@@ -37,6 +38,8 @@
  */
 class FIFO : public Threaded_Object
 {
+
+	friend class Telemetry;
 
 	private:
 

@@ -507,29 +507,29 @@ void Telemetry::SendBoardHealth()
 	Board_Health_M *board_health = &message_body.board_health;
 
 	/* FPGA Version Numbers */
-//	board_health->acq_version = cpu_iord_32(CS7_ACQUISITION_ADDR);
-//	board_health->trk_version = cpu_iord_32(CS4_TRACKING_ADDR);
-//	board_health->fft_version = cpu_iord_32(FFT_ADDR);
-//
-//	/* DSA Values */
-//	board_health->dsa0 		= cpu_iord_32(RF_DSA0);
-//	board_health->dsa1 		= cpu_iord_32(RF_DSA1);
-//	board_health->dsa2 		= cpu_iord_32(RF_DSA2);
-//	board_health->dsa3 		= cpu_iord_32(RF_DSA3);
-//
-//	/* Overflow on A/Ds */
-//	board_health->ovrflw0 	= cpu_iord_32(ADC0_OTR_CNT);
-//	board_health->ovrflw1 	= cpu_iord_32(ADC1_OTR_CNT);
-//	board_health->ovrflw2 	= cpu_iord_32(ADC2_OTR_CNT);
-//	board_health->ovrflw3 	= cpu_iord_32(ADC3_OTR_CNT);
-//
-//	/* LO Status Bit */
-//	board_health->lo_locked 	= cpu_iord_32(RF_LO_LOCKED);
-//
-//	/* Acquisition SRAM Health (Stuck bits, etc) */
-//	board_health->sram_bad_mem	= cpu_iord_32(ACQ_SRAM_BAD_MEM);
-//	board_health->sram_bad_lo	= cpu_iord_32(ACQ_SRAM_BAD_LO);
-//	board_health->sram_bad_hi	= cpu_iord_32(ACQ_SRAM_BAD_HI);
+	board_health->acq_version = 0;
+	board_health->trk_version = 0;
+	board_health->fft_version = 0;
+
+	/* DSA Values */
+	board_health->dsa0 = pFIFO->agc_scale;
+	board_health->dsa1 = 0;
+	board_health->dsa2 = 0;
+	board_health->dsa3 = 0;
+
+	/* Overflow on A/Ds */
+	board_health->ovrflw0 = pFIFO->overflw;
+	board_health->ovrflw1 = 0;
+	board_health->ovrflw2 = 0;
+	board_health->ovrflw3 = 0;
+
+	/* LO Status Bit */
+	board_health->lo_locked = 0;
+
+	/* Acquisition SRAM Health (Stuck bits, etc) */
+	board_health->sram_bad_mem = 0;
+	board_health->sram_bad_lo = 0;
+	board_health->sram_bad_hi = 0;
 
 	/* Software Revision */
 	board_health->sft_version = SOFTWARE_VERSION_MAJOR << 16;
@@ -638,11 +638,6 @@ void Telemetry::SendChannelHealth()
 		channel->sv 		= aChannel->sv;			//!< SV/PRN number the channel is tracking
 		channel->antenna 	= aChannel->antenna;	//!< Antenna channel is tracking off of
 		channel->len 		= aChannel->len;		//!< Accumulation length (1 or 20 ms)
-//		channel->w 			= aChannel->w;			//!< 3rd order PLL state
-//		channel->x 			= aChannel->x;			//!< 3rd order PLL state
-//		channel->z 			= aChannel->ff;			//!< 3rd order PLL state
-//		channel->code_nco 	= aChannel->NCO_CODE_INCR;	//!< State of code_nco
-//		channel->carrier_nco = aChannel->NCO_CARR_INCR;	//!< State of carrier_nco
 //		channel->cn0 		= aChannel->cn0;		//!< CN0 estimate
 		channel->p_avg		= aChannel->P_avg;		//!< Filtered version of I^2+Q^2
 		channel->bit_lock 	= aChannel->bit_lock;	//!< Bit lock?
@@ -651,6 +646,12 @@ void Telemetry::SendChannelHealth()
 		channel->count 		= aChannel->count;		//!< Number of accumulations that have been processed
 		channel->subframe	= aChannel->subframe;	//!< Current subframe number
 		channel->best_epoch = aChannel->best_epoch;	//!< Best estimate of bit edge position
+		channel->w 			= aChannel->aPLL.w*4096.0;						//!< 3rd order PLL state
+		channel->x 			= aChannel->aPLL.x*4096.0;						//!< 3rd order PLL state
+		channel->z 			= aChannel->aPLL.z*4096.0;						//!< 3rd order PLL state
+		channel->code_nco 	= aChannel->code_nco*HZ_2_NCO_CODE_INCR;		//!< State of code_nco
+		channel->carrier_nco = aChannel->carrier_nco*HZ_2_NCO_CARR_INCR;	//!< State of carrier_nco
+
 //		channel->tic		= pvt_s.sps.tic;
 
 		/* Form the packet */

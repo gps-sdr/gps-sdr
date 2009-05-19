@@ -161,7 +161,6 @@ class Channel : public Threaded_Object
 		void Accum(Correlation_S *corr, NCO_Command_S *_feedback);	//!< Process an accumulation
 		float getCN0(){return(cn0);};
 		float getNCO(){return(carrier_nco);};
-		int32 getActive(){return(active);};
 		int32 getState(){return(state);};
 		void setActive(int32 _active){active = _active;};
 		int32 getSV(){return(sv);};
