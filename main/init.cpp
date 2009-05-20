@@ -393,6 +393,7 @@ int32 Pipes_Init(void)
 	fcntl(PVT_2_TLM_P[READ],  F_SETFL, O_NONBLOCK);
 	fcntl(SVS_2_TLM_P[READ],  F_SETFL, O_NONBLOCK);
 	fcntl(EKF_2_TLM_P[READ],  F_SETFL, O_NONBLOCK);
+	fcntl(CMD_2_TLM_P[READ],  F_SETFL, O_NONBLOCK);
 
 	if(gopt.verbose)
 	{

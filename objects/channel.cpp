@@ -89,7 +89,7 @@ void Channel::Clear()
 	I_avg = 1;
 	Q_var = 1;
 	P_avg = 1e4;
-	cn0 = 15;
+	cn0 = 40.0;
 	NP = 10;
 
 	/* Bit lock stuff */
@@ -122,7 +122,7 @@ void Channel::Clear()
 
 	/* FFT and buffer for FFT estimate of frequency after initial lock */
 	freq_lock_ticks = 0;
-	freq_lock = true;
+	freq_lock = false;
 	memset(&fft_buff[0], 0x0, FREQ_LOCK_POINTS*sizeof(CPX));
 
 
@@ -150,7 +150,7 @@ void Channel::Start(int32 _sv, Acq_Command_S result, int32 _corr_len)
 	switch(len)
 	{
 		case 1:
-			PLL_W(30.0);
+			PLL_W(50.0);
 			break;
 		case 10:
 			PLL_W(25.0);
@@ -159,7 +159,7 @@ void Channel::Start(int32 _sv, Acq_Command_S result, int32 _corr_len)
 			PLL_W(20.0);
 			break;
 		default:
-			PLL_W(30.0);
+			PLL_W(50.0);
 	}
 
 	DLL_W(1.0);
@@ -206,7 +206,8 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	Q_buff[_1ms_epoch] = corr->Q[1];
 
 	/* Lowpass filter */
-	P_buff[_1ms_epoch] = (63*P_buff[_1ms_epoch]	+ (I_sum20>>6)*(I_sum20>>6)	+ (Q_sum20>>6)*(Q_sum20>>6)+32)>>6;
+	P_buff[_1ms_epoch] = (63 * P_buff[_1ms_epoch] + (I_sum20 >> 6) * (I_sum20 >> 6)	+ (Q_sum20 >> 6)*(Q_sum20 >> 6) + 32) >> 6;
+//	P_buff[_1ms_epoch] = (63 * P_buff[_1ms_epoch] + (I_sum20 >> 6) * (I_sum20 >> 6) + 32) >> 6;
 
 	/* Dump accumulation and do tracking according to integration length */
 	if((_1ms_epoch % len) == 0)
@@ -216,6 +217,7 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	}
 
 	/* These functions must be called every ms */
+	EstCN0();
 	BitLock();
 	BitStuff();
 	Epoch();
@@ -275,16 +277,15 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 /*----------------------------------------------------------------------------------------------*/
 void Channel::DumpAccum()
 {
-	int32 lcv, bwrote;
-	float NBP;
-	float WBP;
-	float cerr;
-	float serr;
-
 	/* Compute the powers */
 	P[0] = I[0]*I[0]+Q[0]*Q[0];
 	P[1] = I[1]*I[1]+Q[1]*Q[1];
 	P[2] = I[2]*I[2]+Q[2]*Q[2];
+
+	/* Lowpass filtered values here */
+	I_avg += (fabs((float)I[1]) - I_avg) * .02;
+	Q_var += ((float)Q[1]*(float)Q[1] - Q_var) * .02;
+	P_avg += ((float)P[1]/float(len) - P_avg) * .1;
 
 	/* First do estimate of frequency offset via FFT */
 	if(freq_lock == false)
@@ -297,14 +298,36 @@ void Channel::DumpAccum()
 		DLL();
 	}
 
-	/* Lowpass filtered values here */
-	I_avg += (fabs((float)I[1]) - I_avg) * .02;
-	Q_var += ((float)Q[1]*(float)Q[1] - Q_var) * .02;
-	P_avg += ((float)P[1]/float(len) - P_avg) * .1;
+	/* Dump pertinent data */
+	Error();
+
+	/* Save Previous Correlations for Loops */
+	I_prev = I[1];
+	Q_prev = Q[1];
+
+	/* Zero out the correlations */
+	I[0] = I[1] = I[2] = 0;
+	Q[0] = Q[1] = Q[2] = 0;
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Channel::EstCN0()
+{
+	int32 lcv;
+	float NBP;
+	float WBP;
+	float cerr;
+	float serr;
 
 	/* Try out new cn0 estimate, PG 393 of Global Positioning System, Theory and Applications */
-	if((_1ms_epoch == 0) && freq_lock)
+	if((_1ms_epoch == 19) && bit_lock)
 	{
+		/* Old school cn0 */
+		CN0_old = 10*log10(I_avg*I_avg/(2*Q_var)) - 10*log10(aPLL.t);
+
 		NBP = I_sum20*I_sum20 + Q_sum20*Q_sum20;
 		WBP = 0;
 
@@ -322,20 +345,6 @@ void Channel::DumpAccum()
 			cn0 = 15.0;
 		}
 	}
-
-	/* Old school cn0 */
-	CN0_old = 10*log10(I_avg*I_avg/(2*Q_var)) - 10*log10(aPLL.t);
-
-	/* Dump pertinent data */
-	Error();
-
-	/* Save Previous Correlations for Loops */
-	I_prev = I[1];
-	Q_prev = Q[1];
-
-	/* Zero out the correlations */
-	I[0] = I[1] = I[2] = 0;
-	Q[0] = Q[1] = Q[2] = 0;
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -514,9 +523,10 @@ void Channel::BitLock()
 	/* Set bitlock threshold */
 	thresh = 5000;
 
-	if(bit_lock == false)
+
+	if(_1ms_epoch == 19)
 	{
-		if((_1ms_epoch == 19) && (bit_lock_ticks > 2000))
+		if(bit_lock == false)
 		{
 			/* Find the maximum of the power buffer */
 			best_sum = 0; new_epoch = 0;
@@ -534,14 +544,6 @@ void Channel::BitLock()
 			{
 				bit_lock_ticks = 0;
 				best_epoch = new_epoch;
-				_1ms_epoch = (39 - best_epoch) % 20;
-
-				/* Copy over the power buffer to put the max in element 19 */
-				for(lcv = 0 ; lcv < 20; lcv++)
-					power_buff[lcv] = P_buff[lcv];
-
-				for(lcv = 0 ; lcv < 20; lcv++)
-					P_buff[lcv] = power_buff[(lcv + best_epoch) % 20];
 			}
 
 			/* If the epoch has NOT changed in X ms */
@@ -549,7 +551,7 @@ void Channel::BitLock()
 			{
 				bit_lock = true;
 
-				_1ms_epoch = (39 - best_epoch) % 20;
+				_1ms_epoch = (38 - best_epoch) % 20;
 
 				bit_lock_pend = 1;
 
@@ -560,7 +562,33 @@ void Channel::BitLock()
 					power_buff[lcv] = P_buff[lcv];
 
 				for(lcv = 0 ; lcv < 20; lcv++)
-					P_buff[lcv] = power_buff[(lcv + best_epoch) % 20];
+					P_buff[lcv] = power_buff[(lcv + best_epoch + 1) % 20];
+			}
+		}
+		else if(bit_lock_ticks < 60000) /* Bitlock obtained, keep monitoring it up to 1 minute */
+		{
+
+			/* Find the maximum of the power buffer */
+			best_sum = 0; new_epoch = 0;
+			for(lcv = 0; lcv < 20; lcv++)
+			{
+				if(P_buff[lcv] > best_sum)
+				{
+					best_sum = P_buff[lcv];
+					new_epoch = lcv;
+				}
+			}
+
+			best_epoch = new_epoch;
+
+			/* Best epoch not in the correct place! */
+			if(best_epoch != 19)
+			{
+				bit_lock_ticks = 0;
+				bit_lock = false;
+				frame_lock = false;
+				for(lcv = 0 ; lcv < 20; lcv++)
+					P_buff[lcv] = 0;
 			}
 		}
 	}
@@ -909,7 +937,7 @@ void Channel::Error()
 	mcn0 = cn0 > CN0_old ? cn0 : CN0_old;
 
 	/* Monitor DLL */
-	if((P_avg < 2e4) && (count > 2000))
+	if((P_avg < 2e4) && (count > 1000))
 		Kill();
 
 	/* Monitor cn0 for false PLL lock */
@@ -925,26 +953,26 @@ void Channel::Error()
 		Kill();
 
 	/* Adjust integration length based on cn0 */
-//	if(count > 5000)
-//	{
-//		if((mcn0 > 39.0) && (len != 1))
-//		{
-//			len = 1;
-//			PLL_W(30.0);
-//		}
-//
-//		if((mcn0 < 37.0) && (len != 10))
-//		{
-//			len = 10;
-//			PLL_W(25.0);
-//		}
-//
-//		if((mcn0 < 30.0) && (len != 20))
-//		{
-//			len = 20;
-//			PLL_W(20.0);
-//		}
-//	}
+	if(bit_lock)
+	{
+		if((mcn0 > 39.0) && (len != 1))
+		{
+			len = 1;
+			PLL_W(30.0);
+		}
+
+		if((mcn0 < 37.0) && (len != 10))
+		{
+			len = 10;
+			PLL_W(25.0);
+		}
+
+		if((mcn0 < 30.0) && (len != 20))
+		{
+			len = 20;
+			PLL_W(20.0);
+		}
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -985,7 +1013,12 @@ void Channel::Export()
 	packet.carrier_nco 	= carrier_nco;
 
 	if(gopt.log_channel && (fp != NULL))
+	{
 		fwrite(&packet, sizeof(Channel_M), 1,  fp);
+		fwrite(&I[0], sizeof(int32), 3,  fp);
+		fwrite(&Q[0], sizeof(int32), 3,  fp);
+		fwrite(&P_buff[0], sizeof(int32), 20,  fp);
+	}
 }
 /*----------------------------------------------------------------------------------------------*/
 

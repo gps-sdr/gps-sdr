@@ -843,6 +843,7 @@ void GUI_Serial::formCommand(int32 _id, void *_p)
 			command_ready = 0;
 			command_sent = 1;
 			command_ack = 1;
+			Unlock();
 			return;
 	}
 

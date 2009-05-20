@@ -257,7 +257,7 @@ int32 round_2(int32 _N)
 /*!
  * Gather statistics and run AGC
  * */
-int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
+int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 scale)
 {
 	int32 lcv, num;
 	int16 max, *p;
@@ -269,8 +269,7 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 
 	/* Get rid of the divide, replace with a multiply to scale to 2^15, then right shift to get
 	 * back into AGC_BITS of magnitude */
-
-	lscale = (1 << 14) / scale[0];
+	lscale = (1 << 14) / scale;
 	shift = 14 - bits;
 	max = 1 << bits;
 	num = 0;
@@ -279,19 +278,9 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 *scale)
 
 	for(lcv = 0; lcv < 2*_samps; lcv++)
 	{
-		if(p[lcv] > max)
+		if(abs(p[lcv]) > max)
 			num++;
 	}
-
-	/* Figure out the shift value */
-	if(num > AGC_HIGH)
-		scale[0] += 1;
-
-	if(num < AGC_LOW)
-		scale[0] -= 1;
-
-	if(scale[0] < 1)
-		scale[0] = 1;
 
 	return(num);
 

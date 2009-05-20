@@ -234,7 +234,7 @@ void Commando::resetEKF()
 //	pEKF->Reset();
 //	pEKF->Unlock();
 //
-//	message_body.command_ack.command_status = SUCCESS_A_ID;
+	message_body.command_ack.command_status = SUCCESS_A_ID;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -247,7 +247,8 @@ void Commando::resetWatchdog()
 //	pPatience->ResetWatchdog();
 //	pPatience->Unlock();
 //
-//	message_body.command_ack.command_status = SUCCESS_A_ID;
+
+	message_body.command_ack.command_status = SUCCESS_A_ID;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -308,7 +309,7 @@ void Commando::resetAlmanac()
 void Commando::resetPPS()
 {
 
-
+	message_body.command_ack.command_status = SUCCESS_A_ID;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -499,7 +500,7 @@ void Commando::setEEPROM()
 {
 
 
-
+	message_body.command_ack.command_status = SUCCESS_A_ID;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -510,7 +511,7 @@ void Commando::getEEPROM()
 {
 
 
-
+	message_body.command_ack.command_status = SUCCESS_A_ID;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -520,7 +521,7 @@ void Commando::getEEPROMChksum()
 {
 
 
-
+	message_body.command_ack.command_status = SUCCESS_A_ID;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -530,7 +531,7 @@ void Commando::PageWrite(uint32 _bank, uint32 *_addr, uint32 *_data, uint32 _wor
 {
 
 
-
+	message_body.command_ack.command_status = SUCCESS_A_ID;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -540,7 +541,7 @@ void Commando::PendEEPROM(uint32 _bank)
 {
 
 
-
+	message_body.command_ack.command_status = SUCCESS_A_ID;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -550,7 +551,7 @@ void Commando::setMemory()
 {
 
 
-
+	message_body.command_ack.command_status = SUCCESS_A_ID;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -560,7 +561,7 @@ void Commando::getMemory()
 {
 
 
-
+	message_body.command_ack.command_status = SUCCESS_A_ID;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -570,7 +571,7 @@ void Commando::getMemoryChksum()
 {
 
 
-
+	message_body.command_ack.command_status = SUCCESS_A_ID;
 }
 /*----------------------------------------------------------------------------------------------*/
 

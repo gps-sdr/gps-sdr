@@ -159,16 +159,21 @@ void SV_Select::Export(int32 _sv)
 
 	sv_prediction[_sv].sv = _sv;
 
-	if(sv_prediction[_sv].predicted != true)
+	if(sv_prediction[_sv].predicted == false)
 	{
 		status.state[_sv] = SV_NOT_PREDICTED;
 	}
+	else if(sv_prediction[_sv].visible == false)
+	{
+		status.state[_sv] = SV_NOT_VISIBLE;
+	}
+	else if(sv_prediction[_sv].tracked == false)
+	{
+		status.state[_sv] = SV_NOT_TRACKED;
+	}
 	else
 	{
-		if(sv_prediction[_sv].visible == true)
-			status.state[_sv] = SV_VISIBLE;
-		else
-			status.state[_sv] = SV_NOT_VISIBLE;
+		status.state[_sv] = SV_TRACKED;
 	}
 
 	/* Dump prediction to SV Select */
@@ -373,6 +378,10 @@ uint32 SV_Select::SetupRequest(int32 _sv)
 		/* If not visible don't bother to search */
 		if(ppred->visible == false)
 			return_val = false;
+	}
+	else
+	{
+		sv_prediction[_sv].predicted = false;
 	}
 
 	IncStopTic();
@@ -659,8 +668,8 @@ void SV_Select::SV_Predict(int32 _sv)
 	ppred->delay = c*INVERSE_SPEED_OF_LIGHT - psv->clock_bias;
 
 	/* Predict observed doppler in terms of Hz */
-	//fdoppler = -relvel - pnav->clock_rate - psv->frequency_bias*SPEED_OF_LIGHT; /* Meters/second */
-	fdoppler = -relvel - psv->frequency_bias*SPEED_OF_LIGHT;		/* Meters/second */
+	fdoppler = -relvel - pnav->clock_rate - psv->frequency_bias*SPEED_OF_LIGHT; /* Meters/second */
+	//fdoppler = -relvel - psv->frequency_bias*SPEED_OF_LIGHT;		/* Meters/second */
 	fdoppler *= L1_OVER_C; /* Hz */
 	ppred->doppler = fdoppler;
 

@@ -792,8 +792,8 @@ void PVT::PseudoRange()
 			pseudoranges[lcv].uncorrected = time*(double)SPEED_OF_LIGHT;
 
 			/* Pseudorange RATE from integrated carrier phase */
-			cp_prev = (double)measurements[lcv].carrier_phase_prev + (double)measurements[lcv].frac_carrier_phase_prev*(double)TWO_N32;
-			cp      = (double)measurements[lcv].carrier_phase      + (double)measurements[lcv].frac_carrier_phase*(double)TWO_N32;
+			cp_prev = (double)measurements[lcv].carrier_phase_prev;// + (double)measurements[lcv].frac_carrier_phase_prev*(double)TWO_N32;
+			cp      = (double)measurements[lcv].carrier_phase;//      + (double)measurements[lcv].frac_carrier_phase*(double)TWO_N32;
 			time_rate = (cp_prev - cp)*cp_adjust + (double)ZERO_DOPPLER_RATE; //!< Note the sign flip
 			pseudoranges[lcv].meters_rate = time_rate * (double)C_OVER_L1;
 

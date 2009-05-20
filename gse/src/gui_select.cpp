@@ -149,9 +149,16 @@ void GUI_Select::renderVisible()
 
 	int32 dX, dY, lcv;
 
+	wxColor grey(127,127,127);
+	wxColor blue(0,0,255);
+	wxColor yellow(255,255,0);
+	wxColor green(0,255,0);
+	wxColor red(255,0,0);
+	wxColor black(0,0,0);
+
 	wxPoint box[4];
 	wxString str;
-	//wxPaintDC dc(pVisible);
+
 	wxBufferedPaintDC dc(pVisible, wxBUFFER_CLIENT_AREA);
 	dc.Clear();
 
@@ -171,22 +178,24 @@ void GUI_Select::renderVisible()
 	/* Render the decoded ephemerides */
 	for(lcv = 0; lcv < MAX_SV; lcv++)
 	{
-		if(p->sv_select_status.state[lcv] == 2)
+
+		switch(p->sv_select_status.state[lcv])
 		{
-			dc.SetBrush(wxBrush(wxColor(0,255,0)));
-			dc.SetPen(wxPen(wxColor(0,0,0), 1));
-		}
-		else if(p->sv_select_status.state[lcv] == 1)
-		{
-			dc.SetBrush(wxBrush(wxColor(0,0,255)));
-			dc.SetPen(wxPen(wxColor(0,0,0), 1));
-		}
-		else
-		{
-			dc.SetBrush(wxBrush(wxColor(127,127,127)));
-			dc.SetPen(wxPen(wxColor(0,0,0), 1));
+			case 3:
+				dc.SetBrush(wxBrush(green));
+				break;
+			case 2:
+				dc.SetBrush(wxBrush(yellow));
+				break;
+			case 1:
+				dc.SetBrush(wxBrush(blue));
+				break;
+			default:
+				dc.SetBrush(wxBrush(grey));
+				break;
 		}
 
+		dc.SetPen(wxPen(black, 1));
 		dc.DrawPolygon(4, box, (lcv%(MAX_SV>>2))*dX, (lcv/(MAX_SV>>2))*dY);
 
 		str.Printf(wxT("%02d"),(int)lcv+1);
@@ -196,21 +205,21 @@ void GUI_Select::renderVisible()
 	/* Draw highlighted box */
 	if(p->sv_select_status.state[sv] == 2)
 	{
-		dc.SetBrush(wxBrush(wxColor(0,255,0)));
-		dc.SetPen(wxPen(wxColor(0,0,0), 1));
+		dc.SetBrush(wxBrush(green));
+		dc.SetPen(wxPen(black, 1));
 	}
 	else if(p->sv_select_status.state[sv] == 1)
 	{
-		dc.SetBrush(wxBrush(wxColor(0,0,255)));
-		dc.SetPen(wxPen(wxColor(0,0,0), 1));
+		dc.SetBrush(wxBrush(blue));
+		dc.SetPen(wxPen(black, 1));
 	}
 	else
 	{
-		dc.SetBrush(wxBrush(wxColor(127,127,127)));
-		dc.SetPen(wxPen(wxColor(0,0,0), 1));
+		dc.SetBrush(wxBrush(grey));
+		dc.SetPen(wxPen(black, 1));
 	}
 
-	dc.SetPen(wxPen(wxColor(255,0,0), 2));
+	dc.SetPen(wxPen(red, 2));
 	dc.DrawPolygon(4, box, (sv%(MAX_SV>>2))*dX, (sv/(MAX_SV>>2))*dY);
 
 	str.Printf(wxT("%02d"),(int)sv+1);
@@ -227,6 +236,9 @@ void GUI_Select::renderSV()
 	tDisplay->Clear();
 
 	SV_Prediction_M *psv;
+
+	text.SetBackgroundColour(wxColor(255,255,255));
+	tDisplay->SetDefaultStyle(text);
 
 	str.Printf(wxT("Ch# Vis   Elev     Azim     Doppler        Time\n\n"));
 	tDisplay->AppendText(str);

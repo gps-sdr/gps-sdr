@@ -57,7 +57,8 @@ enum SV_PREDICTION_STATE
 {
 	SV_NOT_PREDICTED,		//!< Not almanac == no prediction
 	SV_NOT_VISIBLE,			//!< Predicted, but not visible
-	SV_VISIBLE				//!< Predicted & visible
+	SV_NOT_TRACKED,			//!< Predicted, visible, not tracked
+	SV_TRACKED,				//!< Predicted, visible, tracked
 };
 
 /*! @ingroup CLASSES

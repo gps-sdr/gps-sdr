@@ -147,6 +147,7 @@ class Channel : public Threaded_Object
 		void DLL_W(float _bw);							//!< Change the DLL bandwidth
 		void PLL();										//!< Perform the phase lock loop
 		void DLL();										//!< Do the DLL
+		void EstCN0();									//!< Estimate the cn0
 		void Epoch();									//!< Increase _1ms_epoch, _20ms_epoch
 		void BitLock();									//!< Declare the bit lock?
 		void BitStuff();								//!< Get data bits from I_Sum20 and stuff them into data_buff

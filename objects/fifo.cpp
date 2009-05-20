@@ -89,9 +89,9 @@ FIFO::FIFO():Threaded_Object("FIFTASK")
 	/* Buffer for the raw IF data */
 	if_buff = new CPX[IF_SAMPS_MS];
 
-	tic = overflw = count = 0;
+	tic = overflw = soverflw = count = 0;
 
-	agc_scale = 2048;
+	agc_scale = 1;
 
 	sem_init(&sem_full, NULL, 0);
 	sem_init(&sem_empty, NULL, FIFO_DEPTH);
@@ -137,7 +137,7 @@ void FIFO::Import()
 {
 	int32 lcv;
 	char *p;
-	int32 nbytes, bread, bytes_per_read, agc_scale_p = agc_scale;
+	int32 nbytes, bread, bytes_per_read;
 
 	bytes_per_read = IF_SAMPS_MS*sizeof(CPX);
 
@@ -153,15 +153,29 @@ void FIFO::Import()
 	IncStartTic();
 
 	/* Add to the buff */
-	if(count == 0)
+	soverflw += run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, agc_scale);
+
+	/* Figure out the agc_scale value */
+	if((count & 0xF) == 0)
 	{
-		init_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
+
+		if(soverflw > OVERFLOW_HIGH*8)
+			agc_scale += 100;
+
+		if(soverflw > OVERFLOW_HIGH)
+			agc_scale += 1;
+
+		if(soverflw < OVERFLOW_LOW)
+			agc_scale -= 1;
+
+		if(agc_scale < 1)
+			agc_scale = 1;
+
+		overflw = soverflw;
+		soverflw = 0;
 	}
-	else
-	{
-		overflw = run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, &agc_scale);
-		Enqueue();
-	}
+
+	Enqueue();
 
 	IncStopTic();
 

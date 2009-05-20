@@ -488,14 +488,14 @@ void GUI_Toplevel::renderTask()
 		tTask->AppendText(str);
 	}
 
-	str.Printf(wxT("\nMissed Interrupts: %6d"),pTask->missed_interrupts),
-	tTask->AppendText(str);
-
-	str.Printf(wxT("\nFPU Multiplies:    %d"),pTask->tic_fpu_mul),
-	tTask->AppendText(str);
-
-	str.Printf(wxT("\nFPU Divides:       %d"),pTask->tic_fpu_div),
-	tTask->AppendText(str);
+//	str.Printf(wxT("\nMissed Interrupts: %10d"),pTask->missed_interrupts),
+//	tTask->AppendText(str);
+//
+//	str.Printf(wxT("\nFPU Multiplies:    %10d"),pTask->tic_fpu_mul),
+//	tTask->AppendText(str);
+//
+//	str.Printf(wxT("\nFPU Divides:       %10d"),pTask->tic_fpu_div),
+//	tTask->AppendText(str);
 
 
 }

@@ -82,9 +82,9 @@
 #define MAX_DOPPLER_MEDIUM		(9000)			//!< Cold Doppler search space for strong signal
 #define MAX_DOPPLER_WEAK		(9000)			//!< Cold Doppler search space for weak signal
 #define MAX_DOPPLER_WARM		(1000)			//!< Search this much Doppler space if state information is available
-#define ACQ_OPERATION_STRONG	(ACQ_OPERATION_COLD)		//!< Acq strong mode (2 = cold & warm)
-#define ACQ_OPERATION_MEDIUM	(ACQ_OPERATION_DISABLED)	//!< Acq strong mode (2 = cold & warm)
-#define ACQ_OPERATION_WEAK		(ACQ_OPERATION_DISABLED)	//!< Acq weak mode (2 = warm only)
+#define ACQ_OPERATION_STRONG	(ACQ_OPERATION_COLD)	//!< Acq strong mode (2 = cold & warm)
+#define ACQ_OPERATION_MEDIUM	(ACQ_OPERATION_WARM)	//!< Acq strong mode (2 = cold & warm)
+#define ACQ_OPERATION_WEAK		(ACQ_OPERATION_DISABLED)//!< Acq weak mode (2 = warm only)
 #define THRESH_STRONG			(0)						//!< Thats right zero! 40 dB-Hz and above acquisition threshold
 #define THRESH_MEDIUM			(0)						//!< Thats right zero! 30 dB-Hz and above acquisition threshold
 #define THRESH_WEAK				(0)						//!< 30 dB-Hz and below (down to ~22 dB-Hz <-- LIAR!) acquisition threshold
@@ -105,13 +105,10 @@
 /* Measurement/PVT Defines */
 /*----------------------------------------------------------------------------------------------*/
 #define MEASUREMENT_INT			(100)		//!< Packets of ~1ms data
-#define ICP_TICS				(5)			//!< Number of measurement ints (plus-minus) to calculate ICP,
+#define ICP_TICS				(1)			//!< Number of measurement ints (plus-minus) to calculate ICP,
 											//!< this cannot exceed TICS_PER_SECOND/2 !!!!
-//#define TICS_2_SECONDS			(MEASUREMENT_INT/1000)
-//#define TICS_PER_SECOND			(1000/MEASUREMENT_INT)
-
-#define MEASUREMENTS_PER_SECOND	(1000/MEASUREMENT_INT)
-#define SECONDS_PER_TICK		(MEASUREMENT_INT/1000)
+#define MEASUREMENTS_PER_SECOND	(10)
+#define SECONDS_PER_TICK		(.1)
 #define PVT_ITERATIONS			(10)		//!< Max number of PVT iterations
 /*----------------------------------------------------------------------------------------------*/
 
@@ -122,8 +119,8 @@
 #define PLL_BN					(15)		//!< PLL Bandwidth
 #define FLL_BN					(10)		//!< FLL Bandwidth
 #define AGC_BITS				(5)			//!< AGC to this bit depth
-#define AGC_LOW					(4)			//!< Overflow low
-#define AGC_HIGH				(16)		//!< Overflow high
+#define OVERFLOW_LOW			(4)			//!< Overflow low
+#define OVERFLOW_HIGH			(64)		//!< Overflow high
 #define MEASUREMENT_DELAY		(10)		//!< Number of measurements that have to be marked as navigate to allow PVT
 /*----------------------------------------------------------------------------------------------*/
 

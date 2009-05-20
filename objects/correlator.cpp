@@ -197,7 +197,7 @@ void Correlator::Correlate()
 				DumpAccum(s, c, f, lcv);
 
 				if(s->active == 0)
-					return;
+					continue;
 
 				/* Now process remaining segment of IF data  */
 				if(s->rollover <= leftover) /* Rollover occurs in THIS packet of data */
@@ -214,8 +214,9 @@ void Correlator::Correlate()
 
 					/* Dump the accumulation */
 					DumpAccum(s, c, f, lcv);
+
 					if(s->active == 0)
-						return;
+						continue;
 
 					/* Do the actual accumulation */
 					Accum(s, c, if_data, leftover);
@@ -255,6 +256,7 @@ void Correlator::Correlate()
 void Correlator::TakeMeasurements()
 {
 
+	double tcode, tphase;
 	int32 lcv;
 	uint32 index_dp;//!< double previous?
 	uint32 index_p;	//!< previous
@@ -305,10 +307,14 @@ void Correlator::TakeMeasurements()
 			/* All these values need scaled!!! */
 			aMeasurement->code_rate          = s->code_nco * HZ_2_NCO_CODE_INCR;
 			aMeasurement->carrier_rate		 = s->carrier_nco * HZ_2_NCO_CARR_INCR;
-			aMeasurement->code_phase         = floor(fmod(s->code_phase, CODE_CHIPS));
-			aMeasurement->carrier_phase      = floor(s->carrier_phase);
-			aMeasurement->frac_code_phase    = s->code_phase_mod * TWO_P31;
-			aMeasurement->frac_carrier_phase = s->carrier_phase_mod * TWO_P32;
+
+			tcode = floor(s->code_phase_mod);
+			aMeasurement->code_phase         = (uint32)tcode;
+			aMeasurement->frac_code_phase    = (uint32)((s->code_phase_mod - tcode) * TWO_P31);
+
+			tphase = floor(s->carrier_phase);
+			aMeasurement->carrier_phase      = (uint32)tphase;
+			aMeasurement->frac_carrier_phase = (uint32)(s->carrier_phase_mod * TWO_P32);
 
 			/* Step 4, Get current carrier phase to finish ICP measurement */
 			sMeasurement->carrier_phase      = aMeasurement->carrier_phase;
@@ -437,9 +443,9 @@ void Correlator::Accum(Correlator_State_S *s, Correlation_S *c, CPX *data, int32
 void Correlator::DumpAccum(Correlator_State_S *s, Correlation_S *c,  NCO_Command_S *f, int32 _chan)
 {
 	double f1, f2, fix, ang;
+	double sang, cang, tI, tQ;
 	double code_phase;
 	int32 bin, offset, lcv, bread;
-	double sang, cang, tI, tQ;
 
 	/* First rotate correlation based on nco frequency and actually frequency used for correlation */
 	f1 = ((s->sbin - CARRIER_BINS) * CARRIER_SPACING) + IF_FREQUENCY;

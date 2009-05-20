@@ -20,16 +20,16 @@ NASA Goddard Space Flight Center, Code 596, Greenbelt, MD  20771
 double icn0_2_fcn0(uint32 _cn0)
 {
 
-	double cn0, NP;
+//	double cn0, NP;
+//
+//	if(_cn0 < 4866)
+//		_cn0 = (uint32)4866;
+//
+//	NP = (double)_cn0 / 4096.0;
+//
+//	cn0 = 10*log10((NP - 1.0)/(20.0 - NP)) + 30.25;
 
-	if(_cn0 < 4866)
-		_cn0 = (uint32)4866;
-
-	NP = (double)_cn0 / 4096.0;
-
-	cn0 = 10*log10((NP - 1.0)/(20.0 - NP)) + 30.25;
-
-	return(cn0);
+	return(_cn0 / 128.0);
 
 }
 /*----------------------------------------------------------------------------------------------*/

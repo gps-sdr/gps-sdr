@@ -254,8 +254,8 @@ void Telemetry::Import()
 	/* Get data from serial port */
 	ImportSerial();
 
-//	/* Bent pipe anything from Commando */
-//	ImportCommando();
+	/* Bent pipe anything from Commando */
+	ImportCommando();
 
 	/* Increment execution counter */
 	IncExecTic();
@@ -585,7 +585,7 @@ void Telemetry::SendTaskHealth()
 	task_health->start_tic[EKF_TASK_ID]  			= 0;
 	task_health->start_tic[PVT_TASK_ID]  			= pPVT->getStartTic();
 	task_health->start_tic[PPS_TASK_ID]  			= 0;
-	task_health->execution_tic[IDLE_TASK_ID]  		= 0;
+	task_health->start_tic[IDLE_TASK_ID]  			= 0;
 
 	/* get execution counters */
 	task_health->stop_tic[TRACKING_ISR_TASK_ID]		= pCorrelator->getStopTic();
@@ -598,16 +598,12 @@ void Telemetry::SendTaskHealth()
 	task_health->stop_tic[EKF_TASK_ID]  			= 0;
 	task_health->stop_tic[PVT_TASK_ID]  			= pPVT->getStopTic();
 	task_health->stop_tic[PPS_TASK_ID]  			= 0;
-	task_health->execution_tic[IDLE_TASK_ID]  		= 0;
+	task_health->stop_tic[IDLE_TASK_ID]  			= 0;
 
 	/* Check for missed interrupts */
-//	missed_interrupts += (cpu_iord_32(TRK_MISSED_INT) & INTERRUPT_MASK) != 0;
-//	task_health->missed_interrupts = missed_interrupts;
-//	cpu_iowr_32(TRK_MISSED_INT, 0xFFFFFFFF);
-//
-//	task_health->tic_fpu_mul = tic_fpu_mul;
-//	task_health->tic_fpu_div = tic_fpu_div;
-
+	task_health->missed_interrupts = 0;
+	task_health->tic_fpu_mul = 0;
+	task_health->tic_fpu_div = 0;
 	task_health->tic = pvt_s.sps.tic;
 
 	/* Form the packet header */
@@ -639,7 +635,7 @@ void Telemetry::SendChannelHealth()
 		channel->sv 		= aChannel->sv;			//!< SV/PRN number the channel is tracking
 		channel->antenna 	= aChannel->antenna;	//!< Antenna channel is tracking off of
 		channel->len 		= aChannel->len;		//!< Accumulation length (1 or 20 ms)
-//		channel->cn0 		= aChannel->cn0;		//!< CN0 estimate
+		channel->cn0 		= aChannel->cn0 * 128;	//!< CN0 estimate
 		channel->p_avg		= aChannel->P_avg;		//!< Filtered version of I^2+Q^2
 		channel->bit_lock 	= aChannel->bit_lock;	//!< Bit lock?
 		channel->frame_lock = aChannel->frame_lock;	//!< Frame lock?

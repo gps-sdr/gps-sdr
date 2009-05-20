@@ -31,7 +31,7 @@
 #include "includes.h"
 #include "telemetry.h"
 
-#define FIFO_DEPTH (1000)	//!< In ms
+#define FIFO_DEPTH (5000)	//!< In ms
 
 /*! \ingroup CLASSES
  *
@@ -55,6 +55,7 @@ class FIFO : public Threaded_Object
 		int32 count;		//!< Count the number of packets received
 		int32 agc_scale;	//!< To do the AGC
 		int32 overflw;		//!< Overflow counter
+		int32 soverflw;		//!< Overflow counter
 		int32 tic;			//!< Master receiver tic
 
 	public:

@@ -67,7 +67,7 @@ void GUI_Channel::render(wxDC& dc)
 	{
 		pchan = &p->channel[lcv];
 
-		if(pchan->count > 0)
+		if(pchan->count > 2000)
 		{
 
 			str2.Clear();

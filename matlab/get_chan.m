@@ -21,7 +21,7 @@ function [A] = get_chan(chan)
 % int32 best_epoch;	//!< Best estimate of bit edge position
 
 
-pts = 19;
+pts = 19+6+20;
 
 fp = fopen(sprintf('../chan%02d.dat',chan),'rb');
 A(:,1) = fread(fp,inf,'int32'); 
