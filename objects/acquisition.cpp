@@ -40,7 +40,6 @@ void *Acquisition_Thread(void *_arg)
 	{
 		aAcquisition->Import();
 		aAcquisition->Acquire();
-		aAcquisition->Export(NULL);
 		aAcquisition->IncExecTic();
 	}
 
@@ -573,7 +572,7 @@ Acq_Command_S Acquisition::doAcqWeak(int32 _sv, int32 _doppmin, int32 _doppmax)
 
 /*----------------------------------------------------------------------------------------------*/
 /*!
- * Export:
+ *
  * */
 void Acquisition::Acquire()
 {
@@ -690,7 +689,7 @@ void Acquisition::Export(char * _fname)
 
 	if(_fname == NULL)
 	{
-		fp = fopen("Acq.txt","wa");
+		fp = fopen("acq.txt","wa");
 		if(fp == NULL)
 			return;
 		fseek(fp, 0x0, SEEK_SET);

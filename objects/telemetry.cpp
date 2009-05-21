@@ -31,7 +31,6 @@
 void lost_gui_pipe(int _sig)
 {
 	pTelemetry->ClosePipe();
-	printf("GUI disconnected\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -43,7 +42,7 @@ void *Telemetry_Thread(void *_arg)
 	{
 		pTelemetry->Import();
 		pTelemetry->Export();
-		usleep(1000);
+		usleep(10000);
 	}
 
 }
@@ -219,11 +218,11 @@ void Telemetry::OpenPipe()
 	}
 	else
 	{
+		npipe_open = false;
 		close(npipe[READ]);
 		close(npipe[WRITE]);
 		npipe[READ] = NULL;
 		npipe[WRITE] = NULL;
-		npipe_open = false;
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -316,7 +315,7 @@ void Telemetry::ImportSerial()
 	if(npipe_open)
 	{
 		bread = read(npipe[READ], &abyte, sizeof(uint8));
-		while(bread > 0 && npipe_open)
+		while((bread > 0) && npipe_open && grun)
 		{
 			bytes_read++;
 

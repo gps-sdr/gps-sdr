@@ -7,6 +7,14 @@
 
 #include "gui.h"
 
+wxColor grey(127,127,127);
+wxColor blue(0,0,255);
+wxColor white(255,255,255);
+wxColor yellow(255,255,0);
+wxColor green(0,255,0);
+wxColor red(255,0,0);
+wxColor black(0,0,0);
+
 DECLARE_APP(GUI_App)
 
 /*----------------------------------------------------------------------------------------------*/
@@ -129,13 +137,13 @@ void GUI_Select::renderMode()
 	{
 		if(p->sv_select_status.mode == lcv)
 		{
-			dc.SetBrush(wxBrush(wxColor(0,255,0)));
-			dc.SetPen(wxPen(wxColor(0,0,0), 1));
+			dc.SetBrush(wxBrush(green));
+			dc.SetPen(wxPen(black, 1));
 		}
 		else
 		{
-			dc.SetBrush(wxBrush(wxColor(127,127,127)));
-			dc.SetPen(wxPen(wxColor(0,0,0), 1));
+			dc.SetBrush(wxBrush(grey));
+			dc.SetPen(wxPen(black, 1));
 		}
 
 		dc.DrawPolygon(4, box, lcv*dX, 0);
@@ -148,14 +156,6 @@ void GUI_Select::renderVisible()
 {
 
 	int32 dX, dY, lcv;
-
-	wxColor grey(127,127,127);
-	wxColor blue(0,0,255);
-	wxColor yellow(255,255,0);
-	wxColor green(0,255,0);
-	wxColor red(255,0,0);
-	wxColor black(0,0,0);
-
 	wxPoint box[4];
 	wxString str;
 
@@ -203,20 +203,20 @@ void GUI_Select::renderVisible()
 	}
 
 	/* Draw highlighted box */
-	if(p->sv_select_status.state[sv] == 2)
+	switch(p->sv_select_status.state[sv])
 	{
-		dc.SetBrush(wxBrush(green));
-		dc.SetPen(wxPen(black, 1));
-	}
-	else if(p->sv_select_status.state[sv] == 1)
-	{
-		dc.SetBrush(wxBrush(blue));
-		dc.SetPen(wxPen(black, 1));
-	}
-	else
-	{
-		dc.SetBrush(wxBrush(grey));
-		dc.SetPen(wxPen(black, 1));
+		case 3:
+			dc.SetBrush(wxBrush(green));
+			break;
+		case 2:
+			dc.SetBrush(wxBrush(yellow));
+			break;
+		case 1:
+			dc.SetBrush(wxBrush(blue));
+			break;
+		default:
+			dc.SetBrush(wxBrush(grey));
+			break;
 	}
 
 	dc.SetPen(wxPen(red, 2));
@@ -237,7 +237,7 @@ void GUI_Select::renderSV()
 
 	SV_Prediction_M *psv;
 
-	text.SetBackgroundColour(wxColor(255,255,255));
+	text.SetBackgroundColour(white);
 	tDisplay->SetDefaultStyle(text);
 
 	str.Printf(wxT("Ch# Vis   Elev     Azim     Doppler        Time\n\n"));
@@ -249,12 +249,12 @@ void GUI_Select::renderSV()
 
 		if(lcv == p->sv_predictions[MAX_SV].sv)
 		{
-			text.SetBackgroundColour(wxColor(127,127,127));
+			text.SetBackgroundColour(grey);
 			tDisplay->SetDefaultStyle(text);
 		}
 		else
 		{
-			text.SetBackgroundColour(wxColor(255,255,255));
+			text.SetBackgroundColour(white);
 			tDisplay->SetDefaultStyle(text);
 		}
 

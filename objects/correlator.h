@@ -60,8 +60,6 @@ class Correlator : public Threaded_Object
 		MIX	 				**main_code_rows;					//!< Row pointers to above
 		CPX					scratch[2*SAMPS_MS];				//!< Scratch data
 		CPX					lookup[SAMPS_MS];					//!< Hold the sine lookup
-		uint32				nco_phase_inc;						//!< For dynamically generating the wipeoff
-		uint32				nco_phase;							//!< For dynamically generating the wipeoff
 
 	public:
 

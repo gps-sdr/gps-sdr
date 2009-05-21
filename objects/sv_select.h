@@ -31,6 +31,7 @@
 #include "includes.h"
 #include "ephemeris.h"
 #include "channel.h"
+#define EKF_STATE_INITIALIZED (1)
 
 enum SV_SELECT_MODE
 {

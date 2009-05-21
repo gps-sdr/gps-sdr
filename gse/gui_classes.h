@@ -73,10 +73,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Toplevel
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_Toplevel : public wxFrame 
+class iGUI_Toplevel : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxMenuBar* mMenuBar;
 		wxMenu* mFile;
@@ -95,20 +95,20 @@ class iGUI_Toplevel : public wxFrame
 		wxTextCtrl* tRS422;
 		wxTextCtrl* tTask;
 		wxStatusBar* mStatus;
-	
+
 	public:
 		iGUI_Toplevel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Navigator GSE"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL, const wxString& name = wxT("GPS-SDR") );
 		~iGUI_Toplevel();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_PVT
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_PVT : public wxFrame 
+class iGUI_PVT : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxPanel* pCN0;
 		wxStaticText* m_staticText5311;
@@ -119,7 +119,7 @@ class iGUI_PVT : public wxFrame
 		wxStaticText* m_staticText53411;
 		wxStaticText* cticks;
 		wxStaticText* m_staticText5321;
-		
+
 		wxStaticText* m_staticText53511;
 		wxStaticText* iter;
 		wxStaticText* m_staticText53431;
@@ -140,7 +140,7 @@ class iGUI_PVT : public wxFrame
 		wxStaticText* py;
 		wxStaticText* m_staticText53612;
 		wxStaticText* pz;
-		
+
 		wxStaticText* m_staticText533;
 		wxStaticText* m_staticText536;
 		wxStaticText* vx;
@@ -168,24 +168,24 @@ class iGUI_PVT : public wxFrame
 		wxStaticText* ppscr;
 		wxStaticText* m_staticText577111;
 		wxStaticText* ppserr;
-		
+
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
-		
-	
+
+
 	public:
 		iGUI_PVT( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("PVT"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1000,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_PVT();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_EKF
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_EKF : public wxFrame 
+class iGUI_EKF : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxTextCtrl* tResidual;
 		wxStaticText* m_staticText5311;
@@ -218,7 +218,7 @@ class iGUI_EKF : public wxFrame
 		wxStaticText* py;
 		wxStaticText* m_staticText53612;
 		wxStaticText* pz;
-		
+
 		wxStaticText* m_staticText533;
 		wxStaticText* m_staticText536;
 		wxStaticText* vx;
@@ -244,7 +244,7 @@ class iGUI_EKF : public wxFrame
 		wxStaticText* cpy;
 		wxStaticText* m_staticText536121;
 		wxStaticText* cpz;
-		
+
 		wxStaticText* m_staticText5331;
 		wxStaticText* m_staticText5362;
 		wxStaticText* cvx;
@@ -252,113 +252,113 @@ class iGUI_EKF : public wxFrame
 		wxStaticText* cvy;
 		wxStaticText* m_staticText536131;
 		wxStaticText* cvz;
-		
+
 		wxStaticText* m_staticText57721;
 		wxStaticText* utct;
 		wxStaticText* m_staticText577;
 		wxStaticText* gpsw;
 		wxStaticText* m_staticText5772;
 		wxStaticText* gpss;
-	
+
 	public:
 		iGUI_EKF( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("EKF"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1000,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_EKF();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Channel
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_Channel : public wxFrame 
+class iGUI_Channel : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxTextCtrl* tChannel;
-	
+
 	public:
 		iGUI_Channel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Channel Status"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Channel();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Pseudo
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_Pseudo : public wxFrame 
+class iGUI_Pseudo : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxTextCtrl* tPseudo;
-	
+
 	public:
 		iGUI_Pseudo( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Pseudoranges"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Pseudo();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Ephemeris
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_Ephemeris : public wxFrame 
+class iGUI_Ephemeris : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxPanel* pDecoded;
 		wxTextCtrl* tDisplay;
-		
+
 		wxButton* bRefresh;
 		wxButton* bSave;
 		wxButton* bLoad;
-		
-		
+
+
 		// Virtual event handlers, overide them in your derived class
 		virtual void onMouse( wxMouseEvent& event ){ event.Skip(); }
-		
-	
+
+
 	public:
 		iGUI_Ephemeris( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Ephemeris"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 400,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Ephemeris();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Almanac
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_Almanac : public wxFrame 
+class iGUI_Almanac : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxPanel* pDecoded;
 		wxTextCtrl* tDisplay;
-		
+
 		wxButton* bRefresh;
 		wxButton* bSave;
 		wxButton* bLoad;
-		
-		
+
+
 		// Virtual event handlers, overide them in your derived class
 		virtual void onMouse( wxMouseEvent& event ){ event.Skip(); }
-		
-	
+
+
 	public:
 		iGUI_Almanac( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Almanac"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 400,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Almanac();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Health
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_Health : public wxFrame 
+class iGUI_Health : public wxFrame
 {
 	private:
-	
+
 	protected:
-		
+
 		wxStaticText* m_staticText533;
 		wxStaticText* m_staticText534;
 		wxStaticText* m_staticText535;
@@ -368,7 +368,7 @@ class iGUI_Health : public wxFrame
 		wxStaticText* acqv;
 		wxStaticText* fftv;
 		wxStaticText* sftv;
-		
+
 		wxStaticText* m_staticText53;
 		wxStaticText* m_staticText56;
 		wxStaticText* m_staticText54;
@@ -383,60 +383,60 @@ class iGUI_Health : public wxFrame
 		wxStaticText* ovr1;
 		wxStaticText* ovr2;
 		wxStaticText* ovr3;
-		
+
 		wxStaticText* m_staticText53141;
 		wxStaticText* nsptr;
 		wxStaticText* m_staticText531421;
 		wxStaticText* pcctr;
-		
+
 		wxStaticText* m_staticText53142;
 		wxStaticText* rftr;
 		wxStaticText* m_staticText561;
 		wxStaticText* vref;
-		
+
 		wxStaticText* m_staticText531;
 		wxStaticText* gnd1;
 		wxStaticText* m_staticText541;
 		wxStaticText* gnd2;
-		
+
 		wxStaticText* m_staticText551;
 		wxStaticText* p5;
 		wxStaticText* m_staticText5311;
 		wxStaticText* p15;
-		
+
 		wxStaticText* m_staticText5312;
 		wxStaticText* n15;
 		wxStaticText* m_staticText5313;
 		wxStaticText* p25;
-		
+
 		wxStaticText* m_staticText5314;
 		wxStaticText* p33;
 		wxStaticText* m_staticText531422;
 		wxStaticText* p1p5;
-		
+
 		wxStaticText* m_staticText5314221;
 		wxStaticText* rf0;
 		wxStaticText* m_staticText5314222;
 		wxStaticText* rf1;
-		
+
 		wxStaticText* m_staticText53142221;
 		wxStaticText* rf2;
 		wxStaticText* m_staticText53142222;
 		wxStaticText* rf3;
-	
+
 	public:
 		iGUI_Health( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Board Health"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Health();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Commands
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_Commands : public wxFrame 
+class iGUI_Commands : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxButton* bNull;
 		wxButton* bResetWatchdog;
@@ -451,20 +451,20 @@ class iGUI_Commands : public wxFrame
 		wxButton* bReset_Almanac;
 		wxChoice* mReset_Almanac;
 		wxTextCtrl* tCommand_Ack;
-	
+
 	public:
 		iGUI_Commands( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Commands"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 300,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Commands();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_EEPROM
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_EEPROM : public wxFrame 
+class iGUI_EEPROM : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxChoice* mBurn;
 		wxChoice* mBank;
@@ -472,26 +472,26 @@ class iGUI_EEPROM : public wxFrame
 		wxTextCtrl* tFeedback;
 		wxButton* mStop;
 		wxButton* mStart;
-	
+
 	public:
 		wxFilePickerCtrl* mEEPROMFile;
 		iGUI_EEPROM( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("EEPROM"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_EEPROM();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Log
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_Log : public wxDialog 
+class iGUI_Log : public wxDialog
 {
 	private:
-	
+
 	protected:
-		
+
 		wxButton* bCancel;
 		wxButton* bOK;
-	
+
 	public:
 		wxCheckBox* cPVT;
 		wxCheckBox* cClock;
@@ -507,48 +507,48 @@ class iGUI_Log : public wxDialog
 		wxFilePickerCtrl* mFile;
 		iGUI_Log( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Logging Config"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE );
 		~iGUI_Log();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Messages
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_Messages : public wxFrame 
+class iGUI_Messages : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxTextCtrl* tMess;
-	
+
 	public:
 		iGUI_Messages( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Messages"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 250,460 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Messages();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Select
 ///////////////////////////////////////////////////////////////////////////////
-class iGUI_Select : public wxFrame 
+class iGUI_Select : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxPanel* pVisible;
 		wxPanel* pMode;
 		wxTextCtrl* tDisplay;
-		
+
 		wxButton* bRefresh;
-		
-		
+
+
 		// Virtual event handlers, overide them in your derived class
 		virtual void onMouse( wxMouseEvent& event ){ event.Skip(); }
-		
-	
+
+
 	public:
 		iGUI_Select( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("SV Select"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 400,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Select();
-	
+
 };
 
 #endif //__gui_classes__

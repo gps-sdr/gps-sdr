@@ -105,6 +105,14 @@ void *GUI_Serial_Thread(void *_arg)
 
 
 /*----------------------------------------------------------------------------------------------*/
+void lost_client(int _sig)
+{
+	aGUI_Serial->closePipe();
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void GUI_Serial::Start()
 {
 	Start_Thread(GUI_Serial_Thread, this);
@@ -139,6 +147,7 @@ GUI_Serial::GUI_Serial()
 	memset(&decoded_command, 0x0, sizeof(CCSDS_Decoded_Header));
 	memset(&filename[0], 0x0, 1024*sizeof(char));
 	memset(&log_flag[0], 0x0, LAST_M_ID*sizeof(char));
+	signal(SIGPIPE, lost_client);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -215,6 +224,16 @@ void GUI_Serial::openPipe()
 		close(npipe[WRITE]);
 		npipe_open = false;
 	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::closePipe()
+{
+	close(npipe[READ]);
+	close(npipe[WRITE]);
+	npipe_open = false;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -357,21 +376,14 @@ int GUI_Serial::Read(void *_b, int32 _bytes)
 	nbytes = 0; bread = 0;
 	buff = (uint8 *)_b;
 
-	while((nbytes < _bytes) && grun)
+	while((nbytes < _bytes) && grun && npipe_open)
 	{
-		if(npipe_open)
-		{
-			bread = read(npipe[READ], buff, _bytes - nbytes);
-		}
-		else
-			nbytes = _bytes;
-
-		if(bread >= 0)
+		bread = read(npipe[READ], buff, _bytes - nbytes);
+		if(bread > -1)
 		{
 			nbytes += bread;
 			buff += bread;
 		}
-
 		usleep(100);
 	}
 

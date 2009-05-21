@@ -148,6 +148,7 @@ void Correlator::Import()
 	/* This call should block until new data is available */
 	pFIFO->Dequeue(&packet);
 
+	/* We have a new packet! */
 	packet_count++;
 
 }
@@ -258,12 +259,12 @@ void Correlator::TakeMeasurements()
 
 	double tcode, tphase;
 	int32 lcv;
-	uint32 index_dp;//!< double previous?
+	uint32 index_dp;//!< double previous
 	uint32 index_p;	//!< previous
 	uint32 index_c;	//!< current
 	uint32 nav_dp, nav_p, nav_c;
 	Correlator_State_S *s;
-	Measurement_M *sMeasurement; //!< Measurement actually transmitted
+	Measurement_M *sMeasurement; //!< Measurement transmitted to PVT
 	Measurement_M *aMeasurement; //!< Measurement stored
 
 	measurement_tic++;
@@ -283,9 +284,9 @@ void Correlator::TakeMeasurements()
 		/* Pointer to current measurement in buffer */
 		aMeasurement = &measurements_buff[lcv][index_c];
 
+		/* Only do this if we are navigating */
 		if(s->navigate)
 		{
-
 			/* Step 1, copy in measurement (ie code phase) from ICP_TICS ago */
 			memcpy(sMeasurement, &measurements_buff[lcv][index_p], sizeof(Measurement_M));
 
@@ -525,8 +526,6 @@ void Correlator::ProcessFeedback(Correlator_State_S *s, NCO_Command_S *f)
 	s->code_nco 	= f->code_nco;
 	s->navigate		= f->navigate;
 
-	nco_phase_inc = (uint32)floor((double)s->carrier_nco*(double)2.097152000000000e+03);
-
 	if(f->reset_1ms)
 		s->_1ms_epoch = 0;
 
@@ -548,32 +547,6 @@ void Correlator::ProcessFeedback(Correlator_State_S *s, NCO_Command_S *f)
 /*----------------------------------------------------------------------------------------------*/
 
 
-/*----------------------------------------------------------------------------------------------*/
-void Correlator::Export()
-{
-
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void Correlator::SineGen(int32 _samps)
-{
-
-	int32 lcv;
-	uint32 index;
-
-	for(lcv = 0; lcv < _samps; lcv++)
-	{
-		index = nco_phase >> 21;
-//		main_sine_rows[chan][lcv].i = lookup[index].i;
-//		main_sine_rows[chan][lcv].q = lookup[index].q;
-		nco_phase += nco_phase_inc;
-	}
-
-}
-/*---------------------------------------------------------------active		= true;-------------------------------*/
 
 
 /*----------------------------------------------------------------------------------------------*/
@@ -648,11 +621,11 @@ void Correlator::InitCorrelator(Correlator_State_S *s)
 	int32 bin, inc;
 
 	/* Update delay based on current packet count */
-//	dt = (double)packet.count - (double)result.count;
-//	dt *= (double).001;
-//	dt *= (double)result.doppler * (double)CODE_RATE/(double)L1;
+	dt = (double)packet.count - (double)result.count;
+	dt *= (double).001;
+	dt *= (double)result.doppler * (double)CODE_RATE/(double)L1;
 
-	dt = 0;
+	/* Convert delay in samples to chips */
 	code_phase = (double)result.code_phase * 1023.0 / 2048.0;
 	code_phase += (double)CODE_CHIPS + dt;
 	code_phase = fmod(code_phase,(double) CODE_CHIPS);
@@ -670,14 +643,12 @@ void Correlator::InitCorrelator(Correlator_State_S *s)
 	s->carrier_nco			= IF_FREQUENCY + result.doppler;
 	s->_1ms_epoch 			= 0;
 	s->_20ms_epoch			= 0;
-	s->rollover 			= (int32) ceil(((double)CODE_CHIPS - code_phase)*SAMPLE_FREQUENCY/s->code_nco); /* Calculate rollover point */
+	s->rollover 			= (int32) ceil(((double)CODE_CHIPS - code_phase)*SAMPLE_FREQUENCY/s->code_nco); /* Calculate rollover point */
+	/* Get row pointers to pre-generated code */
 
 	GetPRN(s);
 
-	nco_phase_inc = (uint32)floor((double)s->carrier_nco*(double)2.097152000000000e+03);
-	nco_phase = 0;
-
-//	inc = (int32)floor(code_phase*2048.0/1023.0);
+	/* Offset based on acquisition result */
 	inc = result.code_phase;
 
 	/* Initialize the code bin pointers */
@@ -706,8 +677,6 @@ void Correlator::InitCorrelator(Correlator_State_S *s)
 	if(bin < 0)	bin = 0; if(bin > 2*CARRIER_BINS) bin = 2*CARRIER_BINS;
 	s->psine = main_sine_rows[bin];
 	s->sbin = bin;
-
-	//printf("Correlator initialized %d,%d,%f,%f,%f,%d,%d\n",chan,result.sv,state.carrier_nco,state.code_nco,state.code_phase,packet.count,result.count);
 
 }
 /*----------------------------------------------------------------------------------------------*/

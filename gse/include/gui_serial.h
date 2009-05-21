@@ -101,6 +101,7 @@ class GUI_Serial : public Threaded_Object
 		void setPipe(bool _status);							//!< Signal handler
 		void openSerial();									//!< Attempt to open the serial port
 		void openPipe();									//!< Attempt to open the named pipe
+		void closePipe();
 		void readGPS();										//!< Read from the receiver
 		void writeGPS();									//!< Write to the receiver
 		int Read(void *_b, int32 _bytes);					//!< Read bytes from given interface

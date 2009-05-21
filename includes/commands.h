@@ -5,24 +5,18 @@
 //
 // DESCRIPTION: Define commands used for RS422 interface
 //
-// USED ON:  GPS Receiver named "Navigator"
+// DEVELOPERS: Gregory W. Heckler (2003-2009)
 //
-// DEVELOPED BY:  GSFC Components and Hardware Systems Branch (Code 596)
+// LICENSE TERMS: Copyright (c) Gregory W. Heckler 2009
 //
-// HISTORY: first used on RNS to fly on Hubble SM4 (STS125) Developed 2007,2008
-//          elevated to Class B for use on GPM  development 2009-
-//          added spinner capabilities for use on MMS  development 2009-
-//          GPM and MMS variants concurrently developed.
+// This file is part of the GPS Software Defined Radio (GPS-SDR)
 //
-// DEVELOPERS: Greg Heckler (2008-2009)  RNS,GPM,MMS (original development team)
-//
-// PROPRIETARY NOTICE:  Copyright (c) NASA GSFC 2008,2009.  All rights reserved.
-//
-// VERSION CONTROL:  This code is configuration managed using Subversion.
-//      The Subversion server and tool is maintained as part of the FFTB.
-//      The detailed change history is available within Subversion.
-//
-// Subversion Id: $Id$
+// The GPS-SDR is free software; you can redistribute it and/or modify it under the terms of the
+// GNU General Public License as published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version. The GPS-SDR is distributed in the hope that
+// it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
 //
 // Note:  Comments within this file follow a syntax that is compatible with
 //        DOXYGEN and are utilized for automated document extraction

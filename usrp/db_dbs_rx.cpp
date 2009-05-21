@@ -1,29 +1,27 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2007 Free Software Foundation, Inc.
- * 
+ *
  * This file is part of GNU Radio
- * 
+ *
  * GNU Radio is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * GNU Radio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with GNU Radio; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
 
-
 #include "db_dbs_rx.h"
 #include <math.h>
-
 
 /*!
 	db_dbs_rx(usrp_standard_rx *_urx, int _which)
@@ -88,7 +86,7 @@ db_dbs_rx::db_dbs_rx(usrp_standard_rx *_urx, int _which)
 	bypass_adc_buffers(true);
 
 	/* Write to the MAX2118 to initialize the board */
-	write_MAX2118(); 
+	write_MAX2118();
 
 	/* set gain to 0 dB initially */
 	gain(0);
@@ -174,7 +172,7 @@ double db_dbs_rx::bandwidth(double _bw)
 		thresh = (double)floor(refclk_freq()/.25e6);
 		m_max = (int)(31.0 < thresh ? 31.0 : thresh);
 	}
-    
+
 
     int m_min = (int) ceil(refclk_freq()/2.5e6);
 
@@ -257,7 +255,7 @@ void db_dbs_rx::set_dl(int _dl)
 /*!
 	set_pga(double _pga)
 
-	Sets the PGA on the 
+	Sets the PGA on the
 */
 void db_dbs_rx::set_pga(double _pga)
 {
@@ -459,7 +457,7 @@ void db_dbs_rx::set_r(int _r)
 		}
 		send_reg(2);
 	}
-	
+
 }
 
 
@@ -623,7 +621,7 @@ double db_dbs_rx::tune(double _freq)
 		vco = 0;
 	else if(vcofreq < 2711e6)
 		vco = 1;
-	else if(vcofreq < 3025e6) 
+	else if(vcofreq < 3025e6)
 		vco = 2;
 	else if(vcofreq < 3341e6)
 		vco = 3;
@@ -710,7 +708,7 @@ void db_dbs_rx::write_MAX2118()
 /*!
 	read_adc()
 
-	Read the PLL ADC value, used to tune the LO 
+	Read the PLL ADC value, used to tune the LO
 */
 int db_dbs_rx::read_adc()
 {
@@ -806,7 +804,7 @@ void db_dbs_rx::set_refclk_divisor(int _div)
 */
 void db_dbs_rx::enable_refclk(bool _enable)
 {
-    
+
 	unsigned int CLOCK_OUT = 1; //# Clock is on lowest bit
 	unsigned int REFCLK_ENABLE = 0x80;
 	unsigned int REFCLK_DIVISOR_MASK = 0x7f;
@@ -815,7 +813,7 @@ void db_dbs_rx::enable_refclk(bool _enable)
 		d_urx->_write_oe(d_which,CLOCK_OUT,CLOCK_OUT);
 		d_urx->_write_fpga_reg(d_REFCLK_REG,((d_refclk_divisor & REFCLK_DIVISOR_MASK)|REFCLK_ENABLE));
 	}
-	else	
+	else
 	{
 		d_urx->_write_fpga_reg(d_REFCLK_REG, 0x0);
 	}

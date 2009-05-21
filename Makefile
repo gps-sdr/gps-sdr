@@ -28,10 +28,6 @@ HEADERS = $(wildcard accessories/*.h acquisition/*.h main/*.h objects/*.h simd/*
 			
 #Uncomment these to look at the disassembly
 #DIS = 		x86.dis		\
-#			sse.dis		\
-#			fft.dis		\
-#			acquisition.dis \
-#			acq_test.dis 
 
 EXE =	gps-sdr		\
 		simd-test
@@ -49,8 +45,6 @@ all: $(EXE)
 extras:	guiclean $(EXTRAS)
 
 test: $(TEST)
-
-gui: gps-gui
 
 gps-sdr: main.o $(OBJS) $(DIS) $(HEADERS)
 	 $(LINK) $(LDFLAGS) -o $@ main.o $(OBJS)
@@ -73,7 +67,7 @@ acq-test: acq-test.o $(OBJS)
 %.o:%.s
 	$(ASM) $(CFLAGS) -c $< -o $@
 
-gps-gui:
+gps-gse:
 	make --directory=./gse
 	
 gps-usrp:
@@ -86,7 +80,7 @@ clean_o:
 	
 minclean:
 	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -o -name "*.out" -o -name "*.m~"  -o -name "*.tlm" \) -print`
-	@rm -rvf `find . \( -name "*.klm" -o -name "fft-test" -o -name "acq-test" -o -name "current.*" -o -name "gps-gui" -o -name "gps-usrp" \) -print`	
+	@rm -rvf `find . \( -name "*.klm" -o -name "fft-test" -o -name "acq-test" -o -name "current.*" -o -name "gps-gse" -o -name "gps-usrp" \) -print`	
 	@rm -rvf $(EXE)
 	
 guiclean:

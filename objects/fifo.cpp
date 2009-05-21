@@ -72,6 +72,9 @@ FIFO::FIFO():Threaded_Object("FIFTASK")
 {
 	int32 lcv;
 
+	npipe = NULL;
+	npipe_open = false;
+
 	/* Create the buffer */
 	buff = new ms_packet[FIFO_DEPTH];
 
@@ -124,56 +127,53 @@ FIFO::~FIFO()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void kill_program(int _sig)
-{
-	grun = false;
-	printf("Lost USRP-GPS!\n");
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
 void FIFO::Import()
 {
-	int32 lcv;
-	char *p;
-	int32 nbytes, bread, bytes_per_read;
-
-	bytes_per_read = IF_SAMPS_MS*sizeof(CPX);
-
-	/* Get data from pipe (1 ms) */
-	nbytes = 0; p = (char *)&if_buff[0];
-	while((nbytes < bytes_per_read) && grun)
-	{
-		bread = read(npipe, &p[nbytes], PIPE_BUF);
-		if(bread >= 0)
-			nbytes += bread;
-	}
+	int32 bread, nbytes;
+	uint8 *p;
 
 	IncStartTic();
 
-	/* Add to the buff */
-	soverflw += run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, agc_scale);
-
-	/* Figure out the agc_scale value */
-	if((count & 0xF) == 0)
+	if(npipe_open)
 	{
+		nbytes = 0; p = (uint8*)&if_buff[0];
+		while((nbytes < IF_SAMPS_MS*sizeof(CPX)) && grun)
+		{
+			bread = read(npipe, &p[nbytes], IF_SAMPS_MS*sizeof(CPX) - nbytes);
+			if(bread > -1)
+			{
+				nbytes += bread;
+			}
+		}
 
-		if(soverflw > OVERFLOW_HIGH*8)
-			agc_scale += 100;
+		/* Add to the buff */
+		soverflw += run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, agc_scale);
 
-		if(soverflw > OVERFLOW_HIGH)
-			agc_scale += 1;
+		/* Figure out the agc_scale value */
+		if((count & 0xF) == 0)
+		{
 
-		if(soverflw < OVERFLOW_LOW)
-			agc_scale -= 1;
+			if(soverflw > OVERFLOW_HIGH*8)
+				agc_scale += 100;
 
-		if(agc_scale < 1)
-			agc_scale = 1;
+			if(soverflw > OVERFLOW_HIGH)
+				agc_scale += 1;
 
-		overflw = soverflw;
-		soverflw = 0;
+			if(soverflw < OVERFLOW_LOW)
+				agc_scale -= 1;
+
+			if(agc_scale < 1)
+				agc_scale = 1;
+
+			overflw = soverflw;
+			soverflw = 0;
+		}
 	}
+	else
+	{
+		Open();
+	}
+
 
 	Enqueue();
 
@@ -200,6 +200,8 @@ void FIFO::Enqueue()
 
 	sem_post(&sem_full);
 
+	usleep(500);
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -223,14 +225,18 @@ void FIFO::Dequeue(ms_packet *p)
 void FIFO::Open()
 {
 
-	/* Open the USRP_Uno pipe to get IF data */
-	if(gopt.verbose)
-		printf("Opening GPS pipe.\n");
+	npipe = NULL;
+	npipe = open("/tmp/GPSPIPE", O_RDONLY | O_NONBLOCK);
 
-	npipe = open("/tmp/GPSPIPE", O_RDONLY);
-
-	if(gopt.verbose)
-		printf("GPS pipe open.\n");
+	if(npipe != -1)
+	{
+		npipe_open = true;
+		if(gopt.verbose)			printf("GPS pipe open.\n");
+	}
+	else
+	{
+		usleep(1000);
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/

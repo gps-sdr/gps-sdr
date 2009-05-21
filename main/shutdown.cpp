@@ -134,9 +134,6 @@ void Object_Shutdown(void)
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		delete pChannels[lcv];
 
-//	if(gopt.post_process)
-//		delete pPost_Process;
-
 	delete pKeyboard;
 	delete pAcquisition;
 	delete pEphemeris;
@@ -145,6 +142,9 @@ void Object_Shutdown(void)
 	delete pTelemetry;
 	delete pPVT;
 	delete pCommando;
+
+	//	if(gopt.post_process)
+	//		delete pPost_Process;
 
 }
 /*----------------------------------------------------------------------------------------------*/

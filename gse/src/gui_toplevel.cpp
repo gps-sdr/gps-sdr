@@ -36,8 +36,9 @@ BEGIN_EVENT_TABLE(GUI_Toplevel, wxFrame)
 END_EVENT_TABLE()
 /*----------------------------------------------------------------------------------------------*/
 
+
 /*----------------------------------------------------------------------------------------------*/
-GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("Navigator GSE"), wxDefaultPosition, wxSize(600,600), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL, wxT("Navigator GSE") )
+GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS GUI"), wxDefaultPosition, wxSize(600,600), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL, wxT("GPS GUI") )
 {
 
 	wPVT 			= NULL;
@@ -126,10 +127,10 @@ void GUI_Toplevel::onAbout(wxCommandEvent& WXUNUSED(event))
 {
 	wxString message;
 
-	message = wxT("Navigator GSE\nCopyright 2009 NASA GSFC Code 596\nPath: ");
+	message = wxT("GPS-SDR\nCopyright 2009 Gregory W. Heckler\nPath: ");
 	message += wxGetCwd();
 
-	wxMessageBox(message,wxT("About Navigator GSE"), wxOK | wxICON_INFORMATION, this);
+	wxMessageBox(message,wxT("About GPS-SDR"), wxOK | wxICON_INFORMATION, this);
 }
 /*----------------------------------------------------------------------------------------------*/
 

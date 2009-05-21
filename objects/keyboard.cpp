@@ -38,36 +38,12 @@ void *Keyboard_Thread(void *_arg)
 	{
 
 		key = getchar();
-		printf("%c",(char)key);
+		//printf("%c",(char)key);
 
 		if((char)key == 'Q')
 		{
 			grun = 0x0;
 		}
-
-//		if(pTelemetry != NULL)
-//		{
-//			if((char)key == 'n') //Navigation
-//			{
-//				pTelemetry->Lock();
-//				pTelemetry->SetDisplay(0);
-//				pTelemetry->Unlock();
-//			}
-//
-//			if((char)key == 'a') //Almanac & SV predict
-//			{
-//				pTelemetry->Lock();
-//				pTelemetry->SetDisplay(1);
-//				pTelemetry->Unlock();
-//			}
-//
-//			if((char)key == 'h') //Acquisition history
-//			{
-//				pTelemetry->Lock();
-//				pTelemetry->SetDisplay(2);
-//				pTelemetry->Unlock();
-//			}
-//		}
 
 		aKeyboard->IncExecTic();
 

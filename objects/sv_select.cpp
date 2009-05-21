@@ -61,15 +61,15 @@ SV_Select::SV_Select():Threaded_Object("SVSTASK")
 	object_mem = this;
 	size = sizeof(SV_Select);
 
+	pnav = &pvt_s.sps;
+	pclock = &pvt_s.clock;
+
 	strong_sv = 0;
 	weak_sv = 0;
 	type = ACQ_TYPE_STRONG;
 	mode = ACQ_MODE_COLD;
 	mask_angle = PI/2;
 	command.evenodd = 0;
-
-	pnav = &pvt_s.sps;
-	pclock = &pvt_s.clock;
 
 	pnav->stale_ticks 		= STALE_SPS_VALUE;
 
@@ -79,6 +79,9 @@ SV_Select::SV_Select():Threaded_Object("SVSTASK")
 	config.strong_doppler 	= MAX_DOPPLER_STRONG;
 	config.weak_operation	= ACQ_OPERATION_WEAK;
 	config.strong_operation	= ACQ_OPERATION_STRONG;
+
+	if(gopt.verbose)
+		printf("Creating SV Select\n");
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -93,7 +96,6 @@ SV_Select::~SV_Select()
 /*----------------------------------------------------------------------------------------------*/
 
 
-#define EKF_STATE_INITIALIZED (1)
 /*----------------------------------------------------------------------------------------------*/
 void SV_Select::Import()
 {
@@ -132,6 +134,7 @@ void SV_Select::Import()
 
 	/* Slow down acquisition if PVT is doing fine */
 	acqs_per_pvt = MAX_CHANNELS - nsvs;
+	acqs_per_pvt = 1;
 
 	if(acqs_per_pvt < 1)
 		acqs_per_pvt = 1;

@@ -150,7 +150,7 @@ void Channel::Start(int32 _sv, Acq_Command_S result, int32 _corr_len)
 	switch(len)
 	{
 		case 1:
-			PLL_W(50.0);
+			PLL_W(30.0);
 			break;
 		case 10:
 			PLL_W(25.0);
@@ -159,7 +159,7 @@ void Channel::Start(int32 _sv, Acq_Command_S result, int32 _corr_len)
 			PLL_W(20.0);
 			break;
 		default:
-			PLL_W(50.0);
+			PLL_W(30.0);
 	}
 
 	DLL_W(1.0);
@@ -207,7 +207,6 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 
 	/* Lowpass filter */
 	P_buff[_1ms_epoch] = (63 * P_buff[_1ms_epoch] + (I_sum20 >> 6) * (I_sum20 >> 6)	+ (Q_sum20 >> 6)*(Q_sum20 >> 6) + 32) >> 6;
-//	P_buff[_1ms_epoch] = (63 * P_buff[_1ms_epoch] + (I_sum20 >> 6) * (I_sum20 >> 6) + 32) >> 6;
 
 	/* Dump accumulation and do tracking according to integration length */
 	if((_1ms_epoch % len) == 0)
@@ -258,7 +257,6 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	else
 		_feedback->set_z_count = false;
 
-	//if((P[1] > 1.0e4) && converged)
 	if(converged)
 	{
 		navigate = true;
@@ -319,8 +317,6 @@ void Channel::EstCN0()
 	int32 lcv;
 	float NBP;
 	float WBP;
-	float cerr;
-	float serr;
 
 	/* Try out new cn0 estimate, PG 393 of Global Positioning System, Theory and Applications */
 	if((_1ms_epoch == 19) && bit_lock)
@@ -427,7 +423,7 @@ void Channel::DLL()
 //	aDLL.x += aDLL.t*(code_err*aDLL.w02);
 //	aDLL.z = 0.5*aDLL.x + aDLL.a*aDLL.w02*code_err;
 //	code_nco = CODE_RATE + ((carrier_nco - IF_FREQUENCY)*CODE_RATE/L1) + aDLL.z;
-
+//
 	code_nco = CODE_RATE + ((carrier_nco - IF_FREQUENCY)*CODE_RATE/L1) + code_err;
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -448,11 +444,12 @@ void Channel::PLL()
 	dot = 	  I[1]*I_prev + Q[1]*Q_prev;
 	cross =  -I[1]*Q_prev + Q[1]*I_prev;
 
-	if((dot != 0.0) && (cross != 0.0))
-	{
-		df = atan(dot/cross);
-		df /= (aPLL.t * 360);
-	}
+	/* No FLL for now */
+//	if((dot != 0.0) && (cross != 0.0))
+//	{
+//		df = atan(dot/cross);
+//		df /= (aPLL.t * 360);
+//	}
 
 	/* PLL discriminator */
 	if(I[1] != 0)
@@ -464,19 +461,6 @@ void Channel::PLL()
 	aPLL.pll_lock += (dp - aPLL.pll_lock) * .1;
 	aPLL.pll_lock = dp;
 	aPLL.fll_lock += (cross/P_avg - aPLL.fll_lock) * .1;
-
-	/* Swap modes */
-//	if(fabs(aPLL.fll_lock) < 0.25*len)
-//		aPLL.fll_lock_ticks++;
-//	else
-//		aPLL.fll_lock_ticks = 0;
-//
-//	if(aPLL.fll_lock_ticks > 20)
-//		df = 0;
-//	else
-//		dp = 0;
-
-	df = 0;
 
 	/* 3rd order PLL wioth 2nd order FLL assist */
 	aPLL.w += aPLL.t * (aPLL.w0p3 * dp + aPLL.w0f2 * df);
@@ -522,7 +506,6 @@ void Channel::BitLock()
 
 	/* Set bitlock threshold */
 	thresh = 5000;
-
 
 	if(_1ms_epoch == 19)
 	{
@@ -633,7 +616,6 @@ void Channel::BitStuff()
 		word_buff[FRAME_SIZE_PLUS_2-1] += temp_bit;
 
 		ProcessDataBit();
-
 	}
 
 }
@@ -1012,6 +994,7 @@ void Channel::Export()
 	packet.code_nco 	= code_nco;
 	packet.carrier_nco 	= carrier_nco;
 
+	/* Dump the extra info */
 	if(gopt.log_channel && (fp != NULL))
 	{
 		fwrite(&packet, sizeof(Channel_M), 1,  fp);

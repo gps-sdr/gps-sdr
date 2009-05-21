@@ -7,6 +7,14 @@
 
 #include "gui.h"
 
+extern wxColor red;
+extern wxColor green;
+extern wxColor blue;
+extern wxColor yellow;
+extern wxColor white;
+extern wxColor black;
+extern wxColor grey;
+
 DECLARE_APP(GUI_App)
 
 /*----------------------------------------------------------------------------------------------*/
@@ -146,11 +154,11 @@ void GUI_Almanac::renderDecoded()
 	for(lcv = 0; lcv < MAX_SV; lcv++)
 	{
 		if(p->ephemeris_status.avalid[lcv])
-			dc.SetBrush(wxBrush(wxColor(0,255,0)));
+			dc.SetBrush(wxBrush(green));
 		else
-			dc.SetBrush(wxBrush(wxColor(127,127,127)));
+			dc.SetBrush(wxBrush(grey));
 
-		dc.SetPen(wxPen(wxColor(0,0,0), 1));
+		dc.SetPen(wxPen(black, 1));
 		dc.DrawPolygon(4, box, (lcv%(MAX_SV>>2))*dX, (lcv/(MAX_SV>>2))*dY);
 
 		str.Printf(wxT("%02d"),(int)lcv+1);
@@ -159,11 +167,11 @@ void GUI_Almanac::renderDecoded()
 
 	/* Draw highlighted box */
 	if(p->ephemeris_status.avalid[sv])
-		dc.SetBrush(wxBrush(wxColor(0,255,0)));
+		dc.SetBrush(wxBrush(green));
 	else
-		dc.SetBrush(wxBrush(wxColor(127,127,127)));
+		dc.SetBrush(wxBrush(grey));
 
-	dc.SetPen(wxPen(wxColor(255,0,0), 2));
+	dc.SetPen(wxPen(red, 2));
 	dc.DrawPolygon(4, box, (sv%(MAX_SV>>2))*dX, (sv/(MAX_SV>>2))*dY);
 
 	str.Printf(wxT("%02d"),(int)sv+1);

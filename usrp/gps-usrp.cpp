@@ -374,8 +374,6 @@ int main(int argc, char **argv)
 	delete [] fifo_buff;
 	delete [] fifo_rows;
 
-	remove("/tmp/GPSPIPE");
-
 	exit(1);
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -800,6 +798,8 @@ void *fifo_thread(void *arg)
 	}
 
 	close(fifo_pipe);
+
+	remove("/tmp/GPSPIPE");
 
 	if(_opt->record)
 		fclose(fp_out);

@@ -52,6 +52,7 @@ class FIFO : public Threaded_Object
 		ms_packet *tail;	//!< Pointer to the tail
 
 		int32 npipe;		//!< Get the IF data from the USRP_Uno program, and its pipe ("/tmp/GPSPIPE")
+		int32 npipe_open;	//!< Is the named pipe open?
 		int32 count;		//!< Count the number of packets received
 		int32 agc_scale;	//!< To do the AGC
 		int32 overflw;		//!< Overflow counter

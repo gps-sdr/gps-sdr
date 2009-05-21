@@ -28,7 +28,6 @@
 
 /*----------------------------------------------------------------------------------------------*/
 #include "includes.h"
-//#include "fft.h"				//!< Fixed point FFT object
 #include "fifo.h"				//!< Circular buffer for Importing IF data
 #include "keyboard.h"			//!< Handle user input via keyboard
 #include "channel.h"			//!< Tracking channels
@@ -107,21 +106,24 @@ void echo_options()
 	}
 
 
-	fprintf(stderr, "\n");
-	fprintf(stderr, "verbose:\t\t %d\n",gopt.verbose);
-	fprintf(stderr, "realtime:\t\t %d\n",gopt.realtime);
-	fprintf(stderr, "post_process:\t\t %d\n",gopt.post_process);
-	fprintf(stderr, "ocean:\t\t\t %d\n",gopt.ocean);
-	fprintf(stderr, "log_channel:\t\t %d\n",gopt.log_channel);
-	fprintf(stderr, "log_nav:\t\t %d\n",gopt.log_nav);
-	fprintf(stderr, "log_decimate:\t\t %d\n",gopt.log_decimate);
-	fprintf(stderr, "google_earth:\t\t %d\n",gopt.google_earth);
-	fprintf(stderr, "ncurses:\t\t %d\n",gopt.ncurses);
-	fprintf(stderr, "gui:\t\t\t %d\n",gopt.gui);
-	fprintf(stderr, "serial:\t\t\t %d\n",gopt.serial);
-	fprintf(stderr, "filename_direct:\t %s\n",gopt.filename_direct);
-	fprintf(stderr, "filename_reflected:\t %s\n",gopt.filename_reflected);
-	fprintf(stderr, "\n");
+	if(gopt.verbose)
+	{
+		fprintf(stderr, "\n");
+		fprintf(stderr, "verbose:\t\t %d\n",gopt.verbose);
+		fprintf(stderr, "realtime:\t\t %d\n",gopt.realtime);
+		fprintf(stderr, "post_process:\t\t %d\n",gopt.post_process);
+		fprintf(stderr, "ocean:\t\t\t %d\n",gopt.ocean);
+		fprintf(stderr, "log_channel:\t\t %d\n",gopt.log_channel);
+		fprintf(stderr, "log_nav:\t\t %d\n",gopt.log_nav);
+		fprintf(stderr, "log_decimate:\t\t %d\n",gopt.log_decimate);
+		fprintf(stderr, "google_earth:\t\t %d\n",gopt.google_earth);
+		fprintf(stderr, "ncurses:\t\t %d\n",gopt.ncurses);
+		fprintf(stderr, "gui:\t\t\t %d\n",gopt.gui);
+		fprintf(stderr, "serial:\t\t\t %d\n",gopt.serial);
+		fprintf(stderr, "filename_direct:\t %s\n",gopt.filename_direct);
+		fprintf(stderr, "filename_reflected:\t %s\n",gopt.filename_reflected);
+		fprintf(stderr, "\n");
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -341,18 +343,14 @@ int32 Object_Init(void)
 
 //	if(gopt.post_process)
 //		pPost_Process = new Post_Process(gopt.filename_direct);
-//
-//	pthread_mutex_init(&mAcq, NULL);
-//	pthread_mutex_unlock(&mAcq);
-//	int32 gAcq_high = false;
-//
-//	//if(gopt.verbose)
-//	{
-//		printf("Cleared Object Init\n");
-//		fflush(stdout);
-//	}
-//
-//	return(1);
+
+	if(gopt.verbose)
+	{
+		printf("Cleared Object Init\n");
+		fflush(stdout);
+	}
+
+	return(1);
 
 }
 /*----------------------------------------------------------------------------------------------*/
