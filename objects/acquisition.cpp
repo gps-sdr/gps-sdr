@@ -40,6 +40,7 @@ void *Acquisition_Thread(void *_arg)
 	{
 		aAcquisition->Import();
 		aAcquisition->Acquire();
+		aAcquisition->Export(NULL);
 		aAcquisition->IncExecTic();
 	}
 

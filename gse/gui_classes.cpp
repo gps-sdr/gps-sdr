@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Dec 29 2008)
+// C++ code generated with wxFormBuilder (version Apr 21 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -104,7 +104,7 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	wxStaticBoxSizer* sRS422;
 	sRS422 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Connection") ), wxVERTICAL );
 	
-	tRS422 = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL );
+	tRS422 = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL );
 	tRS422->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	sRS422->Add( tRS422, 1, wxALL|wxEXPAND, 5 );
@@ -114,7 +114,7 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	wxStaticBoxSizer* sTask;
 	sTask = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Task Health") ), wxVERTICAL );
 	
-	tTask = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL );
+	tTask = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL );
 	tTask->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	sTask->Add( tTask, 1, wxALL|wxEXPAND, 5 );
@@ -1230,7 +1230,7 @@ iGUI_Channel::iGUI_Channel( wxWindow* parent, wxWindowID id, const wxString& tit
 	wxBoxSizer* bSizer9;
 	bSizer9 = new wxBoxSizer( wxVERTICAL );
 	
-	tChannel = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tChannel = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_LEFT|wxTE_MULTILINE );
 	tChannel->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	bSizer9->Add( tChannel, 1, wxALL|wxEXPAND, 5 );
@@ -1250,7 +1250,7 @@ iGUI_Pseudo::iGUI_Pseudo( wxWindow* parent, wxWindowID id, const wxString& title
 	wxBoxSizer* bSizer9;
 	bSizer9 = new wxBoxSizer( wxVERTICAL );
 	
-	tPseudo = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE );
+	tPseudo = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_LEFT|wxTE_MULTILINE );
 	tPseudo->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	bSizer9->Add( tPseudo, 1, wxALL|wxEXPAND, 5 );
@@ -1275,6 +1275,8 @@ iGUI_Ephemeris::iGUI_Ephemeris( wxWindow* parent, wxWindowID id, const wxString&
 	
 	bSizer22->SetMinSize( wxSize( -1,120 ) ); 
 	pDecoded = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	pDecoded->SetMinSize( wxSize( -1,120 ) );
+	
 	bSizer22->Add( pDecoded, 1, wxALL|wxEXPAND, 5 );
 	
 	bSizer17->Add( bSizer22, 0, wxEXPAND, 5 );
@@ -1282,7 +1284,7 @@ iGUI_Ephemeris::iGUI_Ephemeris( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* bSizer23;
 	bSizer23 = new wxBoxSizer( wxVERTICAL );
 	
-	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
+	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_MULTILINE );
 	tDisplay->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	bSizer23->Add( tDisplay, 1, wxALL|wxEXPAND, 5 );
@@ -1292,6 +1294,7 @@ iGUI_Ephemeris::iGUI_Ephemeris( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* bSizer21;
 	bSizer21 = new wxBoxSizer( wxHORIZONTAL );
 	
+	bSizer21->SetMinSize( wxSize( -1,30 ) ); 
 	
 	bSizer21->Add( 0, 0, 1, wxEXPAND, 5 );
 	
@@ -1334,6 +1337,8 @@ iGUI_Almanac::iGUI_Almanac( wxWindow* parent, wxWindowID id, const wxString& tit
 	
 	bSizer22->SetMinSize( wxSize( -1,120 ) ); 
 	pDecoded = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	pDecoded->SetMinSize( wxSize( -1,120 ) );
+	
 	bSizer22->Add( pDecoded, 1, wxALL|wxEXPAND, 5 );
 	
 	bSizer17->Add( bSizer22, 0, wxEXPAND, 5 );
@@ -1341,7 +1346,7 @@ iGUI_Almanac::iGUI_Almanac( wxWindow* parent, wxWindowID id, const wxString& tit
 	wxBoxSizer* bSizer23;
 	bSizer23 = new wxBoxSizer( wxVERTICAL );
 	
-	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
+	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_MULTILINE );
 	tDisplay->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	bSizer23->Add( tDisplay, 1, wxALL|wxEXPAND, 5 );
@@ -1351,6 +1356,7 @@ iGUI_Almanac::iGUI_Almanac( wxWindow* parent, wxWindowID id, const wxString& tit
 	wxBoxSizer* bSizer21;
 	bSizer21 = new wxBoxSizer( wxHORIZONTAL );
 	
+	bSizer21->SetMinSize( wxSize( -1,30 ) ); 
 	
 	bSizer21->Add( 0, 0, 1, wxEXPAND, 5 );
 	
@@ -2057,7 +2063,7 @@ iGUI_Messages::iGUI_Messages( wxWindow* parent, wxWindowID id, const wxString& t
 	wxBoxSizer* bSizer9;
 	bSizer9 = new wxBoxSizer( wxVERTICAL );
 	
-	tMess = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL );
+	tMess = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL );
 	tMess->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	bSizer9->Add( tMess, 1, wxEXPAND, 5 );
@@ -2098,7 +2104,7 @@ iGUI_Select::iGUI_Select( wxWindow* parent, wxWindowID id, const wxString& title
 	wxBoxSizer* bSizer23;
 	bSizer23 = new wxBoxSizer( wxVERTICAL );
 	
-	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
+	tDisplay = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_MULTILINE );
 	tDisplay->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxT("Monospace") ) );
 	
 	bSizer23->Add( tDisplay, 1, wxALL|wxEXPAND, 5 );
@@ -2108,6 +2114,7 @@ iGUI_Select::iGUI_Select( wxWindow* parent, wxWindowID id, const wxString& title
 	wxBoxSizer* bSizer21;
 	bSizer21 = new wxBoxSizer( wxHORIZONTAL );
 	
+	bSizer21->SetMinSize( wxSize( -1,30 ) ); 
 	
 	bSizer21->Add( 0, 0, 1, wxEXPAND, 5 );
 	

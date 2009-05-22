@@ -308,8 +308,8 @@ void PVT::Navigate()
 			dt = PVT_Estimation();
 
 			/* Break out if we are iterating from a previous position */
-			if((fabs(dt) < 1e-4) && temp_nav.converged)
-				break;
+//			if((fabs(dt) < 1e-4) && temp_nav.converged)
+//				break;
 		}
 
 		master_nav.iterations = lcv;
@@ -787,26 +787,19 @@ void PVT::PseudoRange()
 			time = master_clock.time - code_time;
 			pseudoranges[lcv].meters = time*(double)SPEED_OF_LIGHT;
 
-			/* GEONS wants raw measurements, not ones that have the GPS clock bias added in */
+			/* EKF wants raw measurements, not ones that have the GPS clock bias added in */
 			time = master_clock.time_raw - code_time;
 			pseudoranges[lcv].uncorrected = time*(double)SPEED_OF_LIGHT;
 
-			/* Pseudorange RATE from integrated carrier phase */
-			cp_prev = (double)measurements[lcv].carrier_phase_prev;// + (double)measurements[lcv].frac_carrier_phase_prev*(double)TWO_N32;
-			cp      = (double)measurements[lcv].carrier_phase;//      + (double)measurements[lcv].frac_carrier_phase*(double)TWO_N32;
-			time_rate = (cp_prev - cp)*cp_adjust + (double)ZERO_DOPPLER_RATE; //!< Note the sign flip
-			pseudoranges[lcv].meters_rate = time_rate * (double)C_OVER_L1;
+			/* Pseudorange RATE from integrated carrier phase (LESS NOISY) */
+//			cp_prev = (double)measurements[lcv].carrier_phase_prev;// + (double)measurements[lcv].frac_carrier_phase_prev*(double)TWO_N32;
+//			cp      = (double)measurements[lcv].carrier_phase;//      + (double)measurements[lcv].frac_carrier_phase*(double)TWO_N32;
+//			time_rate = (cp_prev - cp)*cp_adjust + (double)ZERO_DOPPLER_RATE; //!< Note the sign flip
+//			pseudoranges[lcv].meters_rate = time_rate * (double)C_OVER_L1;
 
 			/* Pseudorange RATE from carrier rate */
-//			ctime_rate = (double)ZERO_DOPPLER_RATE - ((double)measurements[lcv].carrier_rate * NCO_CARR_INCR_2_HZ);
-
-			/* Integrated carrier phase does NOT match instantaneous carrier NCO, this is a BAD measurement */
-			/* Error is in Hz */
-//			if(fabs(ctime_rate - time_rate) > 4.0*L1_OVER_C)
-//			{
-//				sv_codes[lcv] = PVT_ERROR_PSEUDO_RATE;
-//				good_channels[lcv] = false;
-//			}
+			ctime_rate = (double)ZERO_DOPPLER_RATE - ((double)measurements[lcv].carrier_rate * NCO_CARR_INCR_2_HZ);
+			pseudoranges[lcv].meters_rate = ctime_rate * (double)C_OVER_L1;
 		}
 	}
 

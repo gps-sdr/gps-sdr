@@ -14,6 +14,7 @@ wxColor yellow(255,255,0);
 wxColor green(0,255,0);
 wxColor red(255,0,0);
 wxColor black(0,0,0);
+wxColor	htext(200,200,255);
 
 DECLARE_APP(GUI_App)
 
@@ -25,10 +26,17 @@ BEGIN_EVENT_TABLE(GUI_Select, wxFrame)
 END_EVENT_TABLE()
 /*----------------------------------------------------------------------------------------------*/
 
-GUI_Select::GUI_Select():iGUI_Select(NULL, wxID_ANY, wxT("SV Select"), wxDefaultPosition, wxSize(400,800), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL)
+GUI_Select::GUI_Select():iGUI_Select(NULL, wxID_ANY, wxT("SV Select"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL)
 {
 	sv = 0;
 	loaded = 0;
+	int32 strwidth;
+	wxString str;
+
+	str = wxT("Ch# Vis   Elev     Azim     Doppler        Time");
+	strwidth = str.Length()+3;
+	SetSize(tDisplay->GetCharWidth()*strwidth, tDisplay->GetCharHeight()*(MAX_SV+2) + 280);
+
 }
 
 GUI_Select::~GUI_Select()
@@ -231,37 +239,38 @@ void GUI_Select::renderSV()
 {
 
 	int32 lcv, lcv2, start, stop, lines;
-	wxTextAttr text;
+	wxTextAttr style;
 	wxString str;
 	tDisplay->Clear();
 
 	SV_Prediction_M *psv;
 
-	text.SetBackgroundColour(white);
-	tDisplay->SetDefaultStyle(text);
+	style.SetBackgroundColour(white);
+	tDisplay->SetDefaultStyle(style);
 
 	str.Printf(wxT("Ch# Vis   Elev     Azim     Doppler        Time\n\n"));
 	tDisplay->AppendText(str);
 
 	for(lcv = 0; lcv < MAX_SV; lcv++)
 	{
+
 		psv = &p->sv_predictions[lcv];
 
-		if(lcv == p->sv_predictions[MAX_SV].sv)
-		{
-			text.SetBackgroundColour(grey);
-			tDisplay->SetDefaultStyle(text);
-		}
+		if((lcv+1) & 0x1)
+			style.SetBackgroundColour(htext);
 		else
-		{
-			text.SetBackgroundColour(white);
-			tDisplay->SetDefaultStyle(text);
-		}
+			style.SetBackgroundColour(white);
+
+		if(lcv == p->sv_predictions[MAX_SV].sv)
+			style.SetBackgroundColour(grey);
+
+		tDisplay->SetDefaultStyle(style);
 
 		if(psv->visible)
 			str.Printf(wxT("%02d   V %7.2f  %7.2f  %10.2f  %10.2f\n"),lcv+1,psv->elev*RAD_2_DEG,psv->azim*RAD_2_DEG,psv->doppler,psv->time);
 		else
 			str.Printf(wxT("%02d   _ %7.2f  %7.2f  %10.2f  %10.2f\n"),lcv+1,psv->elev*RAD_2_DEG,psv->azim*RAD_2_DEG,psv->doppler,psv->time);
+
 		tDisplay->AppendText(str);
 	}
 

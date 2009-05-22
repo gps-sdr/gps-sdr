@@ -18,7 +18,7 @@
         <property name="relative_path">1</property>
         <property name="use_enum">0</property>
         <property name="use_microsoft_bom">0</property>
-        <object class="Frame" expanded="1">
+        <object class="Frame" expanded="0">
             <property name="bg"></property>
             <property name="center"></property>
             <property name="context_help"></property>
@@ -819,7 +819,7 @@
                                         <property name="permission">protected</property>
                                         <property name="pos"></property>
                                         <property name="size"></property>
-                                        <property name="style">wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL</property>
+                                        <property name="style">wxTE_DONTWRAP|wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL</property>
                                         <property name="subclass"></property>
                                         <property name="tooltip"></property>
                                         <property name="value"></property>
@@ -888,7 +888,7 @@
                                         <property name="permission">protected</property>
                                         <property name="pos"></property>
                                         <property name="size"></property>
-                                        <property name="style">wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL</property>
+                                        <property name="style">wxTE_DONTWRAP|wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL</property>
                                         <property name="subclass"></property>
                                         <property name="tooltip"></property>
                                         <property name="value"></property>
@@ -8505,7 +8505,7 @@
                         <property name="permission">protected</property>
                         <property name="pos"></property>
                         <property name="size"></property>
-                        <property name="style">wxTE_LEFT|wxTE_MULTILINE</property>
+                        <property name="style">wxTE_DONTWRAP|wxTE_LEFT|wxTE_MULTILINE</property>
                         <property name="subclass"></property>
                         <property name="tooltip"></property>
                         <property name="value"></property>
@@ -8619,7 +8619,7 @@
                         <property name="permission">protected</property>
                         <property name="pos"></property>
                         <property name="size"></property>
-                        <property name="style">wxTE_LEFT|wxTE_MULTILINE</property>
+                        <property name="style">wxTE_DONTWRAP|wxTE_LEFT|wxTE_MULTILINE</property>
                         <property name="subclass"></property>
                         <property name="tooltip"></property>
                         <property name="value"></property>
@@ -8736,7 +8736,7 @@
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
                                 <property name="maximum_size"></property>
-                                <property name="minimum_size">-1,-1</property>
+                                <property name="minimum_size">-1,120</property>
                                 <property name="name">pDecoded</property>
                                 <property name="permission">protected</property>
                                 <property name="pos"></property>
@@ -8801,7 +8801,7 @@
                                 <property name="permission">protected</property>
                                 <property name="pos"></property>
                                 <property name="size"></property>
-                                <property name="style">wxTE_MULTILINE</property>
+                                <property name="style">wxTE_DONTWRAP|wxTE_MULTILINE</property>
                                 <property name="subclass"></property>
                                 <property name="tooltip"></property>
                                 <property name="value"></property>
@@ -8843,8 +8843,8 @@
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">0</property>
-                    <object class="wxBoxSizer" expanded="1">
-                        <property name="minimum_size"></property>
+                    <object class="wxBoxSizer" expanded="0">
+                        <property name="minimum_size">-1,30</property>
                         <property name="name">bSizer21</property>
                         <property name="orient">wxHORIZONTAL</property>
                         <property name="permission">none</property>
@@ -9107,7 +9107,7 @@
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
                                 <property name="maximum_size"></property>
-                                <property name="minimum_size">-1,-1</property>
+                                <property name="minimum_size">-1,120</property>
                                 <property name="name">pDecoded</property>
                                 <property name="permission">protected</property>
                                 <property name="pos"></property>
@@ -9172,7 +9172,7 @@
                                 <property name="permission">protected</property>
                                 <property name="pos"></property>
                                 <property name="size"></property>
-                                <property name="style">wxTE_MULTILINE</property>
+                                <property name="style">wxTE_DONTWRAP|wxTE_MULTILINE</property>
                                 <property name="subclass"></property>
                                 <property name="tooltip"></property>
                                 <property name="value"></property>
@@ -9215,7 +9215,7 @@
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">0</property>
                     <object class="wxBoxSizer" expanded="1">
-                        <property name="minimum_size"></property>
+                        <property name="minimum_size">-1,30</property>
                         <property name="name">bSizer21</property>
                         <property name="orient">wxHORIZONTAL</property>
                         <property name="permission">none</property>
@@ -14640,7 +14640,7 @@
                         <property name="permission">protected</property>
                         <property name="pos"></property>
                         <property name="size"></property>
-                        <property name="style">wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL</property>
+                        <property name="style">wxTE_DONTWRAP|wxTE_LEFT|wxTE_MULTILINE|wxTE_NO_VSCROLL</property>
                         <property name="subclass"></property>
                         <property name="tooltip"></property>
                         <property name="value"></property>
@@ -14739,7 +14739,7 @@
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">0</property>
-                    <object class="wxBoxSizer" expanded="1">
+                    <object class="wxBoxSizer" expanded="0">
                         <property name="minimum_size">-1,120</property>
                         <property name="name">bSizer22</property>
                         <property name="orient">wxVERTICAL</property>
@@ -14798,7 +14798,7 @@
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">1</property>
-                    <object class="wxBoxSizer" expanded="1">
+                    <object class="wxBoxSizer" expanded="0">
                         <property name="minimum_size">-1,50</property>
                         <property name="name">bSizer94</property>
                         <property name="orient">wxHORIZONTAL</property>
@@ -14857,7 +14857,7 @@
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">10</property>
-                    <object class="wxBoxSizer" expanded="1">
+                    <object class="wxBoxSizer" expanded="0">
                         <property name="minimum_size"></property>
                         <property name="name">bSizer23</property>
                         <property name="orient">wxVERTICAL</property>
@@ -14881,7 +14881,7 @@
                                 <property name="permission">protected</property>
                                 <property name="pos"></property>
                                 <property name="size"></property>
-                                <property name="style">wxTE_MULTILINE</property>
+                                <property name="style">wxTE_DONTWRAP|wxTE_MULTILINE</property>
                                 <property name="subclass"></property>
                                 <property name="tooltip"></property>
                                 <property name="value"></property>
@@ -14924,7 +14924,7 @@
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">0</property>
                     <object class="wxBoxSizer" expanded="1">
-                        <property name="minimum_size"></property>
+                        <property name="minimum_size">-1,30</property>
                         <property name="name">bSizer21</property>
                         <property name="orient">wxHORIZONTAL</property>
                         <property name="permission">none</property>

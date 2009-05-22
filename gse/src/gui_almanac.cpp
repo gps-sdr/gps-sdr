@@ -14,6 +14,7 @@ extern wxColor yellow;
 extern wxColor white;
 extern wxColor black;
 extern wxColor grey;
+extern wxColor htext;
 
 DECLARE_APP(GUI_App)
 

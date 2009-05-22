@@ -7,6 +7,15 @@
 
 #include "gui.h"
 
+extern wxColor red;
+extern wxColor green;
+extern wxColor blue;
+extern wxColor yellow;
+extern wxColor white;
+extern wxColor black;
+extern wxColor grey;
+extern wxColor htext;
+
 DECLARE_APP(GUI_App)
 
 /*----------------------------------------------------------------------------------------------*/
@@ -15,8 +24,16 @@ BEGIN_EVENT_TABLE(GUI_Channel, wxFrame)
 END_EVENT_TABLE()
 /*----------------------------------------------------------------------------------------------*/
 
-GUI_Channel::GUI_Channel():iGUI_Channel(NULL, wxID_ANY, wxT("Channel"), wxDefaultPosition, wxSize(650,250), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL)
+GUI_Channel::GUI_Channel():iGUI_Channel(NULL, wxID_ANY, wxT("Channel"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL)
 {
+
+	int32 strwidth;
+	wxString str;
+
+	str = wxT("Ch#  SV   CL       Faccel          Doppler     CN0   BE       Locks        Power   Active\n");
+	strwidth = str.Length()+2;
+	tChannel->AppendText(str);
+	SetSize(tChannel->GetCharWidth()*strwidth, tChannel->GetCharHeight()*(MAX_CHANNELS+3));
 
 
 }
@@ -45,7 +62,7 @@ void GUI_Channel::render(wxDC& dc)
 
 	SPS_M *pNav = &p->sps;
 	Channel_M *pchan;
-	wxTextAttr text;
+	wxTextAttr style;
     wxString str, str2, bstr;
 	int32 lcv, lcv2;
 	int32 start, stop, lines;
@@ -55,9 +72,12 @@ void GUI_Channel::render(wxDC& dc)
 	float z;
 
 	tChannel->Clear();
+	style = tChannel->GetDefaultStyle();
+	style.SetBackgroundColour(white);
+	tChannel->SetDefaultStyle(style);
 
-	str.Printf(wxT("Ch#  SV   CL       Faccel          Doppler     CN0   BE       Locks        Power   Active \n"));
-	strwidth = str.Length();
+	str = wxT("Ch#  SV   CL       Faccel          Doppler     CN0   BE       Locks        Power   Active\n");
+	strwidth = str.Length()+1;
 	tChannel->AppendText(str);
 
 	str.Printf(wxT("\n"));
@@ -66,6 +86,13 @@ void GUI_Channel::render(wxDC& dc)
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
 		pchan = &p->channel[lcv];
+
+		if((lcv+1) & 0x1)
+			style.SetBackgroundColour(htext);
+		else
+			style.SetBackgroundColour(white);
+
+		tChannel->SetDefaultStyle(style);
 
 		if(pchan->count > 2000)
 		{
@@ -90,7 +117,7 @@ void GUI_Channel::render(wxDC& dc)
 			w = pchan->w/4096.0;
 			z = (pchan->carrier_nco - (int32)NCO_CARR_INCR_NOM)/2097.152;
 
-			str.Printf(wxT("%2d   %2d   %2d   %10.3f   %14.3f   %5.2f   %2d   %s   %10d   %6d\n"),
+			str.Printf(wxT("%2d   %2d   %2d   %10.3f   %14.3f   %5.2f   %2d   %s   %10d   %6d"),
 				lcv,
 				(int32)pchan->sv+1,
 				(int32)pchan->len,
@@ -106,36 +133,18 @@ void GUI_Channel::render(wxDC& dc)
 				tChannel->AppendText(str);
 			else
 			{
-				bstr.Printf(wxT("%2d                                                                                       \n"),lcv);
+				bstr.Printf(wxT("%2d                                                                                       "),lcv);
 				tChannel->AppendText(bstr);
 			}
 		}
 		else
 		{
-			bstr.Printf(wxT("%2d                                                                                       \n"),lcv);
+			bstr.Printf(wxT("%2d                                                                                       "),lcv);
 			tChannel->AppendText(bstr);
 		}
-	}
 
-//	text = tChannel->GetDefaultStyle();
-//	lines = tChannel->GetNumberOfLines();
-//	start = 0; stop = 0;
-//	for(lcv = 0; lcv < lines; lcv++)
-//	{
-//		stop += tChannel->GetLineLength(lcv)+1;
-//
-//		if((lcv+1) & 0x1)
-//		{
-//			text.SetBackgroundColour(wxColor(248,248,255));
-//			tChannel->SetStyle(start, stop, text);
-//		}
-//		else
-//		{
-//			text.SetBackgroundColour(wxColor(255,255,255));
-//			tChannel->SetStyle(start, stop, text);
-//		}
-//
-//		start = stop+1;
-//	}
+		if(lcv < (MAX_CHANNELS-1))
+			tChannel->AppendText(wxT("\n"));
+	}
 
 }

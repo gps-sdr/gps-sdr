@@ -79,7 +79,7 @@ clean_o:
 	@rm -rvf `find . \( -name "*.o" \) -print` 	
 	
 minclean:
-	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -o -name "*.out" -o -name "*.m~"  -o -name "*.tlm" \) -print`
+	@rm -rvf `find . \( -name "*.o" -o -name "*.exe" -o -name "*.dis" -o -name "*.dat" -o -name "*.out" -o -name "*.m~"  -o -name "*.tlm" -o -name "*.log" \) -print`
 	@rm -rvf `find . \( -name "*.klm" -o -name "fft-test" -o -name "acq-test" -o -name "current.*" -o -name "gps-gse" -o -name "gps-usrp" \) -print`	
 	@rm -rvf $(EXE)
 	

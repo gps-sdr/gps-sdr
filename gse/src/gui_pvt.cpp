@@ -7,6 +7,15 @@
 
 #include "gui.h"
 
+extern wxColor red;
+extern wxColor green;
+extern wxColor blue;
+extern wxColor yellow;
+extern wxColor white;
+extern wxColor black;
+extern wxColor grey;
+extern wxColor htext;
+
 DECLARE_APP(GUI_App)
 
 /*----------------------------------------------------------------------------------------------*/
@@ -77,11 +86,11 @@ void GUI_PVT::renderCN0()
 
 	dc.SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxNORMAL, wxNORMAL));
 
-	dc.SetPen(wxPen(wxColor(0,0,0), 1, wxLONG_DASH ));
+	dc.SetPen(wxPen(black, 1, wxLONG_DASH ));
 	for(lcv = 200; lcv < 1000; lcv+=40)
 		dc.DrawLine(mX-500*scaleX, h-lcv*scaleY, mX+500*scaleX, h-lcv*scaleY);
 
-    dc.SetPen(wxPen(wxColor(0,0,0), 1));
+    dc.SetPen(wxPen(black, 1));
 	for(lcv = 200; lcv < 1000; lcv+=200)
 		dc.DrawLine(mX-500*scaleX, h-lcv*scaleY, mX+500*scaleX, h-lcv*scaleY);
 
@@ -132,7 +141,7 @@ void GUI_PVT::renderCN0()
 			gval = 255.0*(cn0 - 20.0)/40.0;
 			rval = 122.0 - 122.0*(cn0 - 20.0)/40.0;
 			dc.SetBrush(wxBrush(wxColor(rval,gval,0)));
-			dc.SetPen(wxPen(wxColor(0,0,0), 1));
+			dc.SetPen(wxPen(black, 1));
 			dc.DrawPolygon(4, bar, lcv*dX + 150*scaleX, h-200*scaleY);
 
 			str.Clear();

@@ -307,7 +307,7 @@ void Correlator::TakeMeasurements()
 
 			/* All these values need scaled!!! */
 			aMeasurement->code_rate          = s->code_nco * HZ_2_NCO_CODE_INCR;
-			aMeasurement->carrier_rate		 = s->carrier_nco * HZ_2_NCO_CARR_INCR;
+			aMeasurement->carrier_rate		 = (uint32)floor(s->carrier_nco * HZ_2_NCO_CARR_INCR + 0.5);
 
 			tcode = floor(s->code_phase_mod);
 			aMeasurement->code_phase         = (uint32)tcode;
