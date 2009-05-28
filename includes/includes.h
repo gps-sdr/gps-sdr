@@ -27,27 +27,21 @@
 
 /* Include standard headers, OS stuff */
 /*----------------------------------------------------------------------------------------------*/
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <math.h>
-#include <string.h>
-#include <pthread.h>
 #include <unistd.h>
-#include <signal.h>
-#include <errno.h>
 #include <ctype.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
-#include <fcntl.h>
-#include <sched.h>
-#include <curses.h>
-#include <limits.h>
 #include <termios.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <pthread.h>
 #include <semaphore.h>
+#include <limits.h>
 /*----------------------------------------------------------------------------------------------*/
 
 /* Herein Lies Many Important File, note thy order is important! */

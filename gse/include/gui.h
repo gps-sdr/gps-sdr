@@ -26,36 +26,12 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 /*Herein Lies Many Important Files*/
 /*Note thy order is important!*/
 /*----------------------------------------------------------------------------------------------*/
-//#include "mcf5307.h"			//!< ColdFire stuf
 #include "defines.h"			//!< GPS ICD-2000 defines
-//#include "registers.h"			//!< Memmap FPGA Registers
 #include "config.h"				//!< Configuration options
 #include "messages.h"			//!< RS422 messages
 #include "commands.h"			//!< RS422 commands
-/*----------------------------------------------------------------------------------------------*/
-
-/* Include standard headers, OS stuff */
-/*----------------------------------------------------------------------------------------------*/
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <math.h>
-#include <string.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <signal.h>
-#include <errno.h>
-#include <ctype.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <sched.h>
-#include <curses.h>
-#include <limits.h>
-#include <termios.h>
+#include <termios.h>			//!< Serial stuff
+#include <signal.h>				//!< Pipe stuff
 /*----------------------------------------------------------------------------------------------*/
 
 /* wxWidgets headers */

@@ -284,13 +284,13 @@ void PVT::Navigate()
 	if(master_clock.state == PVT_CLOCK_UNINITIALIZED)
 		ClockInit();
 
-	/* Pseudoranges */
-	PseudoRange();
-
 	/* Do SV Positions */
 	SV_Positions();
 	SV_TransitTime();
 	SV_Correct();
+
+	/* Pseudoranges */
+	PseudoRange();
 
 	if(PreErrorCheck())  //If everything looks good then navigate
 	{
@@ -308,8 +308,8 @@ void PVT::Navigate()
 			dt = PVT_Estimation();
 
 			/* Break out if we are iterating from a previous position */
-//			if((fabs(dt) < 1e-4) && temp_nav.converged)
-//				break;
+			if((fabs(dt) < 1e-4) && temp_nav.converged)
+				break;
 		}
 
 		master_nav.iterations = lcv;
@@ -507,10 +507,6 @@ void PVT::ClockInit()
 void PVT::SV_Positions()
 {
 
-	Ephemeris_M *e;
-	SV_Position_M *s;
-	Pseudorange_M *p;
-
 	int32 lcv;
 	int32 iter;
 	double dtemp, M, E, cE, sE, dEdM, P, U, R, I, cU, sU, Xp, Yp, L, sI, cI, sL, cL, ecc, s2P, c2P, toc;
@@ -519,6 +515,10 @@ void PVT::SV_Positions()
 	double tk_p_toe, toe;
 	double dtk;
 	double tk;
+	double whole_sec, partial_sec;
+	double code_phase, code_time;
+	Ephemeris_M *e;
+	SV_Position_M *s;
 
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
@@ -526,13 +526,24 @@ void PVT::SV_Positions()
 		{
 			e = &ephemerides[lcv];
 			s = &sv_positions[lcv];
-			p = &pseudoranges[lcv];
 
 			/* Compute the difference, in seconds, between the epoch and wk & sec. */
 			toe = (double) e->toe;
 
-			/* Time of transmission is calculated directly from tracking channel */
-			dtk = p->code_time - s->clock_bias;
+			/* Calculate the code phase */
+			code_phase = (double)(measurements[lcv].code_phase) * 1.0 +
+						 (double)(measurements[lcv].frac_code_phase) * TWO_N31;
+
+			/* Calculate the total code time */
+			code_time = code_phase * INVERSE_CODE_RATE +
+						(double)(measurements[lcv]._20ms_epoch * .02) +
+						(double)(measurements[lcv]._1ms_epoch * .001);
+
+			/* Time of transmission is calculated directly tracking channel */
+			partial_sec = code_time - s->clock_bias;
+			whole_sec = (double)measurements[lcv].subframe_sec;
+
+			dtk = partial_sec + whole_sec;
 
 			tk = (double)(dtk - (double)toe);
 			tk_p_toe = (double)(dtk);
@@ -542,24 +553,20 @@ void PVT::SV_Positions()
 			else if (tk < (-HALF_OF_SECONDS_IN_WEEK))
 				tk += SECONDS_IN_WEEK;
 
-			/* Mean anomaly, M (rads). */
+			//Mean anomaly, M (rads).
 			Mdot = e->n0 + e->deltan;
 			M = e->m0 + Mdot * tk;
 
-			/* Obtain eccentric anomaly E by solving Kepler's equation. */
+			// Obtain eccentric anomaly E by solving Kepler's equation.
 			ecc = e->ecc;
+
 			sqrt1mee = sqrt (1.0 - ecc * ecc);
-
-			/* Starting point for the iteration */
-			E = M + ecc;
-
-			for(iter = 0; iter < 20; iter++)
+			E = M;
+			for (iter = 0; iter < 20; iter++)
 			{
-				sE = sin(E);
-				cE = cos(E);
-				dEdM = 1.0 - ecc * cE;
-				dtemp = (M - E + ecc * sE) / dEdM;
-				if(fabs(dtemp) < 1.0E-14)
+				sE = sin(E); cE = cos(E);
+				dEdM = 1.0 / (1.0 - ecc * cE);
+				if (fabs (dtemp = (M - E + ecc * sE) * dEdM) < 1.0E-14)
 					break;
 				E += dtemp;
 			}
@@ -622,9 +629,9 @@ void PVT::SV_Positions()
 
 
 			s->clock_bias = e->af0 +
-							(e->af1 *(tk_p_toe - toc)) +
-							(e->af2 *(tk_p_toe - toc)*(tk_p_toe - toc)) +
-							e->relativistic;
+													(e->af1 *(tk_p_toe - toc)) +
+													(e->af2 *(tk_p_toe - toc)*(tk_p_toe - toc)) +
+													e->relativistic;
 
 			s->clock_bias -= e->tgd;
 
@@ -767,39 +774,32 @@ void PVT::PseudoRange()
 	{
 		if(good_channels[lcv])
 		{
+
 			/* Calculate the code phase */
 			code_phase =  (double)(measurements[lcv].code_phase)*1.0;
 			code_phase += (double)(measurements[lcv].frac_code_phase)*TWO_N31;
 
 			/* Calculate the total code time */
-			code_time = code_phase*INVERSE_CODE_RATE;
+			code_time = code_phase * INVERSE_CODE_RATE;
 			code_time += (double)(measurements[lcv]._20ms_epoch * .02);
 			code_time += (double)(measurements[lcv]._1ms_epoch * .001);
-			code_time += (double)measurements[lcv].subframe_sec;
-
-			/* Time of transmission */
-			pseudoranges[lcv].code_time = code_time;
 
 			/* Clear out the residual */
 			pseudoranges[lcv].residual = 0;
 
 			/* Time of transmission is calculated directly tracking channel */
-			time = master_clock.time - code_time;
+			time = master_clock.time - code_time - (double)measurements[lcv].subframe_sec;
 			pseudoranges[lcv].meters = time*(double)SPEED_OF_LIGHT;
 
-			/* EKF wants raw measurements, not ones that have the GPS clock bias added in */
-			time = master_clock.time_raw - code_time;
+			/* GEONS wants raw measurements, not ones that have the GPS clock bias added in */
+			time = master_clock.time_raw - code_time - (double)measurements[lcv].subframe_sec;
 			pseudoranges[lcv].uncorrected = time*(double)SPEED_OF_LIGHT;
 
-			/* Pseudorange RATE from integrated carrier phase (LESS NOISY) */
-//			cp_prev = (double)measurements[lcv].carrier_phase_prev;// + (double)measurements[lcv].frac_carrier_phase_prev*(double)TWO_N32;
-//			cp      = (double)measurements[lcv].carrier_phase;//      + (double)measurements[lcv].frac_carrier_phase*(double)TWO_N32;
-//			time_rate = (cp_prev - cp)*cp_adjust + (double)ZERO_DOPPLER_RATE; //!< Note the sign flip
-//			pseudoranges[lcv].meters_rate = time_rate * (double)C_OVER_L1;
-
-			/* Pseudorange RATE from carrier rate */
-			ctime_rate = (double)ZERO_DOPPLER_RATE - ((double)measurements[lcv].carrier_rate * NCO_CARR_INCR_2_HZ);
-			pseudoranges[lcv].meters_rate = ctime_rate * (double)C_OVER_L1;
+			/* Pseudorange RATE from integrated carrier phase */
+			cp_prev = (double)measurements[lcv].carrier_phase_prev + (double)measurements[lcv].frac_carrier_phase_prev*(double)TWO_N32;
+			cp      = (double)measurements[lcv].carrier_phase      + (double)measurements[lcv].frac_carrier_phase*(double)TWO_N32;
+			time_rate = (cp_prev - cp)*cp_adjust + (double)ZERO_DOPPLER_RATE; //!< Note the sign flip
+			pseudoranges[lcv].meters_rate = time_rate * (double)C_OVER_L1;
 		}
 	}
 
