@@ -33,8 +33,6 @@ void *FIFO_Thread(void *_arg)
 
 	FIFO *aFIFO = pFIFO;
 
-	aFIFO->Open();
-
 	while(grun)
 	{
 		aFIFO->Import();
@@ -72,14 +70,9 @@ FIFO::FIFO():Threaded_Object("FIFTASK")
 {
 	int32 lcv;
 
-	npipe = NULL;
-	npipe_open = false;
-
 	/* Create the buffer */
 	buff = new ms_packet[FIFO_DEPTH];
-
 	memset(buff, 0x0, sizeof(ms_packet)*FIFO_DEPTH);
-
 	head = &buff[0];
 	tail = &buff[0];
 
@@ -88,9 +81,6 @@ FIFO::FIFO():Threaded_Object("FIFTASK")
 		buff[lcv].next = &buff[lcv+1];
 
 	buff[FIFO_DEPTH-1].next = &buff[0];
-
-	/* Buffer for the raw IF data */
-	if_buff = new CPX[IF_SAMPS_MS];
 
 	tic = overflw = soverflw = count = 0;
 
@@ -114,10 +104,7 @@ FIFO::~FIFO()
 	sem_destroy(&sem_full);
 	sem_destroy(&sem_empty);
 
-	delete [] if_buff;
 	delete [] buff;
-
-	close(npipe);
 
 	if(gopt.verbose)
 		printf("Destructing FIFO\n");
@@ -129,57 +116,40 @@ FIFO::~FIFO()
 /*----------------------------------------------------------------------------------------------*/
 void FIFO::Import()
 {
-	int32 bread, nbytes;
-	uint8 *p;
 
 	IncStartTic();
 
-	if(npipe_open)
+	/* Read from the GPS source */
+	pSource->Read(head);
+
+	/* Add to the buff */
+	soverflw += run_agc(&head->data[0], SAMPS_MS, AGC_BITS, agc_scale);
+
+	/* Figure out the agc_scale value */
+	if((count & 0xF) == 0)
 	{
-		nbytes = 0; p = (uint8*)&if_buff[0];
-		while((nbytes < IF_SAMPS_MS*sizeof(CPX)) && grun)
-		{
-			bread = read(npipe, &p[nbytes], IF_SAMPS_MS*sizeof(CPX) - nbytes);
-			if(bread > -1)
-			{
-				nbytes += bread;
-			}
-		}
+		if(soverflw > OVERFLOW_HIGH*8)
+			agc_scale += 100;
 
-		/* Add to the buff */
-		soverflw += run_agc(&if_buff[0], IF_SAMPS_MS, AGC_BITS, agc_scale);
+		if(soverflw > OVERFLOW_HIGH)
+			agc_scale += 1;
 
-		/* Figure out the agc_scale value */
-		if((count & 0xF) == 0)
-		{
+		if(soverflw < OVERFLOW_LOW)
+			agc_scale -= 1;
 
-			if(soverflw > OVERFLOW_HIGH*8)
-				agc_scale += 100;
+		if(agc_scale < 1)
+			agc_scale = 1;
 
-			if(soverflw > OVERFLOW_HIGH)
-				agc_scale += 1;
-
-			if(soverflw < OVERFLOW_LOW)
-				agc_scale -= 1;
-
-			if(agc_scale < 1)
-				agc_scale = 1;
-
-			overflw = soverflw;
-			soverflw = 0;
-		}
+		overflw = soverflw;
+		soverflw = 0;
 	}
-	else
-	{
-		Open();
-	}
-
 
 	Enqueue();
 
 	IncStopTic();
 
 	count++;
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -190,7 +160,6 @@ void FIFO::Enqueue()
 
 	sem_wait(&sem_empty);
 
-	memcpy(&head->data[0], &if_buff[0], SAMPS_MS*sizeof(CPX));
 	head->count = count;
 
 	/* Send a packet to the acquisition (nonblocking) */
@@ -199,8 +168,6 @@ void FIFO::Enqueue()
 	head = head->next;
 
 	sem_post(&sem_full);
-
-	usleep(500);
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -216,27 +183,6 @@ void FIFO::Dequeue(ms_packet *p)
 	tail = tail->next;
 
 	sem_post(&sem_empty);
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
-void FIFO::Open()
-{
-
-	npipe = NULL;
-	npipe = open("/tmp/GPSPIPE", O_RDONLY | O_NONBLOCK);
-
-	if(npipe != -1)
-	{
-		npipe_open = true;
-		if(gopt.verbose)			printf("GPS pipe open.\n");
-	}
-	else
-	{
-		usleep(1000);
-	}
 
 }
 /*----------------------------------------------------------------------------------------------*/

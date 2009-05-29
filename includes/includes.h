@@ -25,6 +25,7 @@
 */
 /*----------------------------------------------------------------------------------------------*/
 
+
 /* Include standard headers, OS stuff */
 /*----------------------------------------------------------------------------------------------*/
 #include <unistd.h>
@@ -44,6 +45,7 @@
 #include <limits.h>
 /*----------------------------------------------------------------------------------------------*/
 
+
 /* Herein Lies Many Important File, note thy order is important! */
 /*----------------------------------------------------------------------------------------------*/
 #include "config.h"				//!< Configure receiver
@@ -57,22 +59,5 @@
 #include "protos.h"				//!< Functions & thread prototypes
 #include "simd.h"				//!< Include the SIMD functionality
 #include "globals.h"			//!< Global objects live here
-/*----------------------------------------------------------------------------------------------*/
-
-/* Include the "Threaded Objects" */
-/*----------------------------------------------------------------------------------------------*/
 #include "threaded_object.h"	//!< Base class for threaded object
-//#include "fft.h"				//!< Fixed point FFT object
-//#include "fifo.h"				//!< Circular buffer for Importing IF data
-//#include "keyboard.h"			//!< Handle user input via keyboard
-//#include "channel.h"			//!< Tracking channels
-//#include "correlator.h"			//!< Correlator
-//#include "acquisition.h"		//!< Acquisition
-//#include "pvt.h"				//!< PVT solution
-//#include "ephemeris.h"			//!< Ephemeris decode
-//#include "telemetry.h"			//!< Ncurses telemetry
-//#include "serial_telemetry.h"	//!< Serial/GUI telemetry
-//#include "commando.h"			//!< Command interface
-//#include "sv_select.h"			//!< Drives acquisition/reacquisition process
-//#include "post_process.h"		//!< Run the receiver from a file
 /*----------------------------------------------------------------------------------------------*/

@@ -87,66 +87,18 @@ int main(int argc, char* argv[])
 		return(-1);
 	}
 
-	/* If the command line indicates that the usrp should be called
-	 * do that stuff here
-	 */
-	if(gopt.usrp_internal)
+	while(grun)
 	{
-
-		pipe(fin);
-		pipe(fout);
-
-		pid = fork();
-		if(pid == 0)
-		{
-		    close(fin[1]);
-		    dup2(fin[0], STDIN_FILENO);		/* Connect the read end of the pipe to standard input.  */
-		    close(STDOUT_FILENO);			/* Kill the stdout so not to screw up the ncurses display */
-
-		    /* Replace the child process with the gps-usrp client */
-			execl("gps-usrp", NULL, NULL);
-		}
-		else
-		{
-			while(grun)
-			{
-				usleep(10000);
-			}
-
-			Thread_Shutdown();
-
-			Pipes_Shutdown();
-
-			Object_Shutdown();
-
-			Hardware_Shutdown();
-
-			/* Kill the usrp-gps child */
-			close(fin[0]);
-		    fp = fdopen(fin[1], "w");
-		    fprintf(fp, "Q\n");
-		    fflush(fp);
-		    close(fin[1]);
-			pid = waitpid(-1, &state, 0);
-		}
+		usleep(10000);
 	}
-	else
-	{
 
-		while(grun)
-		{
-			usleep(10000);
-		}
+	Thread_Shutdown();
 
-		Thread_Shutdown();
+	Pipes_Shutdown();
 
-		Pipes_Shutdown();
+	Object_Shutdown();
 
-		Object_Shutdown();
-
-		Hardware_Shutdown();
-
-	}
+	Hardware_Shutdown();
 
 	return(1);
 

@@ -38,7 +38,7 @@
 #include "telemetry.h"			//!< Telemetry
 #include "commando.h"			//!< Command interface
 #include "sv_select.h"			//!< Drives acquisition/reacquisition process
-//#include "post_process.h"		//!< Run the receiver from a file
+#include "gps_source.h"			//!< Get GPS data
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -46,8 +46,6 @@
 /*! First stop all threads */
 void Thread_Shutdown(void)
 {
-	char buff[1024*1024];
-	int32 lcv;
 
 	/* Start the keyboard thread to handle user input from stdio */
 	pKeyboard->Stop();
@@ -75,10 +73,6 @@ void Thread_Shutdown(void)
 
 	/* Stop the tracking */
 	pSV_Select->Stop();
-
-//	/* Stop spoofing my named pipe yo */
-//	if(gopt.post_process)
-//		pPost_Process->Stop();
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -138,13 +132,11 @@ void Object_Shutdown(void)
 	delete pAcquisition;
 	delete pEphemeris;
 	delete pFIFO;
+	delete pSource;
 	delete pSV_Select;
 	delete pTelemetry;
 	delete pPVT;
 	delete pCommando;
-
-	//	if(gopt.post_process)
-	//		delete pPost_Process;
 
 }
 /*----------------------------------------------------------------------------------------------*/

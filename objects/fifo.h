@@ -30,6 +30,7 @@
 
 #include "includes.h"
 #include "telemetry.h"
+#include "gps_source.h"
 
 #define FIFO_DEPTH (5000)	//!< In ms
 
@@ -46,13 +47,10 @@ class FIFO : public Threaded_Object
 		sem_t sem_full;
 		sem_t sem_empty;
 
-		CPX *if_buff;		//!< Get the data from the named pipe
 		ms_packet *buff;	//!< 1 second buffer (in 1 ms packets)
 		ms_packet *head;	//!< Pointer to the head
 		ms_packet *tail;	//!< Pointer to the tail
 
-		int32 npipe;		//!< Get the IF data from the USRP_Uno program, and its pipe ("/tmp/GPSPIPE")
-		int32 npipe_open;	//!< Is the named pipe open?
 		int32 count;		//!< Count the number of packets received
 		int32 agc_scale;	//!< To do the AGC
 		int32 overflw;		//!< Overflow counter

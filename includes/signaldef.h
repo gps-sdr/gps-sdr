@@ -37,7 +37,9 @@
 	#define ZERO_DOPPLER_RATE	(IF_FREQUENCY)			//!< IF frequency
 	#define NCO_CARR_INCR_NOM	(0x14000000)			//!< 160000 Hz
 	#define NCO_CODE_INCR_NOM	(0x3FF00000)			//!< = 1.023e6 Mcps, 1 chips/s = 1049 in terms of the code NCO
-	#define IF_SAMPS_MS 		(2048)					//!< Samples per millisecond
+	#define F_SAMPLE_NOM		(64e6)
+	#define SAMPS_PER_READ		(4096)
+	#define BYTES_PER_READ  	(SAMPS_PER_READ*4)
 	#define HZ_2_NCO_CARR_INCR	(2.097152000000000e+03)
 	#define NCO_CARR_INCR_2_HZ	(4.768371582031250e-04)
 	#define HZ_2_NCO_CODE_INCR  (1.048576000000000e+03)

@@ -7,21 +7,23 @@ CINCPATHFLAGS = -Iaccessories	\
 				-Iincludes		\
 				-Imain			\
 				-Iobjects		\
-				-Isimd
+				-Isimd			\
+				-Iusrp
 				
 VPATH		=   accessories:	\
 				acquisition:	\
 				includes:		\
 				main:			\
 				objects:		\
-				simd:			
+				simd:			\
+				usrp:			
 											
-LDFLAGS	 = -lpthread -m32
+LDFLAGS	 = -lpthread -lusrp -m32
 CFLAGS   = -O2 -D_FORTIFY_SOURCE=0 -g3 $(CINCPATHFLAGS)
 ASMFLAGS = -masm=intel
 
-SKIP = %main.cpp %simd-test.cpp %fft-test.cpp %acq-test.cpp %sse_new.cpp
-SRCC = $(wildcard main/*.cpp simd/*.cpp accessories/*.cpp acquisition/*.cpp objects/*.cpp)
+SKIP = %main.cpp %simd-test.cpp %fft-test.cpp %acq-test.cpp %sse_new.cpp %gps-usrp.cpp
+SRCC = $(wildcard main/*.cpp simd/*.cpp accessories/*.cpp acquisition/*.cpp objects/*.cpp usrp/*.cpp)
 SRC = $(filter-out $(SKIP), $(SRCC)) 
 OBJS = $(SRC:.cpp=.o)
 HEADERS = $(wildcard accessories/*.h acquisition/*.h main/*.h objects/*.h simd/*.h includes/*.h)			

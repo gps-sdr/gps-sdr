@@ -67,24 +67,20 @@ typedef struct MIX {
 typedef struct _Options_S
 {
 
-	int32	verbose;					//!< Do a lot of extra printing
-	int32	realtime;					//!< Run off of USRP
-	int32	post_process; 				//!< Use recorded data
-	int32 	ocean;						//!< Do reflected waveforms
-	int32 	log_channel;				//!< Log low-level tracking loop info
-	int32	log_nav;					//!< Log nav solution output to disk
-	int32	log_decimate;				//!< Decimate log output by this factor
-	int32	google_earth;				//!< Output .klm file for google earth
-	int32	ncurses;					//!< Use ncurses display
-	int32	doppler_min;				//!< Set minimum Doppler
-	int32	doppler_max;				//!< Set maximum Doppler
-	int32	corr_sleep;					//!< How long to correlators should sleep
-	int32	startup;					//!< Startup warm/cold
-	int32	gui;						//!< Run with the GUI program (disables ncurses)
-	int32	serial;						//!< Output telemetry over the serial port (disables ncurses)
-	int32	usrp_internal;				//!< Run usrp-gps as a child process of receiver
-	char	filename_direct[1024];		//!< Skyview filename
-	char	filename_reflected[1024];	//!< Reflected filename
+	int32	verbose;		//!< Do a lot of extra printing
+	int32 	log_channel;	//!< Log low-level tracking loop info
+	int32	mode;			//!< Run in a  2 antenna mode with 2 DBS-RXs, Run in a  2 antenna mode, board A L1, board B L2
+	int32	record;			//!< Dump data to disk
+	int32	decimate;
+	int32	realtime;
+	double	f_lo_a;			//!< LO freq for board A
+	double	f_ddc_a;		//!< DDC freq for board A
+	double	f_lo_b;			//!< LO freq for board B
+	double	f_ddc_b;		//!< DDC freq for board B
+	double 	bandwidth;		//!< DBS-RX filter bandwidth
+	double 	gi;				//!< IF gain
+	double 	gr;				//!< RF gain
+	double	f_sample;		//!< Sample rate (depending on the clock)
 
 } Options_S;
 /*----------------------------------------------------------------------------------------------*/

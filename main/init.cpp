@@ -38,33 +38,25 @@
 #include "telemetry.h"			//!< Serial/GUI telemetry
 #include "commando.h"			//!< Command interface
 #include "sv_select.h"			//!< Drives acquisition/reacquisition process
-//#include "post_process.h"		//!< Run the receiver from a file
+#include "gps_source.h"
 /*----------------------------------------------------------------------------------------------*/
+
 
 /*! Print out command arguments to std_out */
 /*----------------------------------------------------------------------------------------------*/
-void usage(int32 argc, char* argv[])
+void usage(char *_str)
 {
-	int32 lcv;
-
 	fprintf(stderr, "\n");
-	for(lcv = 0; lcv < argc; lcv++)
-		fprintf(stderr, "%s ",argv[lcv]);
-	fprintf(stderr, "\nusage: [-p] [-o] [-l] [-v]\n");
-	fprintf(stderr, "[-p] <filename> use prerecorded data\n");
-	fprintf(stderr, "[-o] <filename1> <filename2> do ocean reflection\n");
+	fprintf(stderr, "usage: [-c] [-v] [-gr] [-gi] [-d] [-l] [-w] [-x]\n");
 	fprintf(stderr, "[-c] log high rate channel data\n");
-	fprintf(stderr, "[-l] log navigation data\n");
-	fprintf(stderr, "[-d] <N> decimate logged nav data by this N factor\n");
-	fprintf(stderr, "[-g] log google earth data\n");
 	fprintf(stderr, "[-v] be verbose \n");
-	fprintf(stderr, "[-n] ncurses OFF \n");
-	fprintf(stderr, "[-gui] run receiver with the GUI app over a named pipe\n");
-	fprintf(stderr, "[-ser] run receiver with the GUI app over a serial port\n");
-	fprintf(stderr, "[-w] start receiver in warm start, using almanac and last good position\n");
-	fprintf(stderr, "[-u] run receiver with usrp-gps as child process\n");
-	fprintf(stderr, "\n");
-
+	fprintf(stderr, "[-gr] <gain> set rf gain in dB (DBSRX only)\n");
+	fprintf(stderr, "[-gi] <gain> set if gain in dB (DBSRX only)\n");
+	fprintf(stderr, "[-d] operate in two antenna mode, A & B as L1\n");
+	fprintf(stderr, "[-l] operate in L1-L2 mode, A as L1, B as L2\n");
+	fprintf(stderr, "[-w] <bandwidth> bandwidth of lowpass filter\n");
+	fprintf(stderr, "[-x] the USRP samples at a modified 65.536 MHz (default is 64 MHz)\n");
+	fflush(stderr);
 	exit(1);
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -76,53 +68,20 @@ void echo_options()
 {
 	FILE *fp;
 
-	/* Do some error checking */
-	if(gopt.post_process)
-	{
-		fp = fopen(gopt.filename_direct,"r");
-		if(fp == NULL)
-		{
-			printf("\nCould not open %s for reading\n\n",gopt.filename_direct);
-			exit(1);
-		}
-
-	}
-
-	if(gopt.ocean)
-	{
-		fp = fopen(gopt.filename_direct,"r");
-		if(fp == NULL)
-		{
-			printf("\nCould not open %s for reading\n\n",gopt.filename_direct);
-			exit(1);
-		}
-
-		fp = fopen(gopt.filename_reflected,"r");
-		if(fp == NULL)
-		{
-			printf("\nCould not open %s for reading\n\n",gopt.filename_reflected);
-			exit(1);
-		}
-	}
-
-
 	if(gopt.verbose)
 	{
 		fprintf(stderr, "\n");
-		fprintf(stderr, "verbose:\t\t %d\n",gopt.verbose);
-		fprintf(stderr, "realtime:\t\t %d\n",gopt.realtime);
-		fprintf(stderr, "post_process:\t\t %d\n",gopt.post_process);
-		fprintf(stderr, "ocean:\t\t\t %d\n",gopt.ocean);
-		fprintf(stderr, "log_channel:\t\t %d\n",gopt.log_channel);
-		fprintf(stderr, "log_nav:\t\t %d\n",gopt.log_nav);
-		fprintf(stderr, "log_decimate:\t\t %d\n",gopt.log_decimate);
-		fprintf(stderr, "google_earth:\t\t %d\n",gopt.google_earth);
-		fprintf(stderr, "ncurses:\t\t %d\n",gopt.ncurses);
-		fprintf(stderr, "gui:\t\t\t %d\n",gopt.gui);
-		fprintf(stderr, "serial:\t\t\t %d\n",gopt.serial);
-		fprintf(stderr, "filename_direct:\t %s\n",gopt.filename_direct);
-		fprintf(stderr, "filename_reflected:\t %s\n",gopt.filename_reflected);
+		fprintf(stderr, "Verbose:\t\t\t %d\n",gopt.verbose);
+		fprintf(stderr, "Log channel:\t\t\t %d\n",gopt.log_channel);
+		fprintf(stderr, "USRP Sample Rate:\t% 15.2f\n",gopt.f_sample);
+		fprintf(stderr, "USRP Decimation:\t% 15d\n",gopt.decimate);
+		fprintf(stderr, "DBSRX LO A:\t\t% 15.2f\n",gopt.f_lo_a);
+		fprintf(stderr, "DBSRX LO B:\t\t% 15.2f\n",gopt.f_lo_b);
+		fprintf(stderr, "RF Gain:\t\t% 15.2f\n",gopt.gr);
+		fprintf(stderr, "IF Gain:\t\t% 15.2f\n",gopt.gi);
+		fprintf(stderr, "DBSRX Bandwidth:\t% 15.2f\n",gopt.bandwidth);
 		fprintf(stderr, "\n");
+		fflush(stderr);
 	}
 
 }
@@ -134,111 +93,85 @@ void echo_options()
 void Parse_Arguments(int32 argc, char* argv[])
 {
 
+	char *parse;
 	int32 lcv;
 
 	/* Set default options */
 	gopt.verbose 		= 0;
-	gopt.realtime 		= 1;
-	gopt.post_process 	= 0;
-	gopt.ocean 			= 0;
 	gopt.log_channel 	= 0;
-	gopt.log_nav		= 0;
-	gopt.log_decimate	= 1;
-	gopt.google_earth	= 0;
-	gopt.ncurses 		= 1;
-	gopt.gui			= 0;
-	gopt.serial			= 0;
-	gopt.doppler_min 	= -MAX_DOPPLER_STRONG;
-	gopt.doppler_max 	= MAX_DOPPLER_STRONG;
-	gopt.corr_sleep 	= 500;
-	gopt.startup		= 0;
-	gopt.usrp_internal	= 0;
-	strcpy(gopt.filename_direct, "data.bda");
-	strcpy(gopt.filename_reflected, "rdata.bda");
+	gopt.mode 			= 0;		//!< Single board L1 mode by default
+	gopt.decimate		= 16;		//!< Default to work with both 65.536 and 64 MHz clocks
+	gopt.gr 			= 40; 		//!< 40 dB of RF gain
+	gopt.gi 			= 10; 		//!< 10 dB of IF gain
+	gopt.f_lo_a 		= L1 - IF_FREQUENCY;	//!< Board A L1 by default
+	gopt.f_ddc_a 		= 0;		//!< no DDC correction
+	gopt.f_lo_b			= L2 - IF_FREQUENCY;	//!< Board B L2 by default
+	gopt.f_ddc_b 		= 0;		//!< no DDC correction
+	gopt.bandwidth 		= 16.0e6; 	//!< DBS-RX is set to 10 MHz wide
+	gopt.f_sample 		= 64.0e6;	//!< Nominal sample rate
+	gopt.verbose 		= 1;		//!< Output extra debugging info
+	gopt.record 		= 0;		//!< Record data to disk
+	gopt.realtime		= 1;
 
 	for(lcv = 1; lcv < argc; lcv++)
 	{
-		if(strcmp(argv[lcv],"-p") == 0)
+		switch (argv[lcv][1])
 		{
-			gopt.post_process = 1;
-			gopt.realtime = 0;
-			gopt.ocean = 0;
-			gopt.corr_sleep = 100;
 
-			if(argc < lcv+2)
-				usage(argc, argv);
+			case 'c':
+				gopt.log_channel = 1;
+				break;
+			case 'v':
+				gopt.verbose = 1;
+				break;
+			case 'g':
+				if(argv[lcv][2] == 'r')
+				{
+					if(++lcv >= argc)
+						usage (argv[0]);
 
-			strcpy(gopt.filename_direct, argv[lcv+1]);
-			lcv += 1;
-		}
-		else if(strcmp(argv[lcv],"-o") == 0)
-		{
-			gopt.post_process = 0;
-			gopt.realtime = 0;
-			gopt.ocean = 1;
+					if(isdigit(argv[lcv][0]))
+						gopt.gr = strtod(argv[lcv], &parse);
+					else
+						usage (argv[0]);
+					break;
+				}
+				else if(argv[lcv][2] == 'i')
+				{
+					if(++lcv >= argc)
+						usage (argv[0]);
 
-			if(argc < lcv+3)
-				usage(argc, argv);
+					if(isdigit(argv[lcv][0]))
+						gopt.gi = strtod(argv[lcv], &parse);
+					else
+						usage (argv[0]);
+					break;
+				}
+				else
+					usage(argv[0]);
+				break;
+			case 'd':
+				gopt.mode = 1;
+				break;
+			case 'l':
+				gopt.mode = 2;
+				gopt.f_lo_b = L2; /* L2C center frequency */
+				break;
+			case 'w':
+				if(++lcv >= argc)
+					usage (argv[0]);
 
-			strcpy(gopt.filename_direct, argv[lcv+1]);
-			strcpy(gopt.filename_reflected, argv[lcv+2]);
-			lcv += 2;
+				if(isdigit(argv[lcv][0]))
+					gopt.bandwidth = strtod(argv[lcv], &parse);
+				else
+					usage (argv[0]);
+				break;
+			case 'x':
+				gopt.f_sample = 65.536e6;
+				break;
+			default:
+				usage(argv[0]);
 		}
-		else if(strcmp(argv[lcv],"-v") == 0)
-		{
-			gopt.verbose = 1;
-		}
-		else if(strcmp(argv[lcv],"-d") == 0)
-		{
-			if(isdigit(argv[lcv+1][0]))
-			{
-				lcv++;
-				gopt.log_decimate = atoi(argv[lcv]);
-			}
-			else
-			{
-				usage(argc, argv);
-			}
-		}
-		else if(strcmp(argv[lcv],"-c") == 0)
-		{
-			gopt.log_channel = 1;
-		}
-		else if(strcmp(argv[lcv],"-l") == 0)
-		{
-			gopt.log_nav = 1;
-		}
-		else if(strcmp(argv[lcv],"-g") == 0)
-		{
-			gopt.google_earth = 1;
-		}
-		else if(strcmp(argv[lcv],"-n") == 0)
-		{
-			gopt.ncurses = 0;
-		}
-		else if(strcmp(argv[lcv],"-w") == 0)
-		{
-			gopt.startup = 1;
-		}
-		else if(strcmp(argv[lcv],"-gui") == 0)
-		{
-			gopt.gui = 1;
-			gopt.serial = 0;
-			gopt.ncurses = 0;
-		}
-		else if(strcmp(argv[lcv],"-ser") == 0)
-		{
-			gopt.serial = 1;
-			gopt.gui = 0;
-			gopt.ncurses = 0;
-			gopt.log_decimate = 10;
-		}
-		else if(strcmp(argv[lcv],"-u") == 0)
-		{
-			gopt.usrp_internal = 1;
-		}
-		else
-			usage(argc, argv);
 	}
 
 	echo_options();
@@ -311,7 +244,6 @@ int32 Hardware_Init(void)
 int32 Object_Init(void)
 {
 	int32 lcv;
-	int32 failed;
 
 	/* Get start of receiver */
 	gettimeofday(&starttime, NULL);
@@ -325,24 +257,29 @@ int32 Object_Init(void)
 	/* Decode the almanac and ephemerides */
 	pEphemeris = new Ephemeris;
 
-	/* Get data from either the USRP or disk */
-	pFIFO = new FIFO;
-
+	/* Drive the acquisition process */
 	pSV_Select = new SV_Select;
 
+	/* Output info to the GUI */
+	pTelemetry = new Telemetry();
+
+	/* execute user commands */
+	pCommando = new Commando();
+
+	/* Form a nav solution */
+	pPVT = new PVT();
+
+	/* Create the tracking channels */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		pChannels[lcv] = new Channel(lcv);
 
+	/* Draw the GPS data from somewhere */
+	pSource = new GPS_Source(&gopt);
+
+	/* Get data from either the USRP or disk */
+	pFIFO = new FIFO;
+
 	pCorrelator = new Correlator();
-
-	pTelemetry = new Telemetry();
-
-	pCommando = new Commando();
-
-	pPVT = new PVT();
-
-//	if(gopt.post_process)
-//		pPost_Process = new Post_Process(gopt.filename_direct);
 
 	if(gopt.verbose)
 	{
@@ -354,8 +291,6 @@ int32 Object_Init(void)
 
 }
 /*----------------------------------------------------------------------------------------------*/
-
-
 
 
 /*! Initialize all pipes */
@@ -420,7 +355,7 @@ int32 Thread_Init(void)
 	/* Startup the PVT sltn */
 	pPVT->Start();
 
-//	/* Start up the correlators */
+	/* Start up the correlators */
 	pCorrelator->Start();
 
 	/* Start up the acquistion */
@@ -437,10 +372,6 @@ int32 Thread_Init(void)
 
 	/* Last thing to do */
 	pTelemetry->Start();
-
-//	/* Do the post process */
-//	if(gopt.post_process)
-//		pPost_Process->Start();
 
 	/* Start up the FIFO */
 	pFIFO->Start();
