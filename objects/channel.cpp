@@ -35,7 +35,7 @@ Channel::Channel(int32 _chan):Threaded_Object("CHNTASK")
 	chan = _chan;
 
 	if(gopt.verbose)
-		printf("Creating Channel %d\n",chan);
+		fprintf(stdout,"Creating Channel %d\n",chan);
 
 	if(gopt.log_channel)
 	{
@@ -61,7 +61,7 @@ Channel::~Channel()
 		fclose(fp);
 
 	if(gopt.verbose)
-		printf("Destructing Channel %d\n",chan);
+		fprintf(stdout,"Destructing Channel %d\n",chan);
 
 }
 /*----------------------------------------------------------------------------------------------*/

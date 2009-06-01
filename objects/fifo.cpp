@@ -52,7 +52,7 @@ void FIFO::Start()
 	Start_Thread(FIFO_Thread, NULL);
 
 	if(gopt.verbose)
-		printf("FIFO thread started\n");
+		fprintf(stdout,"FIFO thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -90,7 +90,7 @@ FIFO::FIFO():Threaded_Object("FIFTASK")
 	sem_init(&sem_empty, NULL, FIFO_DEPTH);
 
 	if(gopt.verbose)
-		printf("Creating FIFO\n");
+		fprintf(stdout,"Creating FIFO\n");
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -107,7 +107,7 @@ FIFO::~FIFO()
 	delete [] buff;
 
 	if(gopt.verbose)
-		printf("Destructing FIFO\n");
+		fprintf(stdout,"Destructing FIFO\n");
 
 }
 /*----------------------------------------------------------------------------------------------*/

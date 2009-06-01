@@ -54,7 +54,7 @@ void Correlator::Start()
 	Start_Thread(Correlator_Thread, NULL);
 
 	if(gopt.verbose)
-		printf("Correlator thread started\n");
+		fprintf(stdout,"Correlator thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -94,7 +94,7 @@ Correlator::Correlator():Threaded_Object("CORTASK")
 	SamplePRN();
 
 	if(gopt.verbose)
-		printf("Creating Correlator\n");
+		fprintf(stdout,"Creating Correlator\n");
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -110,7 +110,7 @@ Correlator::~Correlator()
 	delete [] main_code_rows;
 
 	if(gopt.verbose)
-		printf("Destructing Correlator\n");
+		fprintf(stdout,"Destructing Correlator\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 

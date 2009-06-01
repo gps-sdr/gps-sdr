@@ -136,7 +136,7 @@ void FFT::initW()
 		W[lcv].nq = (short)(-s);
 		W[lcv].ni = (short)(c);
 
-//		printf("W:%d,%d\n",W[lcv].i,W[lcv].q);
+//		fprintf(stdout,"W:%d,%d\n",W[lcv].i,W[lcv].q);
 
 		//Inverse twiddles
 		iW[lcv].i = (short)(c);
@@ -165,7 +165,7 @@ void FFT::initBR()
 
 		BR[lcv] = index;
 
-//		printf("BR:%d\n",BR[lcv]);
+//		fprintf(stdout,"BR:%d\n",BR[lcv]);
 	}
 
 }

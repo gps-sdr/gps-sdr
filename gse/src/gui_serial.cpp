@@ -136,8 +136,8 @@ GUI_Serial::GUI_Serial()
 	byte_count 		= 0;
 	serial 			= 0;
 	npipe_open 		= false;
-	npipe[READ] 	= NULL;
-	npipe[WRITE] 	= NULL;
+	npipe[READ] 	= -1;
+	npipe[WRITE] 	= -1;
 	lfile 			= NULL;
 	packet_count[LAST_M_ID] = 0;
 	decoded_packet.tic = decoded_packet.id = decoded_packet.length = 0;
@@ -179,8 +179,8 @@ void GUI_Serial::openSerial()
 	spipe = open("/dev/ttyS0", O_RDWR | O_NOCTTY | O_NONBLOCK);
     if(spipe < 0)
     {
-		npipe[READ] = NULL;
-		npipe[WRITE] = NULL;
+		npipe[READ] = -1;
+		npipe[WRITE] = -1;
 		npipe_open = false;
     	return;
     }
@@ -246,8 +246,8 @@ void GUI_Serial::setPipe(bool _status)
 	{
 		close(npipe[READ]);
 		close(npipe[WRITE]);
-		npipe[READ] = NULL;
-		npipe[WRITE] = NULL;
+		npipe[READ] = -1;
+		npipe[WRITE] = -1;
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -262,8 +262,8 @@ void GUI_Serial::setIO(int32 _serial)
 		npipe_open = false;
 		close(npipe[READ]);
 		close(npipe[WRITE]);
-		npipe[READ] = NULL;
-		npipe[WRITE] = NULL;
+		npipe[READ] = -1;
+		npipe[WRITE] = -1;
 	}
 
 	serial = _serial;

@@ -36,17 +36,18 @@ void *Keyboard_Thread(void *_arg)
 
 	while(grun)
 	{
-
 		key = getchar();
-		//printf("%c",(char)key);
+
+		fprintf(stderr,"%c\n",(char)key);
 
 		if((char)key == 'Q')
 		{
 			grun = 0x0;
 		}
 
-		aKeyboard->IncExecTic();
+		usleep(1000);
 
+		aKeyboard->IncExecTic();
 	}
 
 	pthread_exit(0);
@@ -61,7 +62,7 @@ void Keyboard::Start()
 	Start_Thread(Keyboard_Thread, NULL);
 
 	if(gopt.verbose)
-		printf("Keyboard thread started\n");
+		fprintf(stdout,"Keyboard thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -70,7 +71,7 @@ void Keyboard::Start()
 Keyboard::Keyboard():Threaded_Object("KEYTASK")
 {
 	if(gopt.verbose)
-		printf("Creating Keyboard\n");
+		fprintf(stdout,"Creating Keyboard\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -79,6 +80,6 @@ Keyboard::Keyboard():Threaded_Object("KEYTASK")
 Keyboard::~Keyboard()
 {
 	if(gopt.verbose)
-		printf("Destructing Keyboard\n");
+		fprintf(stdout,"Destructing Keyboard\n");
 }
 /*----------------------------------------------------------------------------------------------*/

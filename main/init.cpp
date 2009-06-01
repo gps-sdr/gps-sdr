@@ -46,17 +46,18 @@
 /*----------------------------------------------------------------------------------------------*/
 void usage(char *_str)
 {
-	fprintf(stderr, "\n");
-	fprintf(stderr, "usage: [-c] [-v] [-gr] [-gi] [-d] [-l] [-w] [-x]\n");
-	fprintf(stderr, "[-c] log high rate channel data\n");
-	fprintf(stderr, "[-v] be verbose \n");
-	fprintf(stderr, "[-gr] <gain> set rf gain in dB (DBSRX only)\n");
-	fprintf(stderr, "[-gi] <gain> set if gain in dB (DBSRX only)\n");
-	fprintf(stderr, "[-d] operate in two antenna mode, A & B as L1\n");
-	fprintf(stderr, "[-l] operate in L1-L2 mode, A as L1, B as L2\n");
-	fprintf(stderr, "[-w] <bandwidth> bandwidth of lowpass filter\n");
-	fprintf(stderr, "[-x] the USRP samples at a modified 65.536 MHz (default is 64 MHz)\n");
-	fflush(stderr);
+	fprintf(stdout,"\n");
+	fprintf(stdout,"usage: [-c] [-v] [-gr] [-gi] [-d] [-l] [-w] [-x] [-s]\n");
+	fprintf(stdout,"[-c] log high rate channel data\n");
+	fprintf(stdout,"[-v] be verbose \n");
+	fprintf(stdout,"[-gr] <gain> set rf gain in dB (DBSRX only)\n");
+	fprintf(stdout,"[-gi] <gain> set if gain in dB (DBSRX only)\n");
+	fprintf(stdout,"[-d] operate in two antenna mode, A & B as L1\n");
+	fprintf(stdout,"[-l] operate in L1-L2 mode, A as L1, B as L2\n");
+	fprintf(stdout,"[-w] <bandwidth> bandwidth of lowpass filter\n");
+	fprintf(stdout,"[-x] the USRP samples at a modified 65.536 MHz (default is 64 MHz)\n");
+	fprintf(stdout,"[-s] output over /dev/ttyS0 instead of the named pipe\n");
+	fflush(stdout);
 	exit(1);
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -70,18 +71,19 @@ void echo_options()
 
 	if(gopt.verbose)
 	{
-		fprintf(stderr, "\n");
-		fprintf(stderr, "Verbose:\t\t\t %d\n",gopt.verbose);
-		fprintf(stderr, "Log channel:\t\t\t %d\n",gopt.log_channel);
-		fprintf(stderr, "USRP Sample Rate:\t% 15.2f\n",gopt.f_sample);
-		fprintf(stderr, "USRP Decimation:\t% 15d\n",gopt.decimate);
-		fprintf(stderr, "DBSRX LO A:\t\t% 15.2f\n",gopt.f_lo_a);
-		fprintf(stderr, "DBSRX LO B:\t\t% 15.2f\n",gopt.f_lo_b);
-		fprintf(stderr, "RF Gain:\t\t% 15.2f\n",gopt.gr);
-		fprintf(stderr, "IF Gain:\t\t% 15.2f\n",gopt.gi);
-		fprintf(stderr, "DBSRX Bandwidth:\t% 15.2f\n",gopt.bandwidth);
-		fprintf(stderr, "\n");
-		fflush(stderr);
+		fprintf(stdout,"\n");
+		fprintf(stdout,"Verbose:          %13d\n",gopt.verbose);
+		fprintf(stdout,"Log channel:      %13d\n",gopt.log_channel);
+		fprintf(stdout,"Telemetry:        %13d\n",gopt.tlm_type);
+		fprintf(stdout,"USRP Decimation:  %13d\n",gopt.decimate);
+		fprintf(stdout,"USRP Sample Rate: %13.2f\n",gopt.f_sample);
+		fprintf(stdout,"DBSRX LO A:       %13.2f\n",gopt.f_lo_a);
+		fprintf(stdout,"DBSRX LO B:       %13.2f\n",gopt.f_lo_b);
+		fprintf(stdout,"RF Gain:          %13.2f\n",gopt.gr);
+		fprintf(stdout,"IF Gain:          %13.2f\n",gopt.gi);
+		fprintf(stdout,"DBSRX Bandwidth:  %13.2f\n",gopt.bandwidth);
+		fprintf(stdout,"\n");
+		fflush(stdout);
 	}
 
 }
@@ -99,6 +101,7 @@ void Parse_Arguments(int32 argc, char* argv[])
 	/* Set default options */
 	gopt.verbose 		= 0;
 	gopt.log_channel 	= 0;
+	gopt.tlm_type		= TELEM_NAMED_PIPE;
 	gopt.mode 			= 0;		//!< Single board L1 mode by default
 	gopt.decimate		= 16;		//!< Default to work with both 65.536 and 64 MHz clocks
 	gopt.gr 			= 40; 		//!< 40 dB of RF gain
@@ -167,6 +170,9 @@ void Parse_Arguments(int32 argc, char* argv[])
 			case 'x':
 				gopt.f_sample = 65.536e6;
 				break;
+			case 's':
+				gopt.tlm_type = TELEM_SERIAL;
+				break;
 			default:
 				usage(argv[0]);
 		}
@@ -186,7 +192,7 @@ int32 Hardware_Init(void)
 	if(CPU_MMX())
 	{
 		if(gopt.verbose)
-			printf("Detected MMX\n");
+			fprintf(stdout,"Detected MMX\n");
 	}
 	else
 		return(false);
@@ -194,7 +200,7 @@ int32 Hardware_Init(void)
 	if(CPU_SSE())
 	{
 		if(gopt.verbose)
-			printf("Detected SSE\n");
+			fprintf(stdout,"Detected SSE\n");
 	}
 	else
 		return(false);
@@ -202,7 +208,7 @@ int32 Hardware_Init(void)
 	if(CPU_SSE2())
 	{
 		if(gopt.verbose)
-			printf("Detected SSE2\n");
+			fprintf(stdout,"Detected SSE2\n");
 	}
 	else
 		return(false);
@@ -210,25 +216,25 @@ int32 Hardware_Init(void)
 	if(CPU_SSE3())
 	{
 		if(gopt.verbose)
-			printf("Detected SSE3\n");
+			fprintf(stdout,"Detected SSE3\n");
 	}
 
 	if(CPU_SSSE3())
 	{
 		if(gopt.verbose)
-			printf("Detected SSSE3\n");
+			fprintf(stdout,"Detected SSSE3\n");
 	}
 
 	if(CPU_SSE41())
 	{
 		if(gopt.verbose)
-			printf("Detected SSE4.1\n");
+			fprintf(stdout,"Detected SSE4.1\n");
 	}
 
 	if(CPU_SSE42())
 	{
 		if(gopt.verbose)
-			printf("Detected SSE4.2\n");
+			fprintf(stdout,"Detected SSE4.2\n");
 	}
 
 	return(1);
@@ -261,6 +267,9 @@ int32 Object_Init(void)
 	/* Output info to the GUI */
 	pTelemetry = new Telemetry();
 
+	/* Serial or named pipe */
+	pTelemetry->SetType(gopt.tlm_type);
+
 	/* execute user commands */
 	pCommando = new Commando();
 
@@ -281,7 +290,7 @@ int32 Object_Init(void)
 
 	if(gopt.verbose)
 	{
-		printf("Cleared Object Init\n");
+		fprintf(stdout,"Cleared Object Init\n");
 		fflush(stdout);
 	}
 
@@ -328,7 +337,7 @@ int32 Pipes_Init(void)
 
 	if(gopt.verbose)
 	{
-		printf("Cleared Pipes Init\n");
+		fprintf(stdout,"Cleared Pipes Init\n");
 		fflush(stdout);
 	}
 

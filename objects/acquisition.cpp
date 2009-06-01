@@ -57,7 +57,7 @@ void Acquisition::Start()
 	Start_Thread(Acquisition_Thread, NULL);
 
 	if(gopt.verbose)
-		printf("Acquisition thread started\n");
+		fprintf(stdout,"Acquisition thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -142,7 +142,7 @@ Acquisition::Acquisition(float _fsample, float _fif):Threaded_Object("ACQTASK")
 	pcFFT = new FFT(32);
 
 	if(gopt.verbose)
-		printf("Creating Acquisition\n");
+		fprintf(stdout,"Creating Acquisition\n");
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -177,7 +177,7 @@ Acquisition::~Acquisition()
 	delete [] _750Hzwipeoff;
 
 	if(gopt.verbose)
-		printf("Destructing Acquisition\n");
+		fprintf(stdout,"Destructing Acquisition\n");
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -661,7 +661,7 @@ void Acquisition::Import()
 		{
 			if((packet.count - lastcount) != 1)
 			{
-				printf("Broken GPS stream %d,%d\n",packet.count,lastcount);
+				fprintf(stdout,"Broken GPS stream %d,%d\n",packet.count,lastcount);
 				ms = 0; /* Recollect data */
 			}
 		}
@@ -688,27 +688,27 @@ void Acquisition::Export(char * _fname)
 	FILE *fp;
 	Acq_Command_S *p;
 
-	if(_fname == NULL)
-	{
-		fp = fopen("acq.txt","wa");
-		if(fp == NULL)
-			return;
-		fseek(fp, 0x0, SEEK_SET);
-
-	}
-	else
-	{
-		fp = fopen(_fname,"wt");
-		if(fp == NULL)
-			return;
-	}
-
-	for(lcv = 0; lcv < MAX_SV; lcv++)
-	{
-		p = &results[lcv];
-		fprintf(fp, "%2d, %2d, %12d, %12d, %12d, %1d\n",p->type,lcv+1,p->code_phase,p->doppler,p->magnitude,p->success);
-	}
-	fclose(fp);
+//	if(_fname == NULL)
+//	{
+//		fp = fopen("acq.txt","wa");
+//		if(fp == NULL)
+//			return;
+//		fseek(fp, 0x0, SEEK_SET);
+//
+//	}
+//	else
+//	{
+//		fp = fopen(_fname,"wt");
+//		if(fp == NULL)
+//			return;
+//	}
+//
+//	for(lcv = 0; lcv < MAX_SV; lcv++)
+//	{
+//		p = &results[lcv];
+//		ffprintf(stdout,fp, "%2d, %2d, %12d, %12d, %12d, %1d\n",p->type,lcv+1,p->code_phase,p->doppler,p->magnitude,p->success);
+//	}
+//	fclose(fp);
 
 	/* Write result to the tracking task */
 	results[request.sv].count = request.count;

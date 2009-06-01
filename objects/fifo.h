@@ -32,7 +32,7 @@
 #include "telemetry.h"
 #include "gps_source.h"
 
-#define FIFO_DEPTH (5000)	//!< In ms
+#define FIFO_DEPTH (2500)	//!< In ms
 
 /*! \ingroup CLASSES
  *

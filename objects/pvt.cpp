@@ -30,7 +30,7 @@
 void *PVT_Thread(void *_arg)
 {
 
-	while(1)
+	while(grun)
 	{
 		pPVT->Import();
 		pPVT->Navigate();
@@ -48,7 +48,7 @@ void PVT::Start()
 	Start_Thread(PVT_Thread, NULL);
 
 	if(gopt.verbose)
-		printf("PVT thread started\n");
+		fprintf(stdout,"PVT thread started\n");
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -58,7 +58,7 @@ void PVT::Start()
 PVT::~PVT()
 {
 	if(gopt.verbose)
-		printf("Destructing PVT\n");
+		fprintf(stdout,"Destructing PVT\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -75,7 +75,7 @@ PVT::PVT():Threaded_Object("PVTTASK")
 	master_nav.stale_ticks = STALE_SPS_VALUE;
 
 	if(gopt.verbose)
-		printf("Creating PVT\n");
+		fprintf(stdout,"Creating PVT\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 

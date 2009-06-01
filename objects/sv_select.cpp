@@ -31,7 +31,7 @@
 void *SV_Select_Thread(void *_arg)
 {
 
-	while(1)
+	while(grun)
 	{
 		pSV_Select->Import();
 	}
@@ -49,7 +49,7 @@ void SV_Select::Start()
 	Start_Thread(SV_Select_Thread, NULL);
 
 	if(gopt.verbose)
-		printf("SV_Select thread started\n");
+		fprintf(stdout,"SV_Select thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -81,7 +81,7 @@ SV_Select::SV_Select():Threaded_Object("SVSTASK")
 	config.strong_operation	= ACQ_OPERATION_STRONG;
 
 	if(gopt.verbose)
-		printf("Creating SV Select\n");
+		fprintf(stdout,"Creating SV Select\n");
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -91,7 +91,7 @@ SV_Select::SV_Select():Threaded_Object("SVSTASK")
 SV_Select::~SV_Select()
 {
 	if(gopt.verbose)
-		printf("Destructing SV Select\n");
+		fprintf(stdout,"Destructing SV Select\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 

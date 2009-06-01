@@ -31,7 +31,7 @@
 void *Commando_Thread(void *_arg)
 {
 
-	while(1)
+	while(grun)
 	{
 		pCommando->Import();
 	}
@@ -47,7 +47,7 @@ void Commando::Start()
 	Start_Thread(Commando_Thread, NULL);
 
 	if(gopt.verbose)
-		printf("Commando thread started\n");
+		fprintf(stdout,"Commando thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -86,7 +86,7 @@ Commando::Commando():Threaded_Object("CMDTASK")
 	cmd_handlers[LAST_C_ID] 				= NULL;
 
 	if(gopt.verbose)
-		printf("Creating Commando\n");
+		fprintf(stdout,"Creating Commando\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -95,7 +95,7 @@ Commando::Commando():Threaded_Object("CMDTASK")
 Commando::~Commando()
 {
 	if(gopt.verbose)
-		printf("Destructing Commando\n");
+		fprintf(stdout,"Destructing Commando\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 

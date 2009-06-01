@@ -105,7 +105,7 @@ void fill_prn_new(MIX *_vect, int32 _samps)
 int main(int32 argc, char* argv[])
 {
 
-	printf("SIMD_Test\n");
+	fprintf(stdout,"SIMD_Test\n");
 
 	CPX *testvecta;
 	CPX *testvectb;
@@ -168,9 +168,9 @@ int main(int32 argc, char* argv[])
 	}
 
 	if(err)
-		printf("INT16 ADD \t\t\tFAILED: %d\n",err);
+		fprintf(stdout,"INT16 ADD \t\t\tFAILED: %d\n",err);
 	else
-		printf("INT16 ADD \t\t\tPASSED\n",err);
+		fprintf(stdout,"INT16 ADD \t\t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
 
 
@@ -203,9 +203,9 @@ int main(int32 argc, char* argv[])
 	}
 
 	if(err)
-		printf("INT16 SUB \t\t\tFAILED: %d\n",err);
+		fprintf(stdout,"INT16 SUB \t\t\tFAILED: %d\n",err);
 	else
-		printf("INT16 SUB \t\t\tPASSED\n",err);
+		fprintf(stdout,"INT16 SUB \t\t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
 
 
@@ -237,9 +237,9 @@ int main(int32 argc, char* argv[])
 
 	}
 	if(err)
-		printf("INT16 MUL \t\t\tFAILED: %d\n",err);
+		fprintf(stdout,"INT16 MUL \t\t\tFAILED: %d\n",err);
 	else
-		printf("INT16 MUL \t\t\tPASSED\n",err);
+		fprintf(stdout,"INT16 MUL \t\t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
 
 
@@ -262,15 +262,15 @@ int main(int32 argc, char* argv[])
 
 		if(val1 != val2)
 		{
-			printf("x86,SSE: %d,%d\n",val1,val2);
+			fprintf(stdout,"x86,SSE: %d,%d\n",val1,val2);
 			err++;
 		}
 
 	}
 	if(err)
-		printf("INT16 DOT \t\t\tFAILED: %d\n",err);
+		fprintf(stdout,"INT16 DOT \t\t\tFAILED: %d\n",err);
 	else
-		printf("INT16 DOT \t\t\tPASSED\n",err);
+		fprintf(stdout,"INT16 DOT \t\t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
 
 
@@ -294,7 +294,7 @@ int main(int32 argc, char* argv[])
 		for(lcv2 = 0; lcv2 < pts; lcv2++)
 		{
 
-			//printf("[%d,%d] [%d,%d]\n",testvecta[lcv2].i,testvecta[lcv2].q,testvectc[lcv2].i,testvectc[lcv2].q);
+			//fprintf(stdout,"[%d,%d] [%d,%d]\n",testvecta[lcv2].i,testvecta[lcv2].q,testvectc[lcv2].i,testvectc[lcv2].q);
 
 			if(testvecta[lcv2].i != testvectc[lcv2].i)
 				err++;
@@ -305,9 +305,9 @@ int main(int32 argc, char* argv[])
 
 	}
 	if(err)
-		printf("CPX CONJ \t\t\tFAILED: %d\n",err);
+		fprintf(stdout,"CPX CONJ \t\t\tFAILED: %d\n",err);
 	else
-		printf("CPX CONJ \t\t\tPASSED\n",err);
+		fprintf(stdout,"CPX CONJ \t\t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
 
 
@@ -331,7 +331,7 @@ int main(int32 argc, char* argv[])
 		for(lcv2 = 0; lcv2 < pts; lcv2++)
 		{
 
-			//printf("[%d,%d] [%d,%d]\n",testvecta[lcv2].i,testvecta[lcv2].q,testvectc[lcv2].i,testvectc[lcv2].q);
+			//fprintf(stdout,"[%d,%d] [%d,%d]\n",testvecta[lcv2].i,testvecta[lcv2].q,testvectc[lcv2].i,testvectc[lcv2].q);
 
 			if(testvecta[lcv2].i != testvectc[lcv2].i)
 				err++;
@@ -342,9 +342,9 @@ int main(int32 argc, char* argv[])
 
 	}
 	if(err)
-		printf("CPX MUL \t\t\tFAILED: %d\n",err);
+		fprintf(stdout,"CPX MUL \t\t\tFAILED: %d\n",err);
 	else
-		printf("CPX MUL \t\t\tPASSED\n",err);
+		fprintf(stdout,"CPX MUL \t\t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
 
 
@@ -369,7 +369,7 @@ int main(int32 argc, char* argv[])
 		for(lcv2 = 0; lcv2 < pts; lcv2++)
 		{
 
-			//printf("[%d,%d] [%d,%d]\n",testvecta[lcv2].i,testvecta[lcv2].q,testvectc[lcv2].i,testvectc[lcv2].q);
+			//fprintf(stdout,"[%d,%d] [%d,%d]\n",testvecta[lcv2].i,testvecta[lcv2].q,testvectc[lcv2].i,testvectc[lcv2].q);
 
 			if(testvecta[lcv2].i != testvectc[lcv2].i)
 				err++;
@@ -380,9 +380,9 @@ int main(int32 argc, char* argv[])
 
 	}
 	if(err)
-		printf("CPX MUL SHIFT \t\t\tFAILED: %d\n",err);
+		fprintf(stdout,"CPX MUL SHIFT \t\t\tFAILED: %d\n",err);
 	else
-		printf("CPX MUL SHIFT \t\t\tPASSED\n",err);
+		fprintf(stdout,"CPX MUL SHIFT \t\t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
 
 
@@ -406,7 +406,7 @@ int main(int32 argc, char* argv[])
 		for(lcv2 = 0; lcv2 < pts; lcv2++)
 		{
 
-			//printf("[%d,%d] [%d,%d]\n",testvecta[lcv2].i,testvecta[lcv2].q,testvectc[lcv2].i,testvectc[lcv2].q);
+			//fprintf(stdout,"[%d,%d] [%d,%d]\n",testvecta[lcv2].i,testvecta[lcv2].q,testvectc[lcv2].i,testvectc[lcv2].q);
 
 			if(testvectc[lcv2].i != testvectd[lcv2].i)
 				err++;
@@ -417,9 +417,9 @@ int main(int32 argc, char* argv[])
 
 	}
 	if(err)
-		printf("CPX MUL SHIFT PRESERVE \t\tFAILED: %d\n",err);
+		fprintf(stdout,"CPX MUL SHIFT PRESERVE \t\tFAILED: %d\n",err);
 	else
-		printf("CPX MUL SHIFT PRESERVE \t\tPASSED\n",err);
+		fprintf(stdout,"CPX MUL SHIFT PRESERVE \t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
 
 
@@ -444,21 +444,21 @@ int main(int32 argc, char* argv[])
 
 		if(ai1 != ai2)
 		{
-			printf("Low32: %8x,%8x\n",ai1, ai2);
+			fprintf(stdout,"Low32: %8x,%8x\n",ai1, ai2);
 			err++;
 		}
 
 		if(aq1 != aq2)
 		{
-			printf("High32: %8x,%8x\n",aq1, aq2);
+			fprintf(stdout,"High32: %8x,%8x\n",aq1, aq2);
 			err++;
 		}
 
 	}
 	if(err)
-		printf("CPX ACCUM \t\t\tFAILED: %d\n",err);
+		fprintf(stdout,"CPX ACCUM \t\t\tFAILED: %d\n",err);
 	else
-		printf("CPX ACCUM \t\t\tPASSED\n",err);
+		fprintf(stdout,"CPX ACCUM \t\t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
 
 	/* SIMD x86_prn_accum */
@@ -495,14 +495,14 @@ int main(int32 argc, char* argv[])
 		if(err)
 		{
 			for(lcv2 = 0; lcv2 < 3; lcv2++)
-				printf("%d.%d,%d.%d\n",accuma[lcv2].i,accuma[lcv2].q,accumb[lcv2].i,accumb[lcv2].q);
+				fprintf(stdout,"%d.%d,%d.%d\n",accuma[lcv2].i,accuma[lcv2].q,accumb[lcv2].i,accumb[lcv2].q);
 		}
 
 	}
 	if(err)
-		printf("CPX PRN ACCUM \t\t\tFAILED: %d\n",err);
+		fprintf(stdout,"CPX PRN ACCUM \t\t\tFAILED: %d\n",err);
 	else
-		printf("CPX PRN ACCUM \t\t\tPASSED\n",err);
+		fprintf(stdout,"CPX PRN ACCUM \t\t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
 
 
@@ -539,14 +539,14 @@ int main(int32 argc, char* argv[])
 		if(err)
 		{
 			for(lcv2 = 0; lcv2 < 3; lcv2++)
-				printf("%d.%d,%d.%d\n",caccuma[lcv2].i,caccuma[lcv2].q,caccumb[lcv2].i,caccumb[lcv2].q);
+				fprintf(stdout,"%d.%d,%d.%d\n",caccuma[lcv2].i,caccuma[lcv2].q,caccumb[lcv2].i,caccumb[lcv2].q);
 		}
 
 	}
 	if(err)
-		printf("CPX PRN ACCUM NEW \t\tFAILED: %d\n",err);
+		fprintf(stdout,"CPX PRN ACCUM NEW \t\tFAILED: %d\n",err);
 	else
-		printf("CPX PRN ACCUM NEW\t\tPASSED\n",err);
+		fprintf(stdout,"CPX PRN ACCUM NEW\t\tPASSED\n",err);
 	/*----------------------------------------------------------------------------------------------*/
 
 	delete [] testvecta;

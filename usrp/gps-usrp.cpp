@@ -51,7 +51,7 @@ typedef struct _options
 
 
 /*----------------------------------------------------------------------------------------------*/
-void PostStatus(char *_str) {fprintf(stdout,"%s",_str); fflush(stdout);}
+void PostStatus(char *_str) {ffprintf(stdout,stdout,"%s",_str); fflush(stdout);}
 void *record_thread(void *_opt);
 void *fifo_thread(void *_opt);
 void *key_thread(void *_arg);
@@ -76,15 +76,15 @@ pthread_mutex_t mFIFO;
 void usage(char *_str)
 {
 
-	fprintf(stderr, "usage: [-gr] [-gi] [-d] [-l] [-w] [-v] [-c]\n");
-	fprintf(stderr, "[-gr] <gain> set rf gain in dB (DBSRX only)\n");
-	fprintf(stderr, "[-gi] <gain> set if gain in dB (DBSRX only)\n");
-	fprintf(stderr, "[-d] operate in two antenna mode, A & B as L1\n");
-	fprintf(stderr, "[-l] operate in L1-L2 mode, A as L1, B as L2\n");
-	fprintf(stderr, "[-w] <bandwidth> bandwidth of lowpass filter\n");
-	fprintf(stderr, "[-v] output extra debug info\n");
-	fprintf(stderr, "[-r] dump data to disk\n");
-	fprintf(stderr, "[-c] the USRP samples at a modified 65.536 MHz (default is 64 MHz)\n");
+	fprintf(stderr,"usage: [-gr] [-gi] [-d] [-l] [-w] [-v] [-c]\n");
+	fprintf(stderr,"[-gr] <gain> set rf gain in dB (DBSRX only)\n");
+	fprintf(stderr,"[-gi] <gain> set if gain in dB (DBSRX only)\n");
+	fprintf(stderr,"[-d] operate in two antenna mode, A & B as L1\n");
+	fprintf(stderr,"[-l] operate in L1-L2 mode, A as L1, B as L2\n");
+	fprintf(stderr,"[-w] <bandwidth> bandwidth of lowpass filter\n");
+	fprintf(stderr,"[-v] output extra debug info\n");
+	fprintf(stderr,"[-r] dump data to disk\n");
+	fprintf(stderr,"[-c] the USRP samples at a modified 65.536 MHz (default is 64 MHz)\n");
 	fflush(stderr);
 
 	exit(1);
@@ -101,35 +101,35 @@ int echo_options(options *_opt)
 	usrp_standard_rx *urx = usrp_standard_rx::make(0, 8, 1, -1, 0, 0, 0);
 	if(urx == NULL)
 	{
-		printf("usrp_standard_rx::make FAILED\n");
+		fprintf(stdout,"usrp_standard_rx::make FAILED\n");
 		return(-1);
 	}
 
 	switch(urx->daughterboard_id(0))
 	{
 		case 1:
-			fprintf(stdout,"Board A:\t\t\tBasic RX\n"); break;
+			ffprintf(stdout,stdout,"Board A:\t\t\tBasic RX\n"); break;
 		case 2:
-			fprintf(stdout,"Board A:\t\t\t DBS RX\n"); break;
+			ffprintf(stdout,stdout,"Board A:\t\t\t DBS RX\n"); break;
 		default:
-			fprintf(stdout,"Board A:\t\t\tUnknown\n"); break;
+			ffprintf(stdout,stdout,"Board A:\t\t\tUnknown\n"); break;
 	}
 
 	switch(urx->daughterboard_id(1))
 	{
 		case 1:
-			fprintf(stdout,"Board B:\t\t\tBasic RX\n"); break;
+			ffprintf(stdout,stdout,"Board B:\t\t\tBasic RX\n"); break;
 		case 2:
-			fprintf(stdout,"Board B:\t\t\t DBS RX\n"); break;
+			ffprintf(stdout,stdout,"Board B:\t\t\t DBS RX\n"); break;
 		default:
-			fprintf(stdout,"Board B:\t\t\tUnknown\n"); break;
+			ffprintf(stdout,stdout,"Board B:\t\t\tUnknown\n"); break;
 	}
 
 	switch(_opt->mode)
 	{
-		case 0: fprintf(stdout, "Single L1 mode			(L1->A)\n"); break;
-		case 1: fprintf(stdout, "Dual L1 mode			(L1->A L1->B)\n"); break;
-		case 2: fprintf(stdout, "Dual L1-L2C mode		(L1->A L2C->B)\n"); break;
+		case 0: ffprintf(stdout,stdout, "Single L1 mode			(L1->A)\n"); break;
+		case 1: ffprintf(stdout,stdout, "Dual L1 mode			(L1->A L1->B)\n"); break;
+		case 2: ffprintf(stdout,stdout, "Dual L1-L2C mode		(L1->A L2C->B)\n"); break;
 	}
 
 	/* Error check based on the mode */
@@ -138,7 +138,7 @@ int echo_options(options *_opt)
 		case 0:
 			if(urx->daughterboard_id(0) != 2)
 			{
-				fprintf(stdout, "Board A is not a DBS-RX!\n");
+				ffprintf(stdout,stdout, "Board A is not a DBS-RX!\n");
 				delete urx;
 				return(-1);
 			}
@@ -146,14 +146,14 @@ int echo_options(options *_opt)
 		case 1:
 			if(urx->daughterboard_id(0) != 2)
 			{
-				fprintf(stdout, "Board A is not a DBS-RX!\n");
+				ffprintf(stdout,stdout, "Board A is not a DBS-RX!\n");
 				delete urx;
 				return(-1);
 			}
 
 			if(urx->daughterboard_id(1) != 2)
 			{
-				fprintf(stdout, "Board B is not a DBS-RX!\n");
+				ffprintf(stdout,stdout, "Board B is not a DBS-RX!\n");
 				delete urx;
 				return(-1);
 			}
@@ -161,32 +161,32 @@ int echo_options(options *_opt)
 		case 2:
 			if(urx->daughterboard_id(0) != 2)
 			{
-				fprintf(stdout, "Board A is not a DBS-RX!\n");
+				ffprintf(stdout,stdout, "Board A is not a DBS-RX!\n");
 				delete urx;
 				return(-1);
 			}
 
 			if(urx->daughterboard_id(1) != 2)
 			{
-				fprintf(stdout, "Board B is not a DBS-RX!\n");
+				ffprintf(stdout,stdout, "Board B is not a DBS-RX!\n");
 				delete urx;
 				return(-1);
 			}
 				break;
 		default:
-			fprintf(stdout, "_opt->mode non-valid\n");
+			ffprintf(stdout,stdout, "_opt->mode non-valid\n");
 			delete urx;
 			return(-1);
 
 	}
 
-	fprintf(stdout, "USRP Sample Rate:\t% 15.2f\n",_opt->f_sample);
-	fprintf(stdout, "USRP Decimation:\t% 15d\n",_opt->decimate);
-	fprintf(stdout, "DBSRX LO A:\t\t% 15.2f\n",_opt->f_lo_a);
-	fprintf(stdout, "DBSRX LO B:\t\t% 15.2f\n",_opt->f_lo_b);
-	fprintf(stdout, "RF Gain:\t\t% 15.2f\n",_opt->gr);
-	fprintf(stdout, "IF Gain:\t\t% 15.2f\n",_opt->gi);
-	fprintf(stdout, "DBSRX Bandwidth:\t% 15.2f\n",_opt->bandwidth);
+	ffprintf(stdout,stdout, "USRP Sample Rate:\t% 15.2f\n",_opt->f_sample);
+	ffprintf(stdout,stdout, "USRP Decimation:\t% 15d\n",_opt->decimate);
+	ffprintf(stdout,stdout, "DBSRX LO A:\t\t% 15.2f\n",_opt->f_lo_a);
+	ffprintf(stdout,stdout, "DBSRX LO B:\t\t% 15.2f\n",_opt->f_lo_b);
+	ffprintf(stdout,stdout, "RF Gain:\t\t% 15.2f\n",_opt->gr);
+	ffprintf(stdout,stdout, "IF Gain:\t\t% 15.2f\n",_opt->gi);
+	ffprintf(stdout,stdout, "DBSRX Bandwidth:\t% 15.2f\n",_opt->bandwidth);
 
 	delete urx;
 
@@ -327,15 +327,15 @@ int main(int argc, char **argv)
 
 //	tparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 //	if(pthread_setschedparam(precord_thread, SCHED_FIFO, &tparam))
-//		fprintf(stdout,"Could not elevate priority of USRP thread\n");
+//		ffprintf(stdout,stdout,"Could not elevate priority of USRP thread\n");
 
 //	tparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 //	if(pthread_setschedparam(pfifo_thread, SCHED_FIFO, &tparam))
-//		fprintf(stdout,"Could not elevate priority of FIFO thread\n");
+//		ffprintf(stdout,stdout,"Could not elevate priority of FIFO thread\n");
 //
 //	tparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 //	if(pthread_setschedparam(pkey_thread, SCHED_FIFO, &tparam))
-//		fprintf(stdout,"Could not elevate priority of KEY thread\n");
+//		ffprintf(stdout,stdout,"Could not elevate priority of KEY thread\n");
 
 	while(grun)
 	{
@@ -388,7 +388,7 @@ void *record_thread(void *opt)
 	if(urx == NULL)
 	{
 		if(_opt->verbose)
-			printf("usrp_standard_rx::make FAILED\n");
+			fprintf(stderr,"usrp_standard_rx::make FAILED\n");
 		pthread_exit(0);
 	}
 
@@ -437,13 +437,13 @@ void *record_thread(void *opt)
 
 		if(_opt->verbose)
 		{
-			printf("DBS-RX A Configuration\n");
-			printf("DBS-RX A BW: \t\t% 15.2f\n",dbs_rx_a->bw());
-			printf("DBS-RX A LO: \t\t% 15.2f\n",dbs_rx_a->freq());
-			printf("DBS-RX A IF Gain: \t% 15.2f\n",dbs_rx_a->if_gain());
-			printf("DBS-RX A RF Gain: \t% 15.2f\n",dbs_rx_a->rf_gain());
-			printf("DDC 0: \t\t\t% 15.2f\n",urx->rx_freq(0));
-			//printf("DBS-RX A Diff: \t\t%f\n",dbs_rx_a->freq()-_opt->f_lo_a);
+			fprintf(stdout,"DBS-RX A Configuration\n");
+			fprintf(stdout,"DBS-RX A BW: \t\t% 15.2f\n",dbs_rx_a->bw());
+			fprintf(stdout,"DBS-RX A LO: \t\t% 15.2f\n",dbs_rx_a->freq());
+			fprintf(stdout,"DBS-RX A IF Gain: \t% 15.2f\n",dbs_rx_a->if_gain());
+			fprintf(stdout,"DBS-RX A RF Gain: \t% 15.2f\n",dbs_rx_a->rf_gain());
+			fprintf(stdout,"DDC 0: \t\t\t% 15.2f\n",urx->rx_freq(0));
+			//fprintf(stdout,"DBS-RX A Diff: \t\t%f\n",dbs_rx_a->freq()-_opt->f_lo_a);
 		}
 
 
@@ -491,20 +491,20 @@ void *record_thread(void *opt)
 
 			if(_opt->verbose)
 			{
-				printf("DBS-RX B Actual Configuration\n");
-				printf("DBS-RX B BW: \t\t% 15.2f\n",dbs_rx_b->bw());
-				printf("DBS-RX B LO: \t\t% 15.2f\n",dbs_rx_b->freq());
-				printf("DBS-RX B IF Gain: \t% 15.2f\n",dbs_rx_b->if_gain());
-				printf("DBS-RX B RF Gain: \t% 15.2f\n",dbs_rx_b->rf_gain());
-				printf("DDC 1: \t\t\t% 15.2f\n",urx->rx_freq(1));
-				//printf("DBS-RX B Diff: \t\t%f\n",dbs_rx_b->freq()-_opt->f_lo_b);
+				fprintf(stdout,"DBS-RX B Actual Configuration\n");
+				fprintf(stdout,"DBS-RX B BW: \t\t% 15.2f\n",dbs_rx_b->bw());
+				fprintf(stdout,"DBS-RX B LO: \t\t% 15.2f\n",dbs_rx_b->freq());
+				fprintf(stdout,"DBS-RX B IF Gain: \t% 15.2f\n",dbs_rx_b->if_gain());
+				fprintf(stdout,"DBS-RX B RF Gain: \t% 15.2f\n",dbs_rx_b->rf_gain());
+				fprintf(stdout,"DDC 1: \t\t\t% 15.2f\n",urx->rx_freq(1));
+				//fprintf(stdout,"DBS-RX B Diff: \t\t%f\n",dbs_rx_b->freq()-_opt->f_lo_b);
 			}
 
 		}
 	}
 
 	/* Start collecting data */
-	printf("USRP Start\n");
+	fprintf(stdout,"USRP Start\n");
 
 	urx->start();
 
@@ -538,26 +538,26 @@ void *record_thread(void *opt)
 		{
 			time(&rawtime);
 			timeinfo = localtime (&rawtime);
-			fprintf(stdout, "\nOverflow at time %s",asctime (timeinfo));
+			ffprintf(stdout,stdout, "\nOverflow at time %s",asctime (timeinfo));
 			fflush(stdout);
 		}
 
 	}
 
 	if(_opt->verbose)
-		printf("Stopping USRP\n");
+		fprintf(stdout,"Stopping USRP\n");
 	urx->stop();
 
 	if(_opt->verbose)
-		printf("USRP Stopped\n");
+		fprintf(stdout,"USRP Stopped\n");
 
 	if(_opt->verbose)
-		printf("Closing pipe\n");
+		fprintf(stdout,"Closing pipe\n");
 
 	close(npipe);
 
 	if(_opt->verbose)
-		printf("Pipe closed\n");
+		fprintf(stdout,"Pipe closed\n");
 
 	if(dbs_rx_a != NULL)
 		delete dbs_rx_a;
@@ -580,7 +580,7 @@ int fifo_pipe;
 void wait_for_client()
 {
 
-	printf("Waiting for client\n");
+	fprintf(stdout,"Waiting for client\n");
 	fifo_pipe = -1;
 	while((fifo_pipe == -1) && grun)
 	{
@@ -589,10 +589,10 @@ void wait_for_client()
 	}
 
 	if(fifo_pipe != -1)
-		printf("Client connected\n");
+		fprintf(stdout,"Client connected\n");
 	else
 	{
-		printf("Killed before client connected\n");
+		fprintf(stdout,"Killed before client connected\n");
 		pthread_exit(0);
 	}
 
@@ -650,13 +650,13 @@ void *fifo_thread(void *arg)
 	lcv = 0;
 
 	if(_opt->verbose)
-		printf("FIFO thread start\n");
+		fprintf(stdout,"FIFO thread start\n");
 
 	/* Everything set, now create a disk thread & pipe, and do some recording! */
 	remove("/tmp/GPSPIPE");
 	fifo = mkfifo("/tmp/GPSPIPE", S_IRWXG | S_IRWXU | S_IRWXO);
 	if ((fifo == -1) && (errno != EEXIST))
-        printf("Error creating the named pipe");
+        fprintf(stdout,"Error creating the named pipe");
 
 	/* Wait for the gps-sdr */
 	wait_for_client();
@@ -776,7 +776,7 @@ void *fifo_thread(void *arg)
 			sem_getvalue(&mFILLED, &filled);
 			sem_getvalue(&mEMPTY, &empty);
 
-			fprintf(stdout,"FIFO Filled\\Empty: %4d,%4d										\r",filled,empty);
+			ffprintf(stdout,stdout,"FIFO Filled\\Empty: %4d,%4d										\r",filled,empty);
 			fflush(stdout);
 			lcv = 0;
 		}
@@ -791,7 +791,7 @@ void *fifo_thread(void *arg)
 		fclose(fp_out);
 
 	if(_opt->verbose)
-		printf("FIFO thread stop\n");
+		fprintf(stdout,"FIFO thread stop\n");
 
 	pthread_exit(0);
 
@@ -808,7 +808,7 @@ void *key_thread(void *_arg)
 	char key;
 
 	if(_opt->verbose)
-		printf("Key thread start\n");
+		fprintf(stdout,"Key thread start\n");
 
 	while(grun)
 	{
@@ -822,7 +822,7 @@ void *key_thread(void *_arg)
 	}
 
 	if(_opt->verbose)
-		printf("Key thread stop\n");
+		fprintf(stdout,"Key thread stop\n");
 
 	pthread_exit(0);
 
@@ -834,7 +834,7 @@ void *key_thread(void *_arg)
 void kill_program(int _sig)
 {
 	//grun = false;
-	printf("Lost GPS-SDR!\n");
+	fprintf(stdout,"Lost GPS-SDR!\n");
 	wait_for_client();
 }
 /*----------------------------------------------------------------------------------------------*/

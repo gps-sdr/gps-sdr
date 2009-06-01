@@ -45,9 +45,9 @@ int main(int32 argc, char** argv)
 		repeats = atoi(argv[2]);
 	}
 
-	printf("%d\n",argc);
+	fprintf(stdout,"%d\n",argc);
 	for(lcv = 0; lcv < argc; lcv++)
-		printf("%s\n",argv[lcv]);
+		fprintf(stdout,"%s\n",argv[lcv]);
 
 	/* Read in the data */
 	fp = fopen("input.dat","rb");
@@ -66,7 +66,7 @@ int main(int32 argc, char** argv)
 	/* FFT */
 	/*-------------------------------------------*/
 	FFT aFFT(N);
-	printf("FFT Created\n");
+	fprintf(stdout,"FFT Created\n");
 	
 	time_0 = clock();
 	
@@ -78,7 +78,7 @@ int main(int32 argc, char** argv)
 
 	t1 = (double)(time_1 - time_0) /CLOCKS_PER_SEC;
 
-	printf("Time: %f\n",t1);
+	fprintf(stdout,"Time: %f\n",t1);
 
 	fpo = fopen("output.dat","wb");
 	if(fpo != NULL)

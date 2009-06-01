@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 	if(success == false)
 	{
 		Hardware_Shutdown();
-		printf("Hardware_Init() failed, aborting.\n");
+		fprintf(stderr,"Hardware_Init() failed, aborting.\n");
 		return(-1);
 	}
 
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 	{
 		Pipes_Shutdown();
 		Hardware_Shutdown();
-		printf("Pipes_Init() failed, aborting.\n");
+		fprintf(stderr,"Pipes_Init() failed, aborting.\n");
 		return(-1);
 	}
 
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 		Pipes_Shutdown();
 		Object_Shutdown();
 		Hardware_Shutdown();
-		printf("Object_Init() failed, aborting.\n");
+		fprintf(stderr,"Object_Init() failed, aborting.\n");
 		return(-1);
 	}
 
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 		Pipes_Shutdown();
 		Object_Shutdown();
 		Hardware_Shutdown();
-		printf("Thread_Init() failed, aborting.\n");
+		fprintf(stderr,"Thread_Init() failed, aborting.\n");
 		return(-1);
 	}
 

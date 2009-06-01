@@ -31,6 +31,7 @@
 void lost_gui_pipe(int _sig)
 {
 	pTelemetry->ClosePipe();
+	fprintf(stderr,"GUI disconnected\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -38,7 +39,7 @@ void lost_gui_pipe(int _sig)
 void *Telemetry_Thread(void *_arg)
 {
 
-	while(1)
+	while(grun)
 	{
 		pTelemetry->Import();
 		pTelemetry->Export();
@@ -55,7 +56,7 @@ void Telemetry::Start()
 	Start_Thread(Telemetry_Thread, NULL);
 
 	if(gopt.verbose)
-		printf("Telemetry thread started\n");
+		fprintf(stdout,"Telemetry thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -68,7 +69,7 @@ Telemetry::Telemetry():Threaded_Object("TLMTASK")
 	size = sizeof(Telemetry);
 
 	npipe_open = false;
-	npipe[READ] = npipe[WRITE] = 0;
+	npipe[READ] = npipe[WRITE] = -1;
 	pheader = (uint8 *)&command_header;
 	pcommand = (uint8 *)&command_body;
 
@@ -77,12 +78,12 @@ Telemetry::Telemetry():Threaded_Object("TLMTASK")
 	remove("/tmp/GPS2GUI");
 	fifo[WRITE] = mkfifo("/tmp/GPS2GUI", S_IRWXG | S_IRWXU | S_IRWXO);
 	if(fifo[WRITE] == -1)
-		printf("Error creating the named pipe");
+		fprintf(stderr,"Error creating the named pipe /tmp/GPS2GUI\n");
 
 	remove("/tmp/GUI2GPS");
 	fifo[READ] = mkfifo("/tmp/GUI2GPS", S_IRWXG | S_IRWXU | S_IRWXO);
 	if(fifo[READ] == -1)
-		printf("Error creating the named pipe");
+		fprintf(stderr,"Error creating the named pipe /tmp/GUI2GPS\n");
 
 	/* Build the function pointer array */
 	msg_handlers[FIRST_M_ID] 				= NULL;
@@ -145,7 +146,7 @@ Telemetry::Telemetry():Threaded_Object("TLMTASK")
 	msg_rates[LAST_M_ID] 				= 0;
 
 	if(gopt.verbose)
-		printf("Creating Telemetry\n");
+		fprintf(stdout,"Creating Telemetry\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -160,8 +161,21 @@ Telemetry::~Telemetry()
 	remove("/tmp/GUI2GPS");
 
 	if(gopt.verbose)
-		printf("Destructing Telemetry\n");
+		fprintf(stdout,"Destructing Telemetry\n");
 
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Telemetry::SetType(int32 _type)
+{
+	if(_type == TELEM_NAMED_PIPE)
+		tlm_type = TELEM_NAMED_PIPE;
+	else
+		tlm_type = TELEM_SERIAL;
+
+	ClosePipe();
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -175,14 +189,14 @@ void Telemetry::OpenSerial()
 	spipe = open("/dev/ttyS0", O_RDWR | O_NOCTTY | O_NONBLOCK);
     if(spipe < 0)
     {
-		npipe[READ] = NULL;
-		npipe[WRITE] = NULL;
+		npipe[READ] = -1;
+		npipe[WRITE] = -1;
 		npipe_open = false;
     	return;
     }
 
     memset(&tty, 0x0, sizeof(tty));		//!< Initialize the port settings structure to all zeros
-    tty.c_cflag =  B115200 | CS8 | CLOCAL | CREAD | CRTSCTS;	//!< 8N1
+    tty.c_cflag =  B57600 | CLOCAL | CREAD | CS8;
     tty.c_iflag = IGNPAR;
     tty.c_oflag = 0;
     tty.c_lflag = 0;
@@ -191,7 +205,7 @@ void Telemetry::OpenSerial()
 
     tcflush(spipe, TCIFLUSH);				//!< Flush old data
     tcsetattr(spipe, TCSANOW, &tty);		//!< Apply new settings
-    fcntl(spipe, F_SETFL, FASYNC);
+    fcntl(spipe, F_SETFL, FASYNC);			//!< ???
 	fcntl(spipe, F_SETFL, O_NONBLOCK);		//!< Nonblocking reads and writes
 
 	/* Alias the serial port */
@@ -214,15 +228,15 @@ void Telemetry::OpenPipe()
 		fcntl(npipe[READ] , F_SETFL, O_NONBLOCK);
 		fcntl(npipe[WRITE] , F_SETFL, O_NONBLOCK);
 		npipe_open = true;
-		printf("GUI connected\n");
+		fprintf(stdout,"GUI connected\n");
 	}
 	else
 	{
 		npipe_open = false;
 		close(npipe[READ]);
 		close(npipe[WRITE]);
-		npipe[READ] = NULL;
-		npipe[WRITE] = NULL;
+		npipe[READ] = -1;
+		npipe[WRITE] = -1;
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -234,8 +248,8 @@ void Telemetry::ClosePipe()
 	npipe_open = false;
 	close(npipe[READ]);
 	close(npipe[WRITE]);
-	npipe[READ] = NULL;
-	npipe[WRITE] = NULL;
+	npipe[READ] = -1;
+	npipe[WRITE] = -1;
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -275,7 +289,16 @@ void Telemetry::ImportPVT()
 	{
 		export_messages = true;
 		if(npipe_open == false)
-			OpenPipe();
+		{
+			if(tlm_type == TELEM_NAMED_PIPE)
+			{
+				OpenPipe();
+			}
+			else
+			{
+				OpenSerial();
+			}
+		}
 	}
 
 	bread = read(SVS_2_TLM_P[READ], &svs_s, sizeof(SVS_2_TLM_S));

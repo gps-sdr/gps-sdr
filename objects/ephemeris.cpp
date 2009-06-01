@@ -33,7 +33,7 @@ void *Ephemeris_Thread(void *_arg)
 
 	Ephemeris *aEphemeris = pEphemeris;
 
-	while(1)
+	while(grun)
 	{
 		aEphemeris->Import();
 	}
@@ -51,7 +51,7 @@ void Ephemeris::Start()
 	Start_Thread(Ephemeris_Thread, NULL);
 
 	if(gopt.verbose)
-		printf("Ephemeris thread started\n");
+		fprintf(stdout,"Ephemeris thread started\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -72,7 +72,7 @@ Ephemeris::Ephemeris():Threaded_Object("EPHTASK")
 	ClearAlmanac(MAX_SV);
 
 	if(gopt.verbose)
-		printf("Creating Ephemeris\n");
+		fprintf(stdout,"Creating Ephemeris\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -81,7 +81,7 @@ Ephemeris::Ephemeris():Threaded_Object("EPHTASK")
 Ephemeris::~Ephemeris()
 {
 	if(gopt.verbose)
-		printf("Destructing Ephemeris\n");
+		fprintf(stdout,"Destructing Ephemeris\n");
 }
 /*----------------------------------------------------------------------------------------------*/
 

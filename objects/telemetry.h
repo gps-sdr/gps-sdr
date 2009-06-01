@@ -28,6 +28,12 @@
 #ifndef TELEMETRY_H_
 #define TELEMETRY_H_
 
+enum Telemetry_Type
+{
+	TELEM_NAMED_PIPE,
+	TELEM_SERIAL
+};
+
 #include "includes.h"
 //#include "ekf.h"				//!< The EKF driver
 //#include "idle.h"				//!< Idle CPU counter
@@ -63,12 +69,13 @@ class Telemetry : public Threaded_Object
 		uint32 msg_rates[LAST_M_ID+1];				//!< Control output of periodic messages, 0 == off, !0 == decimation rate
 		void (Telemetry::*msg_handlers[LAST_M_ID+1])(void);	//!< Function pointers for periodic message handlers
 
+		int32 tlm_type;
 		int32 fifo[2];
 		int32 npipe[2];								//!< Named pipe and/or serial interface
 		int32 npipe_open;							//!< Is the named pipe open!?
 
-		CCSDS_Packet_Header  packet_header;			//!< CCSDS Packet header
-		CCSDS_Packet_Header  command_header;		//!< CCSDS Command header
+		CCSDS_Packet_Header packet_header;			//!< CCSDS Packet header
+		CCSDS_Packet_Header command_header;			//!< CCSDS Command header
 		CCSDS_Decoded_Header decoded_header;		//!< Decoded header
 
 		Command_Union command_body;					//!< Body of a command
@@ -99,6 +106,7 @@ class Telemetry : public Threaded_Object
 		/* Default object methods */
 		Telemetry();								//!< Constructor
 		~Telemetry();
+		void SetType(int32 _type);					//!< Serial or named pipe
 		void OpenPipe();
 		void OpenSerial();
 		void ClosePipe();

@@ -34,7 +34,7 @@ GPS_Source::GPS_Source(Options_S *_opt)
 	Open_USRP_V1();
 
 	if(gopt.verbose)
-		printf("Creating GPS Source\n");
+		fprintf(stdout,"Creating GPS Source\n");
 }
 
 GPS_Source::~GPS_Source()
@@ -42,7 +42,7 @@ GPS_Source::~GPS_Source()
 	Close_USRP_V1();
 
 	if(gopt.verbose)
-		printf("Destructing GPS Source\n");
+		fprintf(stdout,"Destructing GPS Source\n");
 }
 
 void GPS_Source::Open_USRP_V1()
@@ -85,7 +85,7 @@ void GPS_Source::Open_USRP_V1()
 	if(urx == NULL)
 	{
 		if(opt.verbose)
-			printf("usrp_standard_rx::make FAILED\n");
+			fprintf(stdout,"usrp_standard_rx::make FAILED\n");
 	}
 
 	/* Set mux */
@@ -133,12 +133,12 @@ void GPS_Source::Open_USRP_V1()
 
 		if(opt.verbose)
 		{
-			printf("DBS-RX A Configuration\n");
-			printf("DBS-RX A BW: \t\t% 15.2f\n",dbs_rx_a->bw());
-			printf("DBS-RX A LO: \t\t% 15.2f\n",dbs_rx_a->freq());
-			printf("DBS-RX A IF Gain: \t% 15.2f\n",dbs_rx_a->if_gain());
-			printf("DBS-RX A RF Gain: \t% 15.2f\n",dbs_rx_a->rf_gain());
-			printf("DDC 0: \t\t\t% 15.2f\n",urx->rx_freq(0));
+			fprintf(stdout,"DBS-RX A Configuration\n");
+			fprintf(stdout,"BW:      %15.2f\n",dbs_rx_a->bw());
+			fprintf(stdout,"LO:      %15.2f\n",dbs_rx_a->freq());
+			fprintf(stdout,"IF Gain: %15.2f\n",dbs_rx_a->if_gain());
+			fprintf(stdout,"RF Gain: %15.2f\n",dbs_rx_a->rf_gain());
+			fprintf(stdout,"DDC 0:   %15.2f\n",urx->rx_freq(0));
 		}
 	}
 
@@ -184,19 +184,20 @@ void GPS_Source::Open_USRP_V1()
 
 			if(opt.verbose)
 			{
-				printf("DBS-RX B Actual Configuration\n");
-				printf("DBS-RX B BW: \t\t% 15.2f\n",dbs_rx_b->bw());
-				printf("DBS-RX B LO: \t\t% 15.2f\n",dbs_rx_b->freq());
-				printf("DBS-RX B IF Gain: \t% 15.2f\n",dbs_rx_b->if_gain());
-				printf("DBS-RX B RF Gain: \t% 15.2f\n",dbs_rx_b->rf_gain());
-				printf("DDC 1: \t\t\t% 15.2f\n",urx->rx_freq(1));
+				fprintf(stdout,"DBS-RX B Configuration\n");
+				fprintf(stdout,"BW:      %15.2f\n",dbs_rx_b->bw());
+				fprintf(stdout,"LO:      %15.2f\n",dbs_rx_b->freq());
+				fprintf(stdout,"IF Gain: %15.2f\n",dbs_rx_b->if_gain());
+				fprintf(stdout,"RF Gain: %15.2f\n",dbs_rx_b->rf_gain());
+				fprintf(stdout,"DDC 0:   %15.2f\n",urx->rx_freq(0));
+
 			}
 
 		}
 	}
 
 	/* Start collecting data */
-	printf("USRP Start\n");
+	fprintf(stdout,"USRP Start\n");
 
 	urx->start();
 
@@ -206,13 +207,7 @@ void GPS_Source::Open_USRP_V1()
 void GPS_Source::Close_USRP_V1()
 {
 
-	if(opt.verbose)
-		printf("Stopping USRP\n");
-
 	urx->stop();
-
-	if(opt.verbose)
-		printf("USRP Stopped\n");
 
 	if(dbs_rx_a != NULL)
 		delete dbs_rx_a;
@@ -222,6 +217,9 @@ void GPS_Source::Close_USRP_V1()
 
 	if(urx != NULL)
 		delete urx;
+
+	if(opt.verbose)
+		fprintf(stdout,"Destructing USRP\n");
 
 }
 
@@ -270,7 +268,7 @@ void GPS_Source::Read(ms_packet *_p)
 //	{
 //		time(&rawtime);
 //		timeinfo = localtime (&rawtime);
-//		fprintf(stdout, "\nUSRP overflow at time %s",asctime (timeinfo));
+//		ffprintf(stdout,stdout, "\nUSRP overflow at time %s",asctime (timeinfo));
 //		fflush(stdout);
 //	}
 
