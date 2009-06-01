@@ -114,10 +114,10 @@ void SV_Select::Import()
 	{
 		mode = ACQ_MODE_HOT;
 	}
-	else if(ekf_s.state.status & (0x1 << EKF_STATE_INITIALIZED)) /* IF GEONS is around, use it!  */
+	else if(ekf_s.state.status & (0x1 << EKF_STATE_INITIALIZED)) /* IF EKF is around, use it!  */
 	{
 		mode = ACQ_MODE_WARM;
-		Geons_2_Nav();
+		EKF_2_Nav();
 	}
 	else /* Cold start, hardest way of doing things (sniffles) */
 	{
@@ -213,6 +213,7 @@ void SV_Select::Acquire()
 	/* Find an empty channel and if the given SV is currently being tracked */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 	{
+		pChannels[lcv]->Lock();
 		if(pChannels[lcv]->getState() == CHANNEL_EMPTY)
 		{
 			chan = lcv;
@@ -222,16 +223,17 @@ void SV_Select::Acquire()
 			already = lcv;
 			sv_prediction[current_sv].tracked = true;
 		}
+		pChannels[lcv]->Unlock();
 	}
 
 	/* Up to date PVT */
 	//read(PVT_2_SVS_P[READ], &pvt_s, sizeof(PVT_2_SVS_S));
 
-	/* Receive from GEONS? */
+	/* Receive from EKF? */
 //	bread = read(EKF_2_SVS_P[READ], &ekf_s, sizeof(EKF_2_SVS_S));
 //	if((bread == sizeof(EKF_2_SVS_S)) && (mode == ACQ_MODE_WARM))
 //	{
-//		Geons_2_Nav();
+//		EKF_2_Nav();
 //	}
 
 	/* Update SV's predicted state */
@@ -738,7 +740,7 @@ void SV_Select::MaskAngle()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void SV_Select::Geons_2_Nav()
+void SV_Select::EKF_2_Nav()
 {
 
     const double a = WGS84_MAJOR_AXIS;

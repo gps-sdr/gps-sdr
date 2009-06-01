@@ -77,13 +77,13 @@
 #define MASK_ANGLE				(0)				//!< Add this many degrees to altitude dependant mask
 #define MAX_ANTENNA				(1)				//!< 6 ADCs on board
 #define ACQ_MODULO_WEAK			(8)				//!< Do this many weak acqs per 32 PRN strong search
-#define MAX_DOPPLER_ABSOLUTE	(50000)			//!< Limit any and all Dopplers the be within this range
-#define MAX_DOPPLER_STRONG		(50000)			//!< Cold Doppler search space for strong signal
-#define MAX_DOPPLER_MEDIUM		(9000)			//!< Cold Doppler search space for strong signal
-#define MAX_DOPPLER_WEAK		(9000)			//!< Cold Doppler search space for weak signal
+#define MAX_DOPPLER_ABSOLUTE	(15000)			//!< Limit any and all Dopplers the be within this range
+#define MAX_DOPPLER_STRONG		(15000)			//!< Cold Doppler search space for strong signal
+#define MAX_DOPPLER_MEDIUM		(15000)			//!< Cold Doppler search space for strong signal
+#define MAX_DOPPLER_WEAK		(15000)			//!< Cold Doppler search space for weak signal
 #define MAX_DOPPLER_WARM		(1000)			//!< Search this much Doppler space if state information is available
 #define ACQ_OPERATION_STRONG	(ACQ_OPERATION_COLD)	//!< Acq strong mode (2 = cold & warm)
-#define ACQ_OPERATION_MEDIUM	(ACQ_OPERATION_WARM)	//!< Acq strong mode (2 = cold & warm)
+#define ACQ_OPERATION_MEDIUM	(ACQ_OPERATION_DISABLED)//!< Acq strong mode (2 = cold & warm)
 #define ACQ_OPERATION_WEAK		(ACQ_OPERATION_DISABLED)//!< Acq weak mode (2 = warm only)
 #define THRESH_STRONG			(0)						//!< Thats right zero! 40 dB-Hz and above acquisition threshold
 #define THRESH_MEDIUM			(0)						//!< Thats right zero! 30 dB-Hz and above acquisition threshold
@@ -110,6 +110,7 @@
 #define MEASUREMENTS_PER_SECOND	(10)
 #define SECONDS_PER_TICK		(.1)
 #define PVT_ITERATIONS			(10)		//!< Max number of PVT iterations
+#define MEASUREMENT_MOD			(1)			//!< Slow down measurement transmission to the PVT
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -121,7 +122,6 @@
 #define AGC_BITS				(5)			//!< AGC to this bit depth
 #define OVERFLOW_LOW			(4)			//!< Overflow low
 #define OVERFLOW_HIGH			(64)		//!< Overflow high
-#define MEASUREMENT_DELAY		(10)		//!< Number of measurements that have to be marked as navigate to allow PVT
 /*----------------------------------------------------------------------------------------------*/
 
 

@@ -29,7 +29,7 @@
 #define TELEMETRY_H_
 
 #include "includes.h"
-//#include "ekf.h"				//!< The GEONS driver
+//#include "ekf.h"				//!< The EKF driver
 //#include "idle.h"				//!< Idle CPU counter
 #include "telemetry.h"			//!< Handle the 422 telemetry
 //#include "patience.h"			//!< Service the watchdog timer

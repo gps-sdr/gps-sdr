@@ -105,11 +105,11 @@ void GUI_EKF::renderEKF()
 //	/* These are tags, not covariances */
 //	double time;		//!< Time in seconds (GPS)
 //	uint32 week;		//!< Week (GPS)
-//	uint32 status;		//!< Has this state failed any of the GEONS error checking, convergence flag, etc
+//	uint32 status;		//!< Has this state failed any of the EKF error checking, convergence flag, etc
 //	uint32 tic;			//!< This information is associated with the given RECEIVER tic
 
 	str.Printf(wxT("%15d"),s->tic);						rticks->SetLabel(str);
-	str.Printf(wxT("%15d"),s->geons_ticks);				sticks->SetLabel(str);
+	str.Printf(wxT("%15d"),s->ekf_ticks);				sticks->SetLabel(str);
 	str.Printf(wxT("%15d"),s->status >> 16);			nsv->SetLabel(str);
 	str.Printf(wxT("%15.2f m"),s->x);					px->SetLabel(str);
 	str.Printf(wxT("%15.2f m"),s->y);					py->SetLabel(str);

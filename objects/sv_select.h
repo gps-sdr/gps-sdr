@@ -63,7 +63,7 @@ enum SV_PREDICTION_STATE
 };
 
 /*! @ingroup CLASSES
-	@brief SV_Select uses state information from the PVT/Geons and the almanac to
+	@brief SV_Select uses state information from the PVT/EKF and the almanac to
  * predict the state of the GPS constellation. This information is used to aid
  * the acquisition process. */
 class SV_Select : public Threaded_Object
@@ -71,7 +71,7 @@ class SV_Select : public Threaded_Object
 
 	private:
 
-		EKF_2_SVS_S			ekf_s;							//!< Allow GEONS to drive SV select if no PVT
+		EKF_2_SVS_S			ekf_s;							//!< Allow EKF to drive SV select if no PVT
 		PVT_2_SVS_S			pvt_s;							//!< Get nav state from PVT
 		SV_Select_Status_M	status;							//!< Dump out sv select status
 		SV_Select_Config_S	config;							//!< Configure the SV_Select process
@@ -102,7 +102,7 @@ class SV_Select : public Threaded_Object
 		void SV_Position(int32 _sv);	//!< Compute SV positions from almanac
  		uint32 SetupRequest(int32 _sv);	//!< Setup the acq request
 		void MaskAngle();				//!< Calculate elevation mask angle
-		void Geons_2_Nav();				//!< Get the GEONS data into the proper structure
+		void EKF_2_Nav();				//!< Get the GEONS data into the proper structure
 
 		void setConfig(SV_Select_Config_S *_config);
 		SV_Select_Config_S getConfig();

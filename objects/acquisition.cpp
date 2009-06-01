@@ -255,11 +255,11 @@ Acq_Command_S Acquisition::doAcqStrong(int32 _sv, int32 _doppmin, int32 _doppmax
 	for(lcv = (_doppmin/1000); lcv <  (_doppmax/1000); lcv++)
 	{
 		/* Sweep through the doppler range */
-		for(lcv2 = 0; lcv2 < 4; lcv2+=1)
+		for(lcv2 = 0; lcv2 < 4; lcv2 += 2)
 		{
 
-//			if(gopt.realtime)
-//				usleep(1000);
+			if(gopt.realtime)
+				usleep(1000);
 
 			/* Multiply in frequency domain, shifting appropriately */
 			sse_cmulsc(&baseband_rows[lcv2][100+lcv], fft_codes[_sv], msbuff, resamps_ms, 10);

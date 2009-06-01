@@ -107,10 +107,8 @@ void Parse_Arguments(int32 argc, char* argv[])
 	gopt.f_ddc_a 		= 0;		//!< no DDC correction
 	gopt.f_lo_b			= L2 - IF_FREQUENCY;	//!< Board B L2 by default
 	gopt.f_ddc_b 		= 0;		//!< no DDC correction
-	gopt.bandwidth 		= 16.0e6; 	//!< DBS-RX is set to 10 MHz wide
+	gopt.bandwidth 		= 6.0e6; 	//!< DBS-RX is set to 10 MHz wide
 	gopt.f_sample 		= 64.0e6;	//!< Nominal sample rate
-	gopt.verbose 		= 1;		//!< Output extra debugging info
-	gopt.record 		= 0;		//!< Record data to disk
 	gopt.realtime		= 1;
 
 	for(lcv = 1; lcv < argc; lcv++)

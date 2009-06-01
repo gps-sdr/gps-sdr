@@ -130,7 +130,7 @@ void Correlator::Import()
 		chan = result.chan;
 		states[chan].chan = chan;
 		InitCorrelator(&states[chan]);
-
+		pChannels[chan]->Lock();
 		switch(result.type)
 		{
 			case ACQ_TYPE_STRONG:
@@ -143,6 +143,7 @@ void Correlator::Import()
 				pChannels[chan]->Start(result.sv, result, 10);
 				break;
 		}
+		pChannels[chan]->Unlock();
 	}
 
 	/* This call should block until new data is available */
@@ -337,9 +338,12 @@ void Correlator::TakeMeasurements()
 	}
 
 	/* Write the preamble, then the measurements */
-	write(ISRM_2_PVT_P[WRITE], &measurements, MAX_CHANNELS*sizeof(Measurement_M));
-	preamble.tic_measurement = measurement_tic;
-	write(ISRP_2_PVT_P[WRITE], &preamble, sizeof(Preamble_2_PVT_S));
+	if((measurement_tic % MEASUREMENT_MOD) == 0)
+	{
+		write(ISRM_2_PVT_P[WRITE], &measurements, MAX_CHANNELS*sizeof(Measurement_M));
+		preamble.tic_measurement = measurement_tic;
+		write(ISRP_2_PVT_P[WRITE], &preamble, sizeof(Preamble_2_PVT_S));
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -471,7 +475,9 @@ void Correlator::DumpAccum(Correlator_State_S *s, Correlation_S *c,  NCO_Command
 	c->Q[2] = (int32)floor(sang*tI + cang*tQ);
 
 	/* Get the f */
+	pChannels[_chan]->Lock();
 	pChannels[_chan]->Accum(c, f);
+	pChannels[_chan]->Unlock();
 
 	 /* Apply f */
 	ProcessFeedback(s, f);

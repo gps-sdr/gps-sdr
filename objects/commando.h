@@ -30,7 +30,7 @@
 #define COMMANDO_H_
 
 #include "includes.h"
-//#include "ekf.h"			//!< The GEONS driver
+//#include "ekf.h"			//!< The EKF driver
 #include "telemetry.h"		//!< Handle the 422 telemetry
 #include "ephemeris.h"		//!< Decode almanac/ephemeris/utc
 #include "sv_select.h"		//!< Maintain state of GPS constellation using almanac data
@@ -72,7 +72,7 @@ class Commando : public Threaded_Object
 		/* Reset stuff */
 		void resetAll();							//!< Reset everything
 		void resetPVT();							//!< Reset PVT
-		void resetEKF();							//!< Reset GEONS
+		void resetEKF();							//!< Reset EKF
 		void resetChannel();						//!< Reset Channel
 		void resetEphemeris();						//!< Clear an ephemeris
 		void resetAlmanac();						//!< Clear an almanac

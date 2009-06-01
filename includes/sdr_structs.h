@@ -70,7 +70,6 @@ typedef struct _Options_S
 	int32	verbose;		//!< Do a lot of extra printing
 	int32 	log_channel;	//!< Log low-level tracking loop info
 	int32	mode;			//!< Run in a  2 antenna mode with 2 DBS-RXs, Run in a  2 antenna mode, board A L1, board B L2
-	int32	record;			//!< Dump data to disk
 	int32	decimate;
 	int32	realtime;
 	double	f_lo_a;			//!< LO freq for board A
@@ -156,7 +155,6 @@ typedef struct _Correlator_State_S
 	uint32  rollover;			//!< rollover point of C/A code in next ms packet
 	uint32	cbin[3];			//!< Code bins
 	uint32	sbin;				//!< Carriers bins
-	uint32	nav_history[MEASUREMENT_DELAY]; //!< keep track of the navigate flag
 	MIX		*pcode[3];			//!< pointer to early-prompt-late codes
 	CPX		*psine;				//!< pointer to Doppler removal vector
 	MIX		*code_rows[2*CODE_BINS+1];	//!< Row pointers to presampled code table

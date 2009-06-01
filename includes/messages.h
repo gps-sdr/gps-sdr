@@ -295,8 +295,8 @@ typedef struct EKF_State_M
 	double time;		//!< Time in seconds (GPS)
 	uint32 nsvs;		//!< This is a mask, not a number!
 	uint32 week;		//!< Week (GPS)
-	uint32 status;		//!< Has this state failed any of the GEONS error checking, convergence flag, etc
-	uint32 geons_ticks;	//!< Count the number of state update calls
+	uint32 status;		//!< Has this state failed any of the EKF error checking, convergence flag, etc
+	uint32 ekf_ticks;	//!< Count the number of state update calls
 	uint32 period;		//!< Number of 500 us interrupts it took to do the state update
 	uint32 tic;			//!< This information is associated with the given receiver tic
 

@@ -263,12 +263,18 @@ void Commando::resetChannel()
 
 	if((chan >= 0) && (chan < MAX_CHANNELS))
 	{
+		pChannels[chan]->Lock();
 		pChannels[chan]->Kill();
+		pChannels[chan]->Unlock();
 	}
 	else
 	{
 		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+		{
+			pChannels[lcv]->Lock();
 			pChannels[lcv]->Kill();
+			pChannels[lcv]->Unlock();
+		}
 	}
 
 	message_body.command_ack.command_status = SUCCESS_A_ID;

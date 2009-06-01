@@ -250,7 +250,7 @@ void PVT::Export()
 	write(PVT_2_SVS_P[WRITE], &tlm_s, sizeof(PVT_2_SVS_S));
 	write(PVT_2_TLM_P[WRITE], &tlm_s, sizeof(PVT_2_TLM_S));
 
-	/* Send info to GEONS aligned with the GPS second mod GEONS_MOD */
+	/* Send info to EKF aligned with the GPS second mod EKF_MOD */
 //	integer_second = (int32)floor(master_clock.time + .5);
 //	if((integer_second % EKF_UPDATE_PERIOD) == 0)
 //		write(&PVT_2_EKF_P, &tlm_s, sizeof(PVT_2_EKF_S), NU_NO_SUSPEND);
@@ -353,7 +353,7 @@ void PVT::Navigate()
 void PVT::Update_Time()
 {
 
-	master_clock.receiver_time	+= SECONDS_PER_TICK;
+	master_clock.receiver_time	+= SECONDS_PER_TICK * MEASUREMENT_MOD;
 	master_clock.time_raw 		= master_clock.time0 + master_clock.receiver_time;
 	master_clock.time 			= master_clock.time_raw - master_clock.bias;
 
@@ -791,7 +791,7 @@ void PVT::PseudoRange()
 			time = master_clock.time - code_time - (double)measurements[lcv].subframe_sec;
 			pseudoranges[lcv].meters = time*(double)SPEED_OF_LIGHT;
 
-			/* GEONS wants raw measurements, not ones that have the GPS clock bias added in */
+			/* EKF wants raw measurements, not ones that have the GPS clock bias added in */
 			time = master_clock.time_raw - code_time - (double)measurements[lcv].subframe_sec;
 			pseudoranges[lcv].uncorrected = time*(double)SPEED_OF_LIGHT;
 
@@ -816,7 +816,7 @@ uint32 PVT::PreErrorCheck()
 	double radius;
 
 	/* First filter out cross correlations */
-	//ErrorCheckCrossCorr();
+	ErrorCheckCrossCorr();
 
 	/* Channel by channel resets */
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
@@ -873,7 +873,9 @@ void PVT::ErrorCheckCrossCorr()
 	{
 		if(good_channels[lcv])
 		{
+			pChannels[lcv]->Lock();
 			icn0 = pChannels[lcv]->getCN0();
+			pChannels[lcv]->Unlock();
 			fcn0[lcv] = icn0;
 			//fcn0[lcv] = icn0_2_fcn0(icn0);
 		}
@@ -914,7 +916,9 @@ void PVT::ErrorCheckCrossCorr()
 						pEphemeris->Lock();
 						pEphemeris->ClearEphemeris(master_sv[lcv2]);
 						pEphemeris->Unlock();
-						//Kill_channel[lcv2] = 1;
+						pChannels[lcv2]->Lock();
+						pChannels[lcv2]->Kill();
+						pChannels[lcv2]->Unlock();
 					}
 				}
 			}
