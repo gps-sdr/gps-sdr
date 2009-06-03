@@ -38,7 +38,6 @@ GUI_Almanac::GUI_Almanac():iGUI_Almanac(NULL, wxID_ANY, wxT("Almanac"), wxDefaul
 	fp = NULL;
 }
 
-
 GUI_Almanac::~GUI_Almanac()
 {
 

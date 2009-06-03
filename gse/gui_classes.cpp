@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Apr 21 2008)
+// C++ code generated with wxFormBuilder (version Dec 29 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -95,6 +95,9 @@ iGUI_Toplevel::iGUI_Toplevel( wxWindow* parent, wxWindowID id, const wxString& t
 	
 	bMessages = new wxToggleButton( this, ID_MESSAGES_B, wxT("Messages"), wxDefaultPosition, wxDefaultSize, 0 );
 	SubWindows->Add( bMessages, 0, wxALL|wxEXPAND, 5 );
+	
+	bSpeedo = new wxToggleButton( this, ID_SPEEDO_B, wxT("Speedometer"), wxDefaultPosition, wxDefaultSize, 0 );
+	SubWindows->Add( bSpeedo, 0, wxALL|wxEXPAND, 5 );
 	
 	sMain->Add( SubWindows, 1, wxALL|wxEXPAND, 5 );
 	
@@ -2137,4 +2140,98 @@ iGUI_Select::~iGUI_Select()
 {
 	// Disconnect Events
 	pVisible->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( iGUI_Select::onMouse ), NULL, this );
+}
+
+iGUI_Speedo::iGUI_Speedo( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxBoxSizer* bSizer107;
+	bSizer107 = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer116;
+	bSizer116 = new wxBoxSizer( wxHORIZONTAL );
+	
+	wxStaticBoxSizer* sbSizer18;
+	sbSizer18 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Speed") ), wxHORIZONTAL );
+	
+	pspeed = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer18->Add( pspeed, 1, wxEXPAND, 5 );
+	
+	bSizer116->Add( sbSizer18, 1, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer43;
+	sbSizer43 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("???") ), wxVERTICAL );
+	
+	pdist = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer43->Add( pdist, 1, wxEXPAND, 5 );
+	
+	bSizer116->Add( sbSizer43, 1, wxALL|wxEXPAND, 5 );
+	
+	bSizer107->Add( bSizer116, 1, wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer109;
+	bSizer109 = new wxBoxSizer( wxHORIZONTAL );
+	
+	wxGridSizer* gSizer5;
+	gSizer5 = new wxGridSizer( 2, 3, 0, 0 );
+	
+	wxStaticBoxSizer* sbSizer235;
+	sbSizer235 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Overall Avg") ), wxVERTICAL );
+	
+	pstop1 = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer235->Add( pstop1, 1, wxEXPAND, 5 );
+	
+	gSizer5->Add( sbSizer235, 1, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer23;
+	sbSizer23 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Moving Avg") ), wxVERTICAL );
+	
+	pmavg = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer23->Add( pmavg, 1, wxEXPAND, 5 );
+	
+	gSizer5->Add( sbSizer23, 1, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer231;
+	sbSizer231 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Max Speed") ), wxVERTICAL );
+	
+	pmax = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer231->Add( pmax, 1, wxEXPAND, 5 );
+	
+	gSizer5->Add( sbSizer231, 1, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer232;
+	sbSizer232 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Total Time") ), wxVERTICAL );
+	
+	pttime = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer232->Add( pttime, 1, wxEXPAND, 5 );
+	
+	gSizer5->Add( sbSizer232, 1, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer233;
+	sbSizer233 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Moving Time") ), wxVERTICAL );
+	
+	pmtime = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer233->Add( pmtime, 1, wxEXPAND, 5 );
+	
+	gSizer5->Add( sbSizer233, 1, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer234;
+	sbSizer234 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Stopped Time") ), wxVERTICAL );
+	
+	pstop = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	sbSizer234->Add( pstop, 1, wxEXPAND, 5 );
+	
+	gSizer5->Add( sbSizer234, 1, wxALL|wxEXPAND, 5 );
+	
+	bSizer109->Add( gSizer5, 1, wxEXPAND, 5 );
+	
+	bSizer107->Add( bSizer109, 1, wxEXPAND, 5 );
+	
+	this->SetSizer( bSizer107 );
+	this->Layout();
+}
+
+iGUI_Speedo::~iGUI_Speedo()
+{
 }

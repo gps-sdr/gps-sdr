@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Apr 21 2008)
+// C++ code generated with wxFormBuilder (version Dec 29 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -51,24 +51,25 @@
 #define ID_HEALTH_B 1015
 #define ID_COMMANDS_B 1016
 #define ID_MESSAGES_B 1017
-#define ID_EPHEMERIS_REFRESH 1018
-#define ID_EPHEMERIS_SAVE 1019
-#define ID_EPHEMERIS_LOAD 1020
-#define ID_ALMANAC_REFRESH 1021
-#define ID_ALMANAC_SAVE 1022
-#define ID_ALMANAC_LOAD 1023
-#define ID_NULL 1024
-#define ID_RESET_WATCHDOG 1025
-#define ID_RESET_ALL 1026
-#define ID_RESET_PPS 1027
-#define ID_RESET_PVT 1028
-#define ID_RESET_EKF 1029
-#define ID_RESET_CHANNEL 1030
-#define ID_RESET_EPHEMERIS 1031
-#define ID_RESET_ALMANAC 1032
-#define ID_EEPROM_STOP 1033
-#define ID_EEPROM_START 1034
-#define ID_SELECT_REFRESH 1035
+#define ID_SPEEDO_B 1018
+#define ID_EPHEMERIS_REFRESH 1019
+#define ID_EPHEMERIS_SAVE 1020
+#define ID_EPHEMERIS_LOAD 1021
+#define ID_ALMANAC_REFRESH 1022
+#define ID_ALMANAC_SAVE 1023
+#define ID_ALMANAC_LOAD 1024
+#define ID_NULL 1025
+#define ID_RESET_WATCHDOG 1026
+#define ID_RESET_ALL 1027
+#define ID_RESET_PPS 1028
+#define ID_RESET_PVT 1029
+#define ID_RESET_EKF 1030
+#define ID_RESET_CHANNEL 1031
+#define ID_RESET_EPHEMERIS 1032
+#define ID_RESET_ALMANAC 1033
+#define ID_EEPROM_STOP 1034
+#define ID_EEPROM_START 1035
+#define ID_SELECT_REFRESH 1036
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class iGUI_Toplevel
@@ -92,6 +93,7 @@ class iGUI_Toplevel : public wxFrame
 		wxToggleButton* bHealth;
 		wxToggleButton* bCommands;
 		wxToggleButton* bMessages;
+		wxToggleButton* bSpeedo;
 		wxTextCtrl* tRS422;
 		wxTextCtrl* tTask;
 		wxStatusBar* mStatus;
@@ -548,6 +550,29 @@ class iGUI_Select : public wxFrame
 	public:
 		iGUI_Select( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("SV Select"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 400,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_Select();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class iGUI_Speedo
+///////////////////////////////////////////////////////////////////////////////
+class iGUI_Speedo : public wxFrame 
+{
+	private:
+	
+	protected:
+		wxPanel* pspeed;
+		wxPanel* pdist;
+		wxPanel* pstop1;
+		wxPanel* pmavg;
+		wxPanel* pmax;
+		wxPanel* pttime;
+		wxPanel* pmtime;
+		wxPanel* pstop;
+	
+	public:
+		iGUI_Speedo( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Speedometer"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,500 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~iGUI_Speedo();
 	
 };
 

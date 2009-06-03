@@ -77,6 +77,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "gui_health.h"
 #include "gui_messages.h"
 #include "gui_select.h"
+#include "gui_speedo.h"
 #include "gui_toplevel.h"
 /*----------------------------------------------------------------------------------------------*/
 double icn0_2_fcn0(uint32 _cn0);

@@ -22,6 +22,7 @@ class GUI_Toplevel: public iGUI_Toplevel
 		GUI_Commands	*wCommands;
 		//GUI_EEPROM		*wEEPROM;
 		GUI_Messages	*wMessages;
+		GUI_Speedo		*wSpeedo;
 		class GUI_Serial*pSerial;
 
 		wxTimer 		*timer;
@@ -67,6 +68,7 @@ class GUI_Toplevel: public iGUI_Toplevel
 		void onCommands(wxCommandEvent& event);
 		void onEEPROM(wxCommandEvent& event);
 		void onMessages(wxCommandEvent& event);
+		void onSpeedo(wxCommandEvent& event);
 
 	    void paintEvent(wxPaintEvent& evt);
 	    void paintNow();

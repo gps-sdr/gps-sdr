@@ -31,6 +31,7 @@ BEGIN_EVENT_TABLE(GUI_Toplevel, wxFrame)
 //    EVT_TOGGLEBUTTON(ID_EEPROM_B,	GUI_Toplevel::onEEPROM)
     EVT_TOGGLEBUTTON(ID_HEALTH_B,	GUI_Toplevel::onHealth)
     EVT_TOGGLEBUTTON(ID_MESSAGES_B, GUI_Toplevel::onMessages)
+    EVT_TOGGLEBUTTON(ID_SPEEDO_B, 	GUI_Toplevel::onSpeedo)
     EVT_PAINT(GUI_Toplevel::paintEvent)
     EVT_CLOSE(GUI_Toplevel::onClose)
 END_EVENT_TABLE()
@@ -50,6 +51,7 @@ GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS GUI"), wxDef
 	wHealth 		= NULL;
 	wCommands 		= NULL;
 	//wEEPROM 		= NULL;
+	wSpeedo 		= NULL;
 
     pSerial = new GUI_Serial;
     pSerial->setIO(0);
@@ -62,6 +64,7 @@ GUI_Toplevel::GUI_Toplevel():iGUI_Toplevel(NULL, wxID_ANY, wxT("GPS GUI"), wxDef
     timer->Start(100, wxTIMER_CONTINUOUS); //Shoot for 20 fps
 
     log_filename.Clear();
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -92,6 +95,9 @@ GUI_Toplevel::~GUI_Toplevel()
 
 	if(wCommands)
 		delete wCommands;
+
+	if(wSpeedo)
+		delete wSpeedo;
 
 //	if(wEEPROM)
 //		delete wEEPROM;
@@ -318,7 +324,7 @@ void GUI_Toplevel::render(wxDC& dc)
 	/* Render RS422 Panel */
 	renderRS422();
 
-	if(update)
+//	if(update)
 	{
 
 		/* Render Task Panel */
@@ -365,9 +371,13 @@ void GUI_Toplevel::render(wxDC& dc)
 //		if(wEEPROM != NULL)
 //			wEEPROM->paintNow();
 
-		/* Display EEPROM */
+		/* Display Messages */
 		if(wMessages != NULL)
 			wMessages->paintNow();
+
+		/* Display Speedo */
+		if(wSpeedo != NULL)
+			wSpeedo->paintNow();
     }
 
 }
@@ -761,6 +771,30 @@ void GUI_Toplevel::onMessages(wxCommandEvent& WXUNUSED(event))
 		wMessages->setToplevel(this);
 		wMessages->Show(TRUE);
 		bMessages->SetValue(true);
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Toplevel::onSpeedo(wxCommandEvent& WXUNUSED(event))
+{
+
+	if(wSpeedo)
+	{
+		delete wSpeedo;
+		wSpeedo = NULL;
+		bSpeedo->SetValue(false);
+	}
+	else
+	{
+		wSpeedo = new GUI_Speedo();
+		wSpeedo->setPointer(&messages);
+		wSpeedo->setSerial(pSerial);
+		wSpeedo->setToplevel(this);
+		wSpeedo->Show(TRUE);
+		bSpeedo->SetValue(true);
 	}
 
 }
