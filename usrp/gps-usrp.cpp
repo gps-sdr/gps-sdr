@@ -44,8 +44,8 @@ typedef struct _options
 #define BYTES_PER_READ  (SAMPS_PER_READ*4)
 #define READ 			(0)
 #define WRITE 			(1)
-#define F_L1			(1.57542e9 - 160000)
-#define F_L2			(1.2276e9 - 160000)
+#define F_L1			(1.57542e9 - 38400)
+#define F_L2			(1.2276e9 - 38400)
 #define FIFO_SIZE 		(4000) //!< 2 seconds deep?
 /*----------------------------------------------------------------------------------------------*/
 

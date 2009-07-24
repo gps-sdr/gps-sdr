@@ -115,68 +115,69 @@ class iGUI_PVT : public wxFrame
 		wxPanel* pCN0;
 		wxStaticText* m_staticText5311;
 		wxStaticText* m_staticText5343;
-		wxStaticText* rticks;
+		wxTextCtrl* rticks;
 		wxStaticText* m_staticText536111;
-		wxStaticText* sticks;
+		wxTextCtrl* sticks;
 		wxStaticText* m_staticText53411;
-		wxStaticText* cticks;
+		wxTextCtrl* cticks;
 		wxStaticText* m_staticText5321;
 		
 		wxStaticText* m_staticText53511;
-		wxStaticText* iter;
+		wxTextCtrl* iter;
 		wxStaticText* m_staticText53431;
-		wxStaticText* nsv;
+		wxTextCtrl* nsv;
 		wxStaticText* m_staticText531;
 		wxStaticText* m_staticText534;
-		wxStaticText* lat;
+		wxTextCtrl* lat;
 		wxStaticText* m_staticText5341;
-		wxStaticText* lon;
+		wxTextCtrl* lon;
 		wxStaticText* m_staticText53611;
-		wxStaticText* alt;
+		wxTextCtrl* alt;
 		wxStaticText* m_staticText53614;
-		wxStaticText* gdop;
+		wxTextCtrl* gdop;
 		wxStaticText* m_staticText532;
 		wxStaticText* m_staticText535;
-		wxStaticText* px;
+		wxTextCtrl* px;
 		wxStaticText* m_staticText5351;
-		wxStaticText* py;
+		wxTextCtrl* py;
 		wxStaticText* m_staticText53612;
-		wxStaticText* pz;
+		wxTextCtrl* pz;
 		
 		wxStaticText* m_staticText533;
 		wxStaticText* m_staticText536;
-		wxStaticText* vx;
+		wxTextCtrl* vx;
 		wxStaticText* m_staticText5361;
-		wxStaticText* vy;
+		wxTextCtrl* vy;
 		wxStaticText* m_staticText53613;
-		wxStaticText* vz;
+		wxTextCtrl* vz;
 		wxStaticText* m_staticText5342;
-		wxStaticText* speed;
+		wxTextCtrl* speed;
 		wxStaticText* m_staticText57721;
-		wxStaticText* utct;
+		wxTextCtrl* utct;
 		wxStaticText* m_staticText577;
-		wxStaticText* gpsw;
+		wxTextCtrl* gpsw;
 		wxStaticText* m_staticText5772;
-		wxStaticText* gpss;
+		wxTextCtrl* gpss;
 		wxStaticText* m_staticText5771;
-		wxStaticText* cb;
+		wxTextCtrl* cb;
 		wxStaticText* m_staticText57711;
-		wxStaticText* cr;
+		wxTextCtrl* cr;
 		wxStaticText* m_staticText5773;
-		wxStaticText* ppsstate;
+		wxTextCtrl* ppsstate;
 		wxStaticText* m_staticText577211;
-		wxStaticText* ppscmd;
+		wxTextCtrl* ppscmd;
 		wxStaticText* m_staticText57712;
-		wxStaticText* ppscr;
+		wxTextCtrl* ppscr;
 		wxStaticText* m_staticText577111;
-		wxStaticText* ppserr;
+		wxTextCtrl* ppserr;
+		
 		
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
 		
 	
 	public:
-		iGUI_PVT( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("PVT"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1000,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		iGUI_PVT( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("PVT"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1600,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~iGUI_PVT();
 	
 };
@@ -495,6 +496,7 @@ class iGUI_Log : public wxDialog
 		wxButton* bOK;
 	
 	public:
+		wxDirPickerCtrl* mFile;
 		wxCheckBox* cPVT;
 		wxCheckBox* cClock;
 		wxCheckBox* cPPS;
@@ -506,8 +508,10 @@ class iGUI_Log : public wxDialog
 		wxCheckBox* cTask;
 		wxCheckBox* cBoard;
 		wxCheckBox* cSVPred;
-		wxFilePickerCtrl* mFile;
-		iGUI_Log( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Logging Config"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE );
+		wxCheckBox* cGearth;
+		wxCheckBox* cRobs;
+		wxCheckBox* cRephem;
+		iGUI_Log( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Logging Config"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 600,400 ), long style = wxDEFAULT_DIALOG_STYLE );
 		~iGUI_Log();
 	
 };

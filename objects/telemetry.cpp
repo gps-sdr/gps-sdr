@@ -76,14 +76,17 @@ Telemetry::Telemetry():Threaded_Object("TLMTASK")
 	signal(SIGPIPE, lost_gui_pipe);
 
 	remove("/tmp/GPS2GUI");
-	fifo[WRITE] = mkfifo("/tmp/GPS2GUI", S_IRWXG | S_IRWXU | S_IRWXO);
+	fifo[WRITE] = mkfifo("/tmp/GPS2GUI", S_IRWXU|S_IRWXG|S_IRWXO|S_IROTH|S_IWOTH);
 	if(fifo[WRITE] == -1)
 		fprintf(stderr,"Error creating the named pipe /tmp/GPS2GUI\n");
+	chmod("/tmp/GPS2GUI", S_IRWXU|S_IRWXG|S_IRWXO|S_IROTH|S_IWOTH);
+
 
 	remove("/tmp/GUI2GPS");
-	fifo[READ] = mkfifo("/tmp/GUI2GPS", S_IRWXG | S_IRWXU | S_IRWXO);
+	fifo[READ] = mkfifo("/tmp/GUI2GPS", S_IRWXU|S_IRWXG|S_IRWXO|S_IROTH|S_IWOTH);
 	if(fifo[READ] == -1)
 		fprintf(stderr,"Error creating the named pipe /tmp/GUI2GPS\n");
+	chmod("/tmp/GUI2GPS", S_IRWXU|S_IRWXG|S_IRWXO|S_IROTH|S_IWOTH);
 
 	/* Build the function pointer array */
 	msg_handlers[FIRST_M_ID] 				= NULL;
@@ -534,13 +537,13 @@ void Telemetry::SendBoardHealth()
 	board_health->fft_version = 0;
 
 	/* DSA Values */
-	board_health->dsa0 = pFIFO->agc_scale;
+	board_health->dsa0 = pSource->getScale();
 	board_health->dsa1 = 0;
 	board_health->dsa2 = 0;
 	board_health->dsa3 = 0;
 
 	/* Overflow on A/Ds */
-	board_health->ovrflw0 = pFIFO->overflw;
+	board_health->ovrflw0 = pSource->getOvrflw();
 	board_health->ovrflw1 = 0;
 	board_health->ovrflw2 = 0;
 	board_health->ovrflw3 = 0;

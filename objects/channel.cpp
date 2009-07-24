@@ -437,19 +437,35 @@ void Channel::PLL()
 	float dp;
 	float dot;
 	float cross;
+	int32 I1, I2, Q1, Q2, lcv;
 
 	df = dp = 0;
 
-	/* FLL discriminator */
-	dot = 	  I[1]*I_prev + Q[1]*Q_prev;
-	cross =  -I[1]*Q_prev + Q[1]*I_prev;
+	if(len != 1)
+	{
+		for(lcv = 0; lcv < 10; lcv++)
+		{
+			I2 += I_buff[lcv];
+			Q2 += Q_buff[lcv];
+		}
 
-	/* No FLL for now */
-//	if((dot != 0.0) && (cross != 0.0))
-//	{
-//		df = atan(dot/cross);
-//		df /= (aPLL.t * 360);
-//	}
+		for(lcv; lcv < 20; lcv++)
+		{
+			I1 += I_buff[lcv];
+			Q1 += Q_buff[lcv];
+		}
+
+		/* FLL discriminator */
+		dot = 	  I2*I1 + Q2*Q1;
+		cross =  -I2*Q1 + Q2*I1;
+
+		/* No FLL for now */
+		if((dot != 0.0) && (cross != 0.0))
+		{
+			df = atan2(cross, dot);
+			df /= TWO_PI;
+		}
+	}
 
 	/* PLL discriminator */
 	if(I[1] != 0)
@@ -881,7 +897,7 @@ void Channel::PLL_W(float _bwpll)
 {
 
 	aPLL.PLLBW = _bwpll;
-	aPLL.FLLBW = 50.0;
+	aPLL.FLLBW = 4.0;
 
 	aPLL.b3 = 2.40;
 	aPLL.a3 = 1.10;
@@ -937,23 +953,23 @@ void Channel::Error()
 	/* Adjust integration length based on cn0 */
 	if(bit_lock)
 	{
-		if((mcn0 > 39.0) && (len != 1))
-		{
-			len = 1;
-			PLL_W(30.0);
-		}
+//		if((mcn0 > 39.0) && (len != 1))
+//		{
+//			len = 1;
+//			PLL_W(18.0);
+//		}
 
-		if((mcn0 < 37.0) && (len != 10))
-		{
-			len = 10;
-			PLL_W(25.0);
-		}
-
-		if((mcn0 < 30.0) && (len != 20))
+//		if((mcn0 < 37.0) && (len != 20))
 		{
 			len = 20;
-			PLL_W(20.0);
+			PLL_W(18.0);
 		}
+
+//		if((mcn0 < 30.0) && (len != 20))
+//		{
+//			len = 20;
+//			PLL_W(20.0);
+//		}
 	}
 
 }

@@ -29,7 +29,6 @@
 #define FIFO_H_
 
 #include "includes.h"
-#include "telemetry.h"
 #include "gps_source.h"
 
 #define FIFO_DEPTH (2500)	//!< In ms
@@ -39,8 +38,6 @@
  */
 class FIFO : public Threaded_Object
 {
-
-	friend class Telemetry;
 
 	private:
 
@@ -52,9 +49,6 @@ class FIFO : public Threaded_Object
 		ms_packet *tail;	//!< Pointer to the tail
 
 		int32 count;		//!< Count the number of packets received
-		int32 agc_scale;	//!< To do the AGC
-		int32 overflw;		//!< Overflow counter
-		int32 soverflw;		//!< Overflow counter
 		int32 tic;			//!< Master receiver tic
 
 	public:
@@ -68,7 +62,6 @@ class FIFO : public Threaded_Object
 		void Open();
 		void Enqueue();
 		void Dequeue(ms_packet *p);
-		void SetScale(int32 _agc_scale);
 
 };
 

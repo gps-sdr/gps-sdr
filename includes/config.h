@@ -33,7 +33,7 @@
 /* Software Version */
 /*----------------------------------------------------------------------------------------------*/
 #define SOFTWARE_VERSION_MAJOR		(2)
-#define SOFTWARE_VERSION_MINOR		(5)
+#define SOFTWARE_VERSION_MINOR		(6)
 #define SOFTWARE_VERSION_POSTFIX	(0)
 /*----------------------------------------------------------------------------------------------*/
 
@@ -42,7 +42,7 @@
 #define MAX_CHANNELS			(12)						//!< Number of channel objects
 #define CPU_CORES				(2)							//!< 1 for a single core, 2 for a dual core system, etc
 #define CORR_PER_CPU			(MAX_CHANNELS/CPU_CORES)	//!< Distribute them up evenly (this should be an INTEGER!)
-#define MAX_ANTENNAS			(1)							//!< The number of antennas
+#define MAX_ANTENNAS			(2)							//!< The number of antennas
 #define TASK_STACK_SIZE			(2048)						//!< For Nucleus/Linux compatibility
 /*----------------------------------------------------------------------------------------------*/
 
@@ -57,12 +57,6 @@
 /*----------------------------------------------------------------------------------------------*/
 
 
-/* Work on what kind of Data?? */
-/*----------------------------------------------------------------------------------------------*/
-#define USRP_RECORDER			(1)			//!< Data collected with USRP
- /*----------------------------------------------------------------------------------------------*/
-
-
 /* MISC GPS Constants */
 /*----------------------------------------------------------------------------------------------*/
 #define MAX_SV					(32)		//!< Number of PRN codes
@@ -75,7 +69,6 @@
 /*! Config the SV Select */
 /*----------------------------------------------------------------------------------------------*/
 #define MASK_ANGLE				(0)				//!< Add this many degrees to altitude dependant mask
-#define MAX_ANTENNA				(1)				//!< 6 ADCs on board
 #define ACQ_MODULO_WEAK			(8)				//!< Do this many weak acqs per 32 PRN strong search
 #define MAX_DOPPLER_ABSOLUTE	(15000)			//!< Limit any and all Dopplers the be within this range
 #define MAX_DOPPLER_STRONG		(15000)			//!< Cold Doppler search space for strong signal
@@ -119,7 +112,7 @@
 #define CARRIER_AIDING			(1)			//!< Carrier aid the DLL
 #define PLL_BN					(15)		//!< PLL Bandwidth
 #define FLL_BN					(10)		//!< FLL Bandwidth
-#define AGC_BITS				(5)			//!< AGC to this bit depth
+#define AGC_BITS				(6)			//!< AGC to this bit depth
 #define OVERFLOW_LOW			(4)			//!< Overflow low
 #define OVERFLOW_HIGH			(64)		//!< Overflow high
 /*----------------------------------------------------------------------------------------------*/
@@ -144,9 +137,11 @@ enum TASK_IDS
 };
 /*----------------------------------------------------------------------------------------------*/
 
+
 /* Account for GPS rollover here */
 /*----------------------------------------------------------------------------------------------*/
 #define CURRENT_GPS_WEEK_ROLLOVER	(1)			//!< The number of GPS week rollovers
 /*----------------------------------------------------------------------------------------------*/
+
 
 #endif

@@ -494,7 +494,7 @@ void PVT::ClockInit()
 				master_clock.bias 			= 0;
 				master_clock.time 			= master_clock.time0;
 				master_clock.time_raw		= master_clock.time0;
-				master_clock.week 			= ephemerides[lcv].week_number;
+				master_clock.week 			= ephemerides[lcv].week_number + CURRENT_GPS_WEEK_ROLLOVER * 1024;
 				master_clock.state 			= PVT_CLOCK_NOMINAL;
 				break;
 			}

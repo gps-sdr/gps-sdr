@@ -20,8 +20,8 @@ $(EXE): $(EXE).o $(OBJS)
 	mv $(EXE) ../$(EXE)
 	
 %.o:%.cpp
-	$(CC) $(CFLAGS) -c $< -o $@ 
-
+	$(CC) $(CFLAGS) -c $< -o $@
+	
 clean:
 	@rm -rvf *.dis
 	@rm -rvf *.o

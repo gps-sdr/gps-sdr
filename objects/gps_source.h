@@ -30,29 +30,52 @@
 
 #include "includes.h"
 #include "db_dbs_rx.h"
+#include "gn3s.h"
 
 enum GPS_SOURCE_TYPE
 {
-	USRP_V1,
-	USRP_V2,
-	SIGE_GN3S
+	SOURCE_USRP_V1,
+	SOURCE_USRP_V2,
+	SOURCE_SIGE_GN3S,
+	SOURCE_DISK_FILE,
 };
 
+/*! \ingroup CLASSES
+ *
+ */
 class GPS_Source
 {
 
 	private:
 
-		/* Generic variables */
-		int32 source_open;
-		int32 source_type;
-		int32 sample_mode;
-		int32 leftover;
-		int32 bwrite;
-		CPX buff[16384]; 		//!< Base buffer
-		CPX buff_out[4096]; 	//!< Output buffer
-		CPX db_a[16384]; 		//!< Buffer for double buffering
+		/* Options */
 		Options_S opt;			//!< Options
+
+		/* Generic variables */
+//		int32 source_open;		//!< Is the source open?
+		int32 source_type;		//!< Source type
+		int32 sample_mode;		//!< Sample mode
+		int32 leftover;			//!< Leftover bytes for USRP double buffering
+		int32 bwrite;			//!< Bytes somthing something?
+		int32 ms_count;			//!< Count the numbers of ms processed
+
+		/* Tag overflows */
+		time_t rawtime;
+		struct tm * timeinfo;
+
+		/* AGC Values */
+		int32 agc_scale;		//!< To do the AGC
+		int32 overflw;			//!< Overflow counter
+		int32 soverflw;			//!< Overflow counter
+
+		/* Data buffers */
+		int8 gbuff[40919*2]; 	//!< Byte buffer for GN3S
+		CPX buff[40926]; 		//!< Base buffer for GN3S/USRP
+		CPX buff_out[10240]; 	//!< Output buffer @ 2.048 Msps
+		CPX *buff_out_p; 		//!< Pointer to a spot in buff_out
+		CPX dbuff[16384]; 		//!< Buffer for double buffering
+		MIX gn3s_mix[10240];	//!< Mix GN3S to the same IF frequency
+		int32 gdec[10240];		//!< Index array to filter & resample GN3S data to 2.048 Msps
 
 		/* USRP V1 Handles */
 		usrp_standard_rx *urx;
@@ -61,17 +84,16 @@ class GPS_Source
 
 		/* USRP V2 Handles */
 
-		/* SIGE_GN3S Handles */
+		/* SOURCE_SIGE_GN3S Handles */
+		gn3s *gn3s_a;
+		gn3s *gn3s_b;
 
 		/* File handles */
-
+		FILE *fp_a;
+		FILE *fp_b;
 
 	private:
 
-		void Read_USRP_V1();		//!< Read from the USRP Version 1
-		void Read_USRP_V2();		//!< Read from the USRP Version 2
-		void Read_GN3S();			//!< Read from the SparkFun GN3S Sampler
-		void Read_File();			//!< Read from a file
 		void Open_USRP_V1();		//!< Open the USRP Version 1
 		void Open_USRP_V2();		//!< Open the USRP Version 2
 		void Open_GN3S();			//!< Open the SparkFun GN3S Sampler
@@ -80,12 +102,20 @@ class GPS_Source
 		void Close_USRP_V2();		//!< Close the USRP Version 2
 		void Close_GN3S();			//!< Close the SparkFun GN3S Sampler
 		void Close_File();			//!< Close the file
+		void Read_USRP_V1(ms_packet *_p);//!< Read from the USRP Version 1
+		void Read_USRP_V2(ms_packet *_p);//!< Read from the USRP Version 2
+		void Read_GN3S(ms_packet *_p);	//!< Read from the SparkFun GN3S Sampler
+		void Read_File(ms_packet *_p);	//!< Read from a file
 		void Resample_USRP_V1(CPX *_in, CPX *_out);
+		void Resample_GN3S(CPX *_in, CPX *_out);
 
 	public:
-			GPS_Source(Options_S *_opt);	//!< Create the GPS source with the proper hardware type
-			~GPS_Source();					//!< Kill the object
-			void Read(ms_packet *_p);		//!< Read in a single ms of data
+
+		GPS_Source(Options_S *_opt);	//!< Create the GPS source with the proper hardware type
+		~GPS_Source();					//!< Kill the object
+		void Read(ms_packet *_p);		//!< Read in a single ms of data
+		int32 getScale(){return(agc_scale);}
+		int32 getOvrflw(){return(overflw);}
 
 };
 

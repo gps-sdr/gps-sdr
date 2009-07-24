@@ -25,26 +25,131 @@
 */
 /*----------------------------------------------------------------------------------------------*/
 
+
 #include "gps_source.h"
 
+
+/*----------------------------------------------------------------------------------------------*/
 GPS_Source::GPS_Source(Options_S *_opt)
 {
 
 	memcpy(&opt, _opt, sizeof(Options_S));
-	Open_USRP_V1();
 
-	if(gopt.verbose)
+	switch(opt.source)
+	{
+		case SOURCE_USRP_V1:
+			source_type = SOURCE_USRP_V1;
+			Open_USRP_V1();
+			break;
+		case SOURCE_USRP_V2:
+//			source_type = SOURCE_USRP_V2;
+//			Open_USRP_V2();
+			break;
+		case SOURCE_SIGE_GN3S :
+			source_type = SOURCE_SIGE_GN3S;
+			Open_GN3S();
+			break;
+		default:
+			source_type = SOURCE_USRP_V1;
+			Open_USRP_V1();
+			break;
+	}
+
+	overflw = soverflw = 0;
+	agc_scale = 1;
+
+	/* Assign to base */
+	buff_out_p = &buff_out[0];
+	ms_count = 0;
+
+	if(opt.verbose)
 		fprintf(stdout,"Creating GPS Source\n");
-}
 
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 GPS_Source::~GPS_Source()
 {
-	Close_USRP_V1();
 
-	if(gopt.verbose)
+	switch(source_type)
+	{
+		case SOURCE_USRP_V1:
+			Close_USRP_V1();
+			break;
+		case SOURCE_USRP_V2:
+//			Close_SOURCE_USRP_V2();
+			break;
+		case SOURCE_SIGE_GN3S :
+			Close_GN3S();
+			break;
+		default:
+			Close_USRP_V1();
+			break;
+	}
+
+	if(opt.verbose)
 		fprintf(stdout,"Destructing GPS Source\n");
 }
+/*----------------------------------------------------------------------------------------------*/
 
+
+/*----------------------------------------------------------------------------------------------*/
+void GPS_Source::Read(ms_packet *_p)
+{
+
+	double gain;
+
+	switch(source_type)
+	{
+		case SOURCE_USRP_V1:
+			Read_USRP_V1(_p);
+			break;
+		case SOURCE_USRP_V2:
+//			Read_SOURCE_USRP_V2(_p);
+			break;
+		case SOURCE_SIGE_GN3S:
+			Read_GN3S(_p);
+			break;
+		default:
+			Read_USRP_V1(_p);
+			break;
+	}
+
+	/* Dont need to AGC the SOURCE_SIGE_GN3S */
+	if(source_type != SOURCE_SIGE_GN3S)
+	{
+		/* Add to the buff */
+		soverflw += run_agc(&_p->data[0], SAMPS_MS, AGC_BITS, 1);
+
+		/* Figure out the agc_scale value */
+		if((ms_count & 0xF) == 0)
+		{
+			gain = dbs_rx_a->rf_gain();
+
+			if(soverflw > OVERFLOW_HIGH)
+				gain -= 0.5;
+
+			if(soverflw < OVERFLOW_LOW)
+				gain += 0.5;
+
+			dbs_rx_a->rf_gain(gain);
+
+			overflw = soverflw;
+			soverflw = 0;
+
+			agc_scale = (int32)floor(2.0*(dbs_rx_a->max_rf_gain() - gain));
+		}
+	}
+
+	ms_count++;
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void GPS_Source::Open_USRP_V1()
 {
 
@@ -202,8 +307,33 @@ void GPS_Source::Open_USRP_V1()
 	urx->start();
 
 }
+/*----------------------------------------------------------------------------------------------*/
 
 
+/*----------------------------------------------------------------------------------------------*/
+void GPS_Source::Open_GN3S()
+{
+
+	int32 lcv;
+	const double mul = 8.1838e6/2.048e6;
+
+	/* Create the object */
+	gn3s_a = new gn3s(0);
+
+	/* Create decimation lookup table */
+	for(lcv = 0; lcv < 10240; lcv++)
+	{
+		gdec[lcv] = (int32)floor((double)lcv * mul);
+	}
+
+	/* Everything is super! */
+	fprintf(stdout,"GN3S Start\n");
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
 void GPS_Source::Close_USRP_V1()
 {
 
@@ -222,8 +352,25 @@ void GPS_Source::Close_USRP_V1()
 		fprintf(stdout,"Destructing USRP\n");
 
 }
+/*----------------------------------------------------------------------------------------------*/
 
-void GPS_Source::Read(ms_packet *_p)
+
+/*----------------------------------------------------------------------------------------------*/
+void GPS_Source::Close_GN3S()
+{
+
+	if(gn3s_a != NULL)
+		delete gn3s_a;
+
+	if(opt.verbose)
+		fprintf(stdout,"Destructing GN3S\n");
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GPS_Source::Read_USRP_V1(ms_packet *_p)
 {
 
 	bool overrun;
@@ -238,8 +385,8 @@ void GPS_Source::Read(ms_packet *_p)
 				Resample_USRP_V1(buff, buff_out);
 				memcpy(_p->data, buff_out, SAMPS_MS*sizeof(CPX));
 				leftover -= 4000;
-				memcpy(db_a, &buff[4000], leftover*sizeof(int32));
-				memcpy(buff, db_a, leftover*sizeof(int32));
+				memcpy(dbuff, &buff[4000], leftover*sizeof(int32));
+				memcpy(buff, dbuff, leftover*sizeof(int32));
 				return;
 			}
 			break;
@@ -251,8 +398,8 @@ void GPS_Source::Read(ms_packet *_p)
 				Resample_USRP_V1(buff, buff_out);
 				memcpy(_p->data, buff_out, SAMPS_MS*sizeof(CPX));
 				leftover -= 8000;
-				memcpy(db_a, &buff[8000], leftover*sizeof(int32));
-				memcpy(buff, db_a, leftover*sizeof(int32));
+				memcpy(dbuff, &buff[8000], leftover*sizeof(int32));
+				memcpy(buff, dbuff, leftover*sizeof(int32));
 				return;
 			}
 			break;
@@ -271,7 +418,6 @@ void GPS_Source::Read(ms_packet *_p)
 //		ffprintf(stdout,stdout, "\nUSRP overflow at time %s",asctime (timeinfo));
 //		fflush(stdout);
 //	}
-
 
 	/* Now we have SAMPS_PER_READ samps, 4 possible things to do depending on the state:
 	 * 0) mode == 0 && f_sample == 65.536e6: This mode is the easiest, 1 ms of data per FIFO node,
@@ -304,8 +450,8 @@ void GPS_Source::Read(ms_packet *_p)
 			memcpy(_p->data, buff_out, SAMPS_MS*sizeof(CPX));
 
 			/* Move excess bytes at end of buffer down to the base */
-			memcpy(db_a, &buff[4000], leftover*sizeof(int32));
-			memcpy(buff, db_a, leftover*sizeof(int32));
+			memcpy(dbuff, &buff[4000], leftover*sizeof(int32));
+			memcpy(buff, dbuff, leftover*sizeof(int32));
 			break;
 
 		case 3:
@@ -315,13 +461,72 @@ void GPS_Source::Read(ms_packet *_p)
 			memcpy(_p->data, buff_out, SAMPS_MS*sizeof(CPX));
 
 			/* Move excess bytes at end of buffer down to the base */
-			memcpy(db_a, &buff[8000], leftover*sizeof(int32));
-			memcpy(buff, db_a, leftover*sizeof(int32));
+			memcpy(dbuff, &buff[8000], leftover*sizeof(int32));
+			memcpy(buff, dbuff, leftover*sizeof(int32));
 			break;
 
 		default:
 			break;
 	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GPS_Source::Read_GN3S(ms_packet *_p)
+{
+
+	int bread;
+	bool overrun;
+	int32 ms_mod5;
+	int32 lcv;
+	int16 LUT[4] = {1, -1, 1, -1};
+	int16 *pbuff;
+
+	ms_mod5 = ms_count % 5;
+
+	if(ms_count == 0)
+	{
+		/* Start transfer */
+		 gn3s_a->usrp_xfer(VRQ_XFER, 1);
+	}
+
+	/* Do the GN3S reading */
+	if(ms_mod5 == 0)
+	{
+		pbuff = (int16 *)&buff[7];
+
+		/* Read 5 ms */
+		bread = gn3s_a->read((void *)&gbuff[0], 40919*2);
+
+		/* Convert to +-1 */
+		for(lcv = 0; lcv < 40919*2; lcv++)
+			pbuff[lcv] = LUT[gbuff[lcv] & 0x3];
+
+		/* Filter & decimate the data to regain bit precision */
+		Resample_GN3S(&buff[0], &buff_out[0]);
+
+		/* Move last 7 elements to the bottom */
+		memcpy(&buff[0], &buff[40919], 7*sizeof(CPX));
+
+		/* Check the overrun */
+		overrun = gn3s_a->check_rx_overrun();
+		if(overrun && opt.verbose)
+		{
+			time(&rawtime);
+			timeinfo = localtime (&rawtime);
+			fprintf(stdout, "GN3S overflow at time %s\n", asctime(timeinfo));
+			fflush(stdout);
+		}
+
+	}
+
+	/* Move pointer */
+	buff_out_p = &buff_out[SAMPS_MS*ms_mod5];
+
+	/* Copy to destination */
+	memcpy(_p->data, buff_out_p, SAMPS_MS*sizeof(CPX));
 
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -375,3 +580,55 @@ void GPS_Source::Resample_USRP_V1(CPX *_in, CPX *_out)
 	}
 
 }
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GPS_Source::Resample_GN3S(CPX *_in, CPX *_out)
+{
+	/* Runs specified filter on incoming signal. */
+	//static short filter[7] = {3,4,5,6,5,4,3}; 			Mike's Filter
+	//static short filter[7] = {-3,10,27,34,27,10,-3}; 		Greg's Filter
+	int32 lcv, ind;
+
+	/* Process the array */
+	for(lcv = 0; lcv < 10240; lcv++)
+	{
+		ind = gdec[lcv];
+
+//		_out[lcv].i =	_in[ind + 6].i * -3 +
+//						_in[ind + 5].i * 10 +
+//						_in[ind + 4].i * 27 +
+//						_in[ind + 3].i * 34 +
+//						_in[ind + 2].i * 27 +
+//						_in[ind + 1].i * 10 +
+//						_in[ind + 0].i * -3;
+//
+//		_out[lcv].q =	_in[ind + 6].q * -3 +
+//						_in[ind + 5].q * 10 +
+//						_in[ind + 4].q * 27 +
+//						_in[ind + 3].q * 34 +
+//						_in[ind + 2].q * 27 +
+//						_in[ind + 1].q * 10 +
+//						_in[ind + 0].q * -3;
+
+		_out[lcv].i =	_in[ind + 6].i * 4 +
+						_in[ind + 5].i * 5 +
+						_in[ind + 4].i * 6 +
+						_in[ind + 3].i * 7 +
+						_in[ind + 2].i * 6 +
+						_in[ind + 1].i * 5 +
+						_in[ind + 0].i * 4;
+
+		_out[lcv].q =	_in[ind + 6].q * 4 +
+						_in[ind + 5].q * 5 +
+						_in[ind + 4].q * 6 +
+						_in[ind + 3].q * 7 +
+						_in[ind + 2].q * 6 +
+						_in[ind + 1].q * 5 +
+						_in[ind + 0].q * 4;
+	}
+
+	return;
+}
+/*----------------------------------------------------------------------------------------------*/

@@ -38,7 +38,7 @@
 #include "telemetry.h"			//!< Serial/GUI telemetry
 #include "commando.h"			//!< Command interface
 #include "sv_select.h"			//!< Drives acquisition/reacquisition process
-#include "gps_source.h"
+#include "gps_source.h"			//!< Get GPS IF data from where?
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -47,16 +47,18 @@
 void usage(char *_str)
 {
 	fprintf(stdout,"\n");
-	fprintf(stdout,"usage: [-c] [-v] [-gr] [-gi] [-d] [-l] [-w] [-x] [-s]\n");
+	//fprintf(stdout,"usage: [-c] [-v] [-gr] [-gi] [-d] [-l] [-w] [-x] [-s]\n");
+	fprintf(stdout,"usage: [-c] [-v] [-gr] [-gi] [-w] [-x] [-s]\n");
 	fprintf(stdout,"[-c] log high rate channel data\n");
 	fprintf(stdout,"[-v] be verbose \n");
 	fprintf(stdout,"[-gr] <gain> set rf gain in dB (DBSRX only)\n");
 	fprintf(stdout,"[-gi] <gain> set if gain in dB (DBSRX only)\n");
-	fprintf(stdout,"[-d] operate in two antenna mode, A & B as L1\n");
-	fprintf(stdout,"[-l] operate in L1-L2 mode, A as L1, B as L2\n");
+//	fprintf(stdout,"[-d] operate in two antenna mode, A & B as L1\n");
+//	fprintf(stdout,"[-l] operate in L1-L2 mode, A as L1, B as L2\n");
 	fprintf(stdout,"[-w] <bandwidth> bandwidth of lowpass filter\n");
 	fprintf(stdout,"[-x] the USRP samples at a modified 65.536 MHz (default is 64 MHz)\n");
 	fprintf(stdout,"[-s] output over /dev/ttyS0 instead of the named pipe\n");
+	fprintf(stdout,"[-gn3s] use the SIGE GN3S sampling device\n");
 	fflush(stdout);
 	exit(1);
 }
@@ -75,13 +77,16 @@ void echo_options()
 		fprintf(stdout,"Verbose:          %13d\n",gopt.verbose);
 		fprintf(stdout,"Log channel:      %13d\n",gopt.log_channel);
 		fprintf(stdout,"Telemetry:        %13d\n",gopt.tlm_type);
-		fprintf(stdout,"USRP Decimation:  %13d\n",gopt.decimate);
-		fprintf(stdout,"USRP Sample Rate: %13.2f\n",gopt.f_sample);
-		fprintf(stdout,"DBSRX LO A:       %13.2f\n",gopt.f_lo_a);
-		fprintf(stdout,"DBSRX LO B:       %13.2f\n",gopt.f_lo_b);
-		fprintf(stdout,"RF Gain:          %13.2f\n",gopt.gr);
-		fprintf(stdout,"IF Gain:          %13.2f\n",gopt.gi);
-		fprintf(stdout,"DBSRX Bandwidth:  %13.2f\n",gopt.bandwidth);
+		if(gopt.source != SOURCE_SIGE_GN3S)
+		{
+			fprintf(stdout,"USRP Decimation:  %13d\n",gopt.decimate);
+			fprintf(stdout,"USRP Sample Rate: %13.2f\n",gopt.f_sample);
+			fprintf(stdout,"DBSRX LO A:       %13.2f\n",gopt.f_lo_a);
+			fprintf(stdout,"DBSRX LO B:       %13.2f\n",gopt.f_lo_b);
+			fprintf(stdout,"RF Gain:          %13.2f\n",gopt.gr);
+			fprintf(stdout,"IF Gain:          %13.2f\n",gopt.gi);
+			fprintf(stdout,"DBSRX Bandwidth:  %13.2f\n",gopt.bandwidth);
+		}
 		fprintf(stdout,"\n");
 		fflush(stdout);
 	}
@@ -113,10 +118,11 @@ void Parse_Arguments(int32 argc, char* argv[])
 	gopt.bandwidth 		= 6.0e6; 	//!< DBS-RX is set to 10 MHz wide
 	gopt.f_sample 		= 64.0e6;	//!< Nominal sample rate
 	gopt.realtime		= 1;
+	gopt.source			= SOURCE_USRP_V1;
 
 	for(lcv = 1; lcv < argc; lcv++)
 	{
-		switch (argv[lcv][1])
+		switch(argv[lcv][1])
 		{
 
 			case 'c':
@@ -148,16 +154,20 @@ void Parse_Arguments(int32 argc, char* argv[])
 						usage (argv[0]);
 					break;
 				}
+				else if(strcmp(argv[lcv], "-gn3s") == 0)
+				{
+					gopt.source	= SOURCE_SIGE_GN3S;
+				}
 				else
 					usage(argv[0]);
 				break;
-			case 'd':
-				gopt.mode = 1;
-				break;
-			case 'l':
-				gopt.mode = 2;
-				gopt.f_lo_b = L2; /* L2C center frequency */
-				break;
+//			case 'd':
+//				gopt.mode = 1;
+//				break;
+//			case 'l':
+//				gopt.mode = 2;
+//				gopt.f_lo_b = L2; /* L2C center frequency */
+//				break;
 			case 'w':
 				if(++lcv >= argc)
 					usage (argv[0]);
@@ -280,11 +290,11 @@ int32 Object_Init(void)
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		pChannels[lcv] = new Channel(lcv);
 
-	/* Draw the GPS data from somewhere */
-	pSource = new GPS_Source(&gopt);
-
 	/* Get data from either the USRP or disk */
 	pFIFO = new FIFO;
+
+	/* Draw the GPS data from somewhere */
+	pSource = new GPS_Source(&gopt);
 
 	pCorrelator = new Correlator();
 

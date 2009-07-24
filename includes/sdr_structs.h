@@ -73,6 +73,7 @@ typedef struct _Options_S
 	int32	decimate;
 	int32	realtime;
 	int32	tlm_type;		//!< Telemetry type (named pipe/serial)
+	int32	source;			//!< GPS data source type
 	double	f_lo_a;			//!< LO freq for board A
 	double	f_ddc_a;		//!< DDC freq for board A
 	double	f_lo_b;			//!< LO freq for board B

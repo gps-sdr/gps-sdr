@@ -56,7 +56,7 @@ class GUI_Serial : public Threaded_Object
 		/* Headers for CCSDC packets */
 		CCSDS_Packet_Header  packet_header;					//!< CCSDS Packet header
 		CCSDS_Decoded_Header decoded_packet;				//!< Decoded header
-		int32 				packet_count[LAST_M_ID+1];		//!< Count the packets
+		int32 				packet_count[LAST_M_ID + 1];	//!< Count the packets
 		int32				byte_count;						//!< Count the bytes
 
 		/* Buffer for commands */
@@ -75,9 +75,13 @@ class GUI_Serial : public Threaded_Object
 
 		/* Logging variables */
 		int32 logging_on;									//!< Control overall logging
-		char filename[1024];								//!< Log to this file
+		char filepath[1024];								//!< Log to this path
+		FILE *robsfile;										//!< Pointer to Rinex observation file
+		FILE *rephemfile;									//!< Pointer to Rinex ephemeris file
 		FILE *lfile;										//!< Pointer to log file
-		int32 log_flag[LAST_M_ID];							//!< Control messages on/off
+		FILE *gfile;										//!< Pointer to google earth file
+		int32 gfile_end;									//!< Pointer to end of gfile
+		int32 log_flag[LAST_M_ID + 20];						//!< Control messages on/off
 
 	public:
 
@@ -115,7 +119,7 @@ class GUI_Serial : public Threaded_Object
 		void logStop();
 		void logClear();
 		void setLogFile(const char *_str);
-		char *getLogFile(){return(&filename[0]);};
+		char *getLogFile(){return(&filepath[0]);};
 
 		void printPVT();
 		void printClock();
@@ -130,6 +134,14 @@ class GUI_Serial : public Threaded_Object
 		void printSVPred(int32 _sv);
 		void printTask();
 		void printBoard();
+		void printGoogleEarth();
+		void printGoogleEarthHeader();
+		void printGoogleEarthFooter();
+		void printRinexObs();
+		void printRinexObsHeader();
+		void printRinexEphem();
+		void printRinexEphemHeader();
+
 		void pendCommand();									//!< Wait for a free command
 		int32 peekCommand();								//!< Poll for a command
 

@@ -23,7 +23,7 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "gui_serial.h"
 #define SWAP64(X) *((long long *)(&X)) = (((*((long long *)(&X)) & (0x00000000ffffffffLLU)) << 32) | ((*((long long *)(&X)) & (0xffffffff00000000LLU)) >> 32))
 
-static uint32 SIZEOF_M[LAST_M_ID+1] =
+static uint32 SIZEOF_M[LAST_M_ID + 1] =
 {
 	0,
 	0,
@@ -139,13 +139,16 @@ GUI_Serial::GUI_Serial()
 	npipe[READ] 	= -1;
 	npipe[WRITE] 	= -1;
 	lfile 			= NULL;
+	gfile 			= NULL;
+	robsfile 		= NULL;
+	rephemfile 		= NULL;
 	packet_count[LAST_M_ID] = 0;
 	decoded_packet.tic = decoded_packet.id = decoded_packet.length = 0;
 	memset(&packet_count[0], 0x0, (LAST_M_ID+1)*sizeof(int));
 	memset(&command_body, 0x0, sizeof(Command_Union));
 	memset(&command_header, 0x0, sizeof(CCSDS_Packet_Header));
 	memset(&decoded_command, 0x0, sizeof(CCSDS_Decoded_Header));
-	memset(&filename[0], 0x0, 1024*sizeof(char));
+	memset(&filepath[0], 0x0, 1024*sizeof(char));
 	memset(&log_flag[0], 0x0, LAST_M_ID*sizeof(char));
 	signal(SIGPIPE, lost_client);
 
@@ -186,7 +189,7 @@ void GUI_Serial::openSerial()
     }
 
     memset(&tty, 0x0, sizeof(tty));		//!< Initialize the port settings structure to all zeros
-    tty.c_cflag =  B115200 | CS8 | CLOCAL | CREAD | CRTSCTS;	//!< 8N1
+    tty.c_cflag =  B57600 | CS8 | CLOCAL | CREAD | CRTSCTS;	//!< 8N1
     tty.c_iflag = IGNPAR;
     tty.c_oflag = 0;
     tty.c_lflag = 0;
@@ -517,9 +520,11 @@ void GUI_Serial::readGPS()
 				}
 				break;
 			case SPS_M_ID:
+				if(log_flag[LAST_M_ID + 1]) printRinexObs();
 				FixDoubles((void *)&src->sps, 13);
 				memcpy(&dst->sps, &src->sps, sizeof(SPS_M));
 				if(log_flag[SPS_M_ID]) printPVT();
+				if(log_flag[LAST_M_ID]) printGoogleEarth();
 				break;
 			case CLOCK_M_ID:
 				FixDoubles((void *)&src->clock, 6);
@@ -908,9 +913,7 @@ int32 GUI_Serial::peekCommand()
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Serial::setLogFile(const char *_str)
 {
-	if(lfile) fclose(lfile);
-	strcpy(filename, _str);
-	lfile = fopen(filename, "wt");
+	strcpy(filepath, _str);
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -918,9 +921,39 @@ void GUI_Serial::setLogFile(const char *_str)
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Serial::logStart()
 {
+	char filename[1024];
+
 	if(lfile) fclose(lfile);
-	lfile = NULL;
+	if(gfile) fclose(gfile);
+	if(robsfile) fclose(robsfile);
+	if(rephemfile) fclose(rephemfile);
+
+	strcpy(filename, filepath);
+	strcat(filename,"/gps-sdr.log");
 	lfile = fopen(filename, "wt");
+
+	if(log_flag[LAST_M_ID])
+	{
+		strcpy(filename, filepath);
+		strcat(filename,"/gps-sdr.klm");
+		gfile = fopen(filename, "wt");
+		printGoogleEarthHeader();
+	}
+
+	if(log_flag[LAST_M_ID + 1])
+	{
+		strcpy(filename, filepath);
+		strcat(filename,"/gps-sdr.rnx");
+		robsfile = fopen(filename, "wt");
+		printRinexObsHeader();
+	}
+
+	if(log_flag[LAST_M_ID + 2])
+	{
+		strcpy(filename, filepath);
+		strcat(filename,"/gps-sdr.epm");
+		rephemfile = fopen(filename, "wt");
+	}
 
 	if(lfile)
 		logging_on = true;
@@ -932,7 +965,13 @@ void GUI_Serial::logStart()
 void GUI_Serial::logStop()
 {
 	if(lfile) fclose(lfile);
+	if(gfile) fclose(gfile);
+	if(robsfile) fclose(robsfile);
+	if(rephemfile) fclose(rephemfile);
 	lfile = NULL;
+	gfile = NULL;
+	robsfile = NULL;
+	rephemfile = NULL;
 	logging_on = false;
 }
 /*----------------------------------------------------------------------------------------------*/
@@ -941,11 +980,39 @@ void GUI_Serial::logStop()
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Serial::logClear()
 {
+	char filename[1024];
+
 	if(lfile) fclose(lfile);
-	lfile = NULL;
+	if(gfile) fclose(gfile);
+	if(robsfile) fclose(robsfile);
+	if(rephemfile) fclose(rephemfile);
+
+	strcpy(filename, filepath);
+	strcat(filename,"/gps-sdr.log");
 	lfile = fopen(filename, "wt");
-	if(lfile) fclose(lfile);
-	lfile = NULL;
+
+	if(log_flag[LAST_M_ID])
+	{
+		strcpy(filename, filepath);
+		strcat(filename,"/gps-sdr.klm");
+		gfile = fopen(filename, "wt");
+	}
+
+	if(log_flag[LAST_M_ID + 1])
+	{
+		strcpy(filename, filepath);
+		strcat(filename,"/gps-sdr.rnx");
+		robsfile = fopen(filename, "wt");
+	}
+
+	if(log_flag[LAST_M_ID + 2])
+	{
+		strcpy(filename, filepath);
+		strcat(filename,"/gps-sdr.epm");
+		rephemfile = fopen(filename, "wt");
+	}
+
+	logStop();
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -1303,3 +1370,231 @@ void GUI_Serial::printBoard()
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
+
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printGoogleEarth()
+{
+
+	SPS_M *pNav = &messages.sps;
+
+	if(gfile != NULL)
+	{
+		if(pNav->converged)
+		{
+			fseek(gfile, gfile_end, SEEK_SET);
+			fprintf(gfile,"%15.9f,%15.9f,%15.9f\n",pNav->longitude*RAD_2_DEG,pNav->latitude*RAD_2_DEG,pNav->altitude);
+			gfile_end = ftell(gfile);
+			printGoogleEarthFooter();
+		}
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printGoogleEarthHeader()
+{
+
+	if(gfile != NULL)
+	{
+		fprintf(gfile,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+		fprintf(gfile,"<kml xmlns=\"http://earth.google.com/kml/2.1\">\n");
+		fprintf(gfile,"<Document>\n");
+		fprintf(gfile,"<name>\n");
+		fprintf(gfile,"navigation.kml\n");
+		fprintf(gfile,"</name>\n");
+		fprintf(gfile,"<Placemark id=\"GPS SDR\">\n");
+		fprintf(gfile,"<name>\n");
+		fprintf(gfile,"GPS SDR\n");
+		fprintf(gfile,"</name>\n");
+		fprintf(gfile,"<visibility>\n");
+		fprintf(gfile,"1\n");
+		fprintf(gfile,"</visibility>\n");
+		fprintf(gfile,"<description>\n");
+		fprintf(gfile,"<![CDATA[]]>\n");
+		fprintf(gfile,"</description>\n");
+		fprintf(gfile,"<Style>\n");
+		fprintf(gfile,"<LineStyle>\n");
+		fprintf(gfile,"<color>\n");
+		fprintf(gfile,"#FF0000FF\n");
+		fprintf(gfile,"</color>\n");
+		fprintf(gfile,"<width>\n");
+		fprintf(gfile,"1.00\n");
+		fprintf(gfile,"</width>\n");
+		fprintf(gfile,"</LineStyle>\n");
+		fprintf(gfile,"<PolyStyle>\n");
+		fprintf(gfile,"<color>\n");
+		fprintf(gfile,"00ffffff\n");
+		fprintf(gfile,"</color>\n");
+		fprintf(gfile,"</PolyStyle>\n");
+		fprintf(gfile,"</Style>\n");
+		fprintf(gfile,"<Polygon id=\"poly_plot3\">\n");
+		fprintf(gfile,"<extrude>0</extrude>\n");
+		fprintf(gfile,"<altitudeMode>\n");
+		fprintf(gfile,"relativeToGround\n");
+		fprintf(gfile,"</altitudeMode>\n");
+		fprintf(gfile,"<outerBoundaryIs>\n");
+		fprintf(gfile,"<extrude>0</extrude>\n");
+		fprintf(gfile,"<LinearRing>\n");
+		fprintf(gfile,"<extrude>0</extrude>\n");
+		fprintf(gfile,"<tessellate>0</tessellate>\n");
+		fprintf(gfile,"<altitudeMode>\n");
+		fprintf(gfile,"absolute\n");
+		fprintf(gfile,"</altitudeMode>\n");
+		fprintf(gfile,"<coordinates>\n");
+		gfile_end = ftell(gfile);
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printGoogleEarthFooter()
+{
+	if(gfile != NULL)
+	{
+		fprintf(gfile,"</coordinates>\n");
+		fprintf(gfile,"</LinearRing>\n");
+		fprintf(gfile,"</outerBoundaryIs>\n");
+		fprintf(gfile,"</Polygon>\n");
+		fprintf(gfile,"</Placemark>\n");
+		fprintf(gfile,"</Document>\n");
+		fprintf(gfile,"</kml>\n");
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printRinexObsHeader()
+{
+
+	if(robsfile != NULL)
+	{
+		fprintf(robsfile,"     2.10                                                   RINEX VERSION / TYPE\n");
+		fprintf(robsfile,"     4    C1    D1    L1    S1                              # / TYPES OF OBSERV\n");
+		fprintf(robsfile,"                                                            END OF HEADER\n");
+	}
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printRinexObs()
+{
+
+	int32 lcv;
+	int32 nsv;
+	time_t utcsec;
+	Channel_M *pChan;
+	Pseudorange_M *pPseudo;
+	SPS_M *pNav = &messages.sps;
+	Clock_M *pClock	= &messages.clock;
+	wxDateTime theTime;
+
+	if(robsfile != NULL)
+	{
+
+		/* Get the time into UTC */
+		utcsec = floor(pClock->time_raw); //!< Seconds in GPS week
+		utcsec += (pClock->week)*SECONDS_IN_WEEK;
+		utcsec -= 10; 		 //!< Difference of TAI and UTC
+		utcsec += 315964819; //!< 0 Unix time --> GPS time offset
+		theTime.Set(utcsec);
+
+		/* Pull out the individual PRN numbers */
+		nsv = 0;
+		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+		{
+			if(messages.pseudoranges[lcv].sv != NON_EXISTENT_SV)
+			{
+				nsv++;
+			}
+		}
+
+		/* Generate the date line */
+		fprintf(robsfile,"%3d%3d%3d%3d%3d%12.8f 0%3d",
+				theTime.GetYear() % 100,
+				theTime.GetMonth()+1,
+				theTime.GetDay(),
+				theTime.GetHour(),
+				theTime.GetMinute(),
+				(double)theTime.GetSecond() + fmod(pClock->time_raw, 1.0),
+				nsv);
+
+		/* Push the individual PRN numbers */
+		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+		{
+			pPseudo = &messages.pseudoranges[lcv];
+			if(pPseudo->sv != NON_EXISTENT_SV)
+			{
+				fprintf(robsfile,"%3d",pPseudo->sv+1);
+			}
+		}
+
+		/* Newline */
+		fprintf(robsfile,"\n");
+
+		/* Loop over all of the channels */
+		for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
+		{
+			pChan = &messages.channel[lcv];
+			pPseudo = &messages.pseudoranges[lcv];
+			if(pPseudo->sv != NON_EXISTENT_SV)
+			{
+				fprintf(robsfile," %14.3f %14.3f %14.3f %14.3f\n",
+						pPseudo->uncorrected, pPseudo->meters_rate, 0.0, icn0_2_fcn0(pChan->cn0));
+			}
+		}
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printRinexEphemHeader()
+{
+	if(rephemfile != NULL)
+	{
+		fprintf(rephemfile,"     2              N                                       RINEX VERSION / TYPE\n");
+		fprintf(rephemfile,"MATLAB              G HECKLER         23-APR-02             PGM / RUN BY / DATE \n");
+		fprintf(rephemfile,"PSEUDO-NAVIGATION DATA GENERATED FROM ALMANAC               COMMENT             \n");
+		fprintf(rephemfile,"    0.0000D+00  0.0000D+00 -0.0000D+00  0.0000D+00          ION ALPHA           \n");
+		fprintf(rephemfile,"   -0.0000D+00 -0.0000D+00  0.0000D+00 -0.0000D+00          ION BETA            \n");
+		fprintf(rephemfile,"    0.000000000000D+00 0.000000000000D+00   0             0 DELTA-UTC: A0,A1,T,W\n");
+		fprintf(rephemfile,"    12                                                      LEAP SECONDS        \n");
+		fprintf(rephemfile,"                                                            END OF HEADER       \n");
+	}
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+
+
+/*----------------------------------------------------------------------------------------------*/
+void GUI_Serial::printRinexEphem()
+{
+	if(rephemfile != NULL)
+	{
+//		/*Generate the date using the TOC week and second*/
+//		utilities::timeStruct time;
+//		utilities::gps2utc(tocwk+1024,toc,&time);
+//
+//		/*Write out date and time information*/
+//		sprintf(output,"%2d%3d%3d%3d%3d%3d%5.1f %- 19.12E%- 19.12E%- 19.12E\n",
+//					PRN,time.year,time.month,time.day,time.hour,time.minute,time.second,af0,af1,af2);
+//
+//		/*Broadcast Ephemeris Line 1*/
+//		fprintf(rephemfile,"   %- 20.12E%- 20.12E%- 20.12E%- 20.12E\n",iode,crs,deltan,m0);
+//		fprintf(rephemfile,"   %- 20.12E%- 20.12E%- 20.12E%- 20.12E\n",cuc,ecc,cus,sqrta);
+//		fprintf(rephemfile,"   %- 20.12E%- 20.12E%- 20.12E%- 20.12E\n",toe,cic,om0,cis);
+//		fprintf(rephemfile,"   %- 20.12E%- 20.12E%- 20.12E%- 20.12E\n",in0,crc,argp,omd);
+//		fprintf(rephemfile,"   %- 20.12E%- 20.12E%- 20.12E%- 20.12E\n",idot,(double)codeOnL2,(double)toewk,(double)L2PData);
+//		fprintf(rephemfile,"   %- 20.12E%- 20.12E%- 20.12E%- 20.12E\n",zeros,(double)health,tgd,iodc);
+//		fprintf(rephemfile,"   %- 20.12E%- 20.12E%- 20.12E%- 20.12E\n",tofXmission,zeros,zeros,zeros);
+	}
+}

@@ -58,14 +58,6 @@ void FIFO::Start()
 
 
 /*----------------------------------------------------------------------------------------------*/
-void FIFO::SetScale(int32 _agc_scale)
-{
-	agc_scale = _agc_scale;
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
 FIFO::FIFO():Threaded_Object("FIFTASK")
 {
 	int32 lcv;
@@ -82,9 +74,7 @@ FIFO::FIFO():Threaded_Object("FIFTASK")
 
 	buff[FIFO_DEPTH-1].next = &buff[0];
 
-	tic = overflw = soverflw = count = 0;
-
-	agc_scale = 1;
+	tic = count = 0;
 
 	sem_init(&sem_full, NULL, 0);
 	sem_init(&sem_empty, NULL, FIFO_DEPTH);
@@ -121,28 +111,6 @@ void FIFO::Import()
 
 	/* Read from the GPS source */
 	pSource->Read(head);
-
-	/* Add to the buff */
-	soverflw += run_agc(&head->data[0], SAMPS_MS, AGC_BITS, agc_scale);
-
-	/* Figure out the agc_scale value */
-	if((count & 0xF) == 0)
-	{
-		if(soverflw > OVERFLOW_HIGH*8)
-			agc_scale += 100;
-
-		if(soverflw > OVERFLOW_HIGH)
-			agc_scale += 1;
-
-		if(soverflw < OVERFLOW_LOW)
-			agc_scale -= 1;
-
-		if(agc_scale < 1)
-			agc_scale = 1;
-
-		overflw = soverflw;
-		soverflw = 0;
-	}
 
 	Enqueue();
 

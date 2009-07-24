@@ -33,9 +33,9 @@ GUI_Select::GUI_Select():iGUI_Select(NULL, wxID_ANY, wxT("SV Select"), wxDefault
 	int32 strwidth;
 	wxString str;
 
-	str = wxT("Ch# Vis   Elev     Azim     Doppler        Time");
+	str = wxT("Ch# Vis   Elev     Azim     Doppler        Time ");
 	strwidth = str.Length()+3;
-	SetSize(tDisplay->GetCharWidth()*strwidth, tDisplay->GetCharHeight()*(MAX_SV+2) + 280);
+	SetSize(tDisplay->GetCharWidth()*strwidth, tDisplay->GetCharHeight()*(MAX_SV+3) + 280);
 
 }
 

@@ -19,13 +19,14 @@ VPATH		=   accessories:	\
 				usrp:			
 											
 LDFLAGS	 = -lpthread -lusrp -m32
-CFLAGS   = -O2 -D_FORTIFY_SOURCE=0 -g3 $(CINCPATHFLAGS)
+CFLAGS   = -O2 -D_FORTIFY_SOURCE=0 -g3 -m32 $(CINCPATHFLAGS)
 ASMFLAGS = -masm=intel
 
 SKIP = %main.cpp %simd-test.cpp %fft-test.cpp %acq-test.cpp %sse_new.cpp %gps-usrp.cpp
 SRCC = $(wildcard main/*.cpp simd/*.cpp accessories/*.cpp acquisition/*.cpp objects/*.cpp usrp/*.cpp)
 SRC = $(filter-out $(SKIP), $(SRCC)) 
 OBJS = $(SRC:.cpp=.o)
+OBJS += usrp/gn3s_firmware.o
 HEADERS = $(wildcard accessories/*.h acquisition/*.h main/*.h objects/*.h simd/*.h includes/*.h)			
 			
 #Uncomment these to look at the disassembly
@@ -59,6 +60,9 @@ simd-test: simd-test.o $(OBJS)
 	
 %.o:%.s
 	$(ASM) $(CFLAGS) -c $< -o $@
+
+%.o:%.ihx
+	ld -r -b binary $< -o $@ 
 
 gps-gse:
 	make --directory=./gse

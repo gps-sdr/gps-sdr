@@ -47,6 +47,7 @@ enum Telemetry_Type
 #include "pvt.h"				//!< Least squares PVT solution
 //#include "pps.h"				//!< Control the PPS
 #include "channel.h"			//!< Tracking loops
+#include "gps_source.h"			//!< Get GPS data from where
 
 /*! @ingroup CLASSES
 	@brief The Telemetry services the RS422 port.

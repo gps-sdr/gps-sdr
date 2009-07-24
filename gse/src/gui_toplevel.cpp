@@ -166,6 +166,9 @@ void GUI_Toplevel::onLogConfig(wxCommandEvent& WXUNUSED(event))
 	log.cTask->SetValue(pSerial->getLog(TASK_HEALTH_M_ID));
 	log.cBoard->SetValue(pSerial->getLog(BOARD_HEALTH_M_ID));
 	log.cSVPred->SetValue(pSerial->getLog(SV_PREDICTION_M_ID));
+	log.cGearth->SetValue(pSerial->getLog(LAST_M_ID));
+	log.cRobs->SetValue(pSerial->getLog(LAST_M_ID + 1));
+	log.cRephem->SetValue(pSerial->getLog(LAST_M_ID + 2));
 
 	if(log.ShowModal() == wxID_OK)
 	{
@@ -183,6 +186,9 @@ void GUI_Toplevel::onLogConfig(wxCommandEvent& WXUNUSED(event))
 		pSerial->logOn(TASK_HEALTH_M_ID, 	log.cTask->IsChecked());
 		pSerial->logOn(BOARD_HEALTH_M_ID, 	log.cBoard->IsChecked());
 		pSerial->logOn(SV_PREDICTION_M_ID, 	log.cSVPred->IsChecked());
+		pSerial->logOn(LAST_M_ID, 			log.cGearth->IsChecked());
+		pSerial->logOn(LAST_M_ID + 1, 		log.cRobs->IsChecked());
+		pSerial->logOn(LAST_M_ID + 2, 		log.cRephem->IsChecked());
 
 		/* Get Filename */
 		log_filename = log.mFile->GetPath();

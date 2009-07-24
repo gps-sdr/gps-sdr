@@ -269,15 +269,16 @@ int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 scale)
 
 	/* Get rid of the divide, replace with a multiply to scale to 2^15, then right shift to get
 	 * back into AGC_BITS of magnitude */
-	lscale = (1 << 14) / scale;
-	shift = 14 - bits;
+//	lscale = (1 << 14) / scale;
+//	shift = 14 - bits;
 	max = 1 << bits;
 	num = 0;
 
-	x86_muls((int16 *)_buff, &lscale, 2*_samps, shift);
+//	x86_muls((int16 *)_buff, &lscale, 2*_samps, shift);
 
 	for(lcv = 0; lcv < 2*_samps; lcv++)
 	{
+		p[lcv] >>= 7;
 		if(abs(p[lcv]) > max)
 			num++;
 	}
