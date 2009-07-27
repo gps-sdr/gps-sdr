@@ -133,8 +133,7 @@ void SV_Select::Import()
 			nsvs++;
 
 	/* Slow down acquisition if PVT is doing fine */
-	acqs_per_pvt = MAX_CHANNELS - nsvs;
-	acqs_per_pvt = 1;
+	acqs_per_pvt = MAX_ACQS_PER_PVT - nsvs;
 
 	if(acqs_per_pvt < 1)
 		acqs_per_pvt = 1;

@@ -48,7 +48,7 @@ void usage(char *_str)
 {
 	fprintf(stdout,"\n");
 	//fprintf(stdout,"usage: [-c] [-v] [-gr] [-gi] [-d] [-l] [-w] [-x] [-s]\n");
-	fprintf(stdout,"usage: [-c] [-v] [-gr] [-gi] [-w] [-x] [-s]\n");
+	fprintf(stdout,"usage: [-c] [-v] [-gr] [-gi] [-w] [-x] [-s] [-gn3s]\n");
 	fprintf(stdout,"[-c] log high rate channel data\n");
 	fprintf(stdout,"[-v] be verbose \n");
 	fprintf(stdout,"[-gr] <gain> set rf gain in dB (DBSRX only)\n");

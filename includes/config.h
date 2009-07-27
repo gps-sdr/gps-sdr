@@ -34,7 +34,7 @@
 /*----------------------------------------------------------------------------------------------*/
 #define SOFTWARE_VERSION_MAJOR		(2)
 #define SOFTWARE_VERSION_MINOR		(6)
-#define SOFTWARE_VERSION_POSTFIX	(1)
+#define SOFTWARE_VERSION_POSTFIX	(2)
 /*----------------------------------------------------------------------------------------------*/
 
 /* The most important thing, the NUMBER OF CORRELATORS IN THE RECEIVER and the NUMBER OF CPUs */
@@ -70,6 +70,7 @@
 /*----------------------------------------------------------------------------------------------*/
 #define MASK_ANGLE				(0)				//!< Add this many degrees to altitude dependant mask
 #define ACQ_MODULO_WEAK			(8)				//!< Do this many weak acqs per 32 PRN strong search
+#define MAX_ACQS_PER_PVT		(12)			//!< Max # of acquisitions per PVT
 #define MAX_DOPPLER_ABSOLUTE	(15000)			//!< Limit any and all Dopplers the be within this range
 #define MAX_DOPPLER_STRONG		(15000)			//!< Cold Doppler search space for strong signal
 #define MAX_DOPPLER_MEDIUM		(15000)			//!< Cold Doppler search space for strong signal
