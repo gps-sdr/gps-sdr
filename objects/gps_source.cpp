@@ -477,7 +477,7 @@ void GPS_Source::Read_USRP_V1(ms_packet *_p)
 void GPS_Source::Read_GN3S(ms_packet *_p)
 {
 
-	int bread;
+	int32 bread, started, check;
 	bool overrun;
 	int32 ms_mod5;
 	int32 lcv;
@@ -489,7 +489,18 @@ void GPS_Source::Read_GN3S(ms_packet *_p)
 	if(ms_count == 0)
 	{
 		/* Start transfer */
-		 gn3s_a->usrp_xfer(VRQ_XFER, 1);
+		while(!started)
+		{
+			started = gn3s_a->usrp_xfer(VRQ_XFER, 1);
+		}
+
+		/* Make sure we are reading I0,Q0,I1,Q1,I2,Q2.... etc */
+		bread = gn3s_a->read((void*)(&gbuff[0]),1);
+		check = (gbuff[0] & 0x3);   //0 or 1 -> I sample , 2 or 3 -> Q sample
+		if(check < 2)
+		{
+			bread = gn3s_a->read((void*)(&gbuff[0]),1);
+		}
 	}
 
 	/* Do the GN3S reading */

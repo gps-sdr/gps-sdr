@@ -34,7 +34,7 @@
 /*----------------------------------------------------------------------------------------------*/
 #define SOFTWARE_VERSION_MAJOR		(2)
 #define SOFTWARE_VERSION_MINOR		(6)
-#define SOFTWARE_VERSION_POSTFIX	(0)
+#define SOFTWARE_VERSION_POSTFIX	(1)
 /*----------------------------------------------------------------------------------------------*/
 
 /* The most important thing, the NUMBER OF CORRELATORS IN THE RECEIVER and the NUMBER OF CPUs */
