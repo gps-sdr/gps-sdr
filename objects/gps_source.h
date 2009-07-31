@@ -70,7 +70,7 @@ class GPS_Source
 
 		/* Data buffers */
 		int8 gbuff[40919*2]; 	//!< Byte buffer for GN3S
-		CPX buff[40926]; 		//!< Base buffer for GN3S/USRP
+		CPX buff[40932]; 		//!< Base buffer for GN3S/USRP
 		CPX buff_out[10240]; 	//!< Output buffer @ 2.048 Msps
 		CPX *buff_out_p; 		//!< Pointer to a spot in buff_out
 		CPX dbuff[16384]; 		//!< Buffer for double buffering

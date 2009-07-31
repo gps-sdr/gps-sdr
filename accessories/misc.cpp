@@ -171,40 +171,6 @@ void wipeoff_gen(MIX *_dest, double _f, double _fs, int32 _samps)
 
 
 /*----------------------------------------------------------------------------------------------*/
-/*!
- * resample, resample a vector where _samps is from _dest
- * */
-void resample(CPX *_dest, CPX *_source, double _fdest, double _fsource, int32 _samps)
-{
-//
-//	int32 lcv, k;
-//	float phase, phase_step;
-//
-//	uint32 phase_step;
-//	uint32 phase;
-//
-//	phase_step = 0xffffffff/_fsource;
-//	phase_step *= _fdest;
-//
-//	for(lcv = 0; lcv < _samps; lcv++)
-//	{
-//		/* Take advantage of addition rollover */
-//		phase += phase_step;
-//
-//		if(phase < lphase)
-//			_dest[k] = _source[lcv];
-//
-//
-//		k = (int32) floor(phase);
-//
-//		phase += phase_step;
-	//}
-
-}
-/*----------------------------------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------------------------------*/
 void downsample(CPX *_dest, CPX *_source, double _fdest, double _fsource, int32 _samps)
 {
 
@@ -257,30 +223,35 @@ int32 round_2(int32 _N)
 /*!
  * Gather statistics and run AGC
  * */
-int32 run_agc(CPX *_buff, int32 _samps, int32 bits, int32 scale)
+int32 run_agc(CPX *_buff, int32 _samps, int32 _bits, int32 _scale)
 {
 	int32 lcv, num;
 	int16 max, *p;
-	int16 lscale;
-	int16 shift;
 	int16 val;
 
 	p = (int16 *)&_buff[0];
 
-	/* Get rid of the divide, replace with a multiply to scale to 2^15, then right shift to get
-	 * back into AGC_BITS of magnitude */
-//	lscale = (1 << 14) / scale;
-//	shift = 14 - bits;
-	max = 1 << bits;
+	val = (1 << _scale - 1);
+	max = 1 << _bits;
 	num = 0;
 
-//	x86_muls((int16 *)_buff, &lscale, 2*_samps, shift);
-
-	for(lcv = 0; lcv < 2*_samps; lcv++)
+	if(_scale)
 	{
-		p[lcv] >>= 7;
-		if(abs(p[lcv]) > max)
-			num++;
+		for(lcv = 0; lcv < 2*_samps; lcv++)
+		{
+			p[lcv] += val;
+			p[lcv] >>= _scale;
+			if(abs(p[lcv]) > max)
+				num++;
+		}
+	}
+	else
+	{
+		for(lcv = 0; lcv < 2*_samps; lcv++)
+		{
+			if(abs(p[lcv]) > max)
+				num++;
+		}
 	}
 
 	return(num);

@@ -87,8 +87,6 @@ class Channel : public Threaded_Object
 		float Q_var;			//!< Variance of Q
 		float P_avg;			//!< Moving average of P
 		float cn0;				//!< Current CN0 estimate
-		float CN0_old;			//!< Old CN0 estimate (used to detect meta stable loop convergence)
-		float NP;				//!< New CN0 estimate thing
 		/*----------------------------------------------------------------------------------------------*/
 
 		/* Bit lock stuff */

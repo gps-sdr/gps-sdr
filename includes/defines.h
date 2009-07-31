@@ -142,6 +142,7 @@ typedef unsigned int		uint32;
 #ifndef SPEED_OF_LIGHT
 	#define SPEED_OF_LIGHT		(2.99792458e8)				//!< Speed of light (m/s) as specified in IS-GPS-200D
 #endif
+#define INVERSE_L1				(6.347513678891978e-10)		//!< 1/L1
 #define INVERSE_SPEED_OF_LIGHT	(3.33564095198152049576e-9)	//!< Inverse speed of light
 #define CODE_RATE 				(1.023e6)					//!< L1 C/A code chipping rate
 #define INVERSE_CODE_RATE		(9.775171065493646e-07)		//!< 1/L1 C/A code chipping rate

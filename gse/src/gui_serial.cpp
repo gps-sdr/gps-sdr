@@ -23,6 +23,34 @@ Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
 #include "gui_serial.h"
 #define SWAP64(X) *((long long *)(&X)) = (((*((long long *)(&X)) & (0x00000000ffffffffLLU)) << 32) | ((*((long long *)(&X)) & (0xffffffff00000000LLU)) >> 32))
 
+/*----------------------------------------------------------------------------------------------*/
+#define MOD_ADLER 65521
+/* Data is input buffer, len is in bytes! */
+uint32 adler(uint8 *data, int32 len)
+{
+
+    uint32 a, b;
+    int32 tlen;
+
+    a = 1; b = 0;
+
+    if(len < 5552)
+    {
+        do
+        {
+            a += *data++;
+            b += a;
+        } while (--len);
+
+        a %= MOD_ADLER;
+        b %= MOD_ADLER;
+    }
+
+    return (b << 16) | a;
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
 static uint32 SIZEOF_M[LAST_M_ID + 1] =
 {
 	0,
@@ -373,21 +401,30 @@ void endian_swap(void *_b, int32 _bytes, int32 _flag)
 int GUI_Serial::Read(void *_b, int32 _bytes)
 {
 
-	int32 nbytes, bread;
+	int32 nbytes, bread, k;
 	uint8 *buff;
 
-	nbytes = 0; bread = 0;
+	k = 0; nbytes = 0; bread = 0;
 	buff = (uint8 *)_b;
 
 	while((nbytes < _bytes) && grun && npipe_open)
 	{
 		bread = read(npipe[READ], buff, _bytes - nbytes);
+
 		if(bread > -1)
 		{
 			nbytes += bread;
 			buff += bread;
 		}
+
+		if(k++ > 5000)
+		{
+			closePipe();
+			return(0);
+		}
+
 		usleep(100);
+
 	}
 
 	//endian_swap(_b, _bytes, _bytes <= 6);
@@ -418,6 +455,7 @@ int GUI_Serial::Write(void *_b, int32 _bytes)
 /*----------------------------------------------------------------------------------------------*/
 void GUI_Serial::readGPS()
 {
+	uint32 checksumc, checksumr;
 	int32 nbytes, bread, k, chan;
 	uint8 v;
 
@@ -478,8 +516,24 @@ void GUI_Serial::readGPS()
 		/* Read in the message */
 		Read(src, decoded_packet.length);
 
+		/* Assemble into a complete packet for the checksum */
+		memcpy(&packet_body[0], &packet_header, 6);				//!< CCSDS Header
+		memcpy(&packet_body[6], src, decoded_packet.length);	//!< Body
+		checksumc = adler(&packet_body[0], 6 + decoded_packet.length);
+
+		/* Read in the checksum */
+		byte_count += Read(&checksumr, sizeof(uint32));
+
+		/* Now verify the checksum */
+		if(checksumc != checksumr)
+		{
+			message_sync = 0;
+			packet_count[LAST_M_ID]++;
+			return;
+		}
+
 		/* Read in the postword */
-		Read(&postword, sizeof(uint32));
+		byte_count += Read(&postword, sizeof(uint32));
 
 		if(postword != 0xBBBBBBBB)
 		{
@@ -674,6 +728,7 @@ void GUI_Serial::readGPS()
 			if(CheckPacket(&decoded_packet) == true)
 			{
 				Read(&buff[0], decoded_packet.length);
+				Read(&checksumr, sizeof(uint32));
 				Read(&postword, sizeof(uint32));
 				if(postword != 0xBBBBBBBB)
 				{
@@ -699,13 +754,16 @@ void GUI_Serial::readGPS()
 bool GUI_Serial::CheckPacket(CCSDS_Decoded_Header *_p)
 {
 
-	bool val;
+	bool val = true;
 
-	/* Now copy in the body */
-	if(SIZEOF_M[_p->id] == _p->length)
-		val = true;
-	else
+	if((_p->id >= LAST_M_ID) || (_p->id <= FIRST_M_ID))
+	{
 		val = false;
+	}
+	else if(SIZEOF_M[_p->id] != _p->length)
+	{
+		val = false;
+	}
 
 	return(val);
 }
@@ -729,18 +787,29 @@ void GUI_Serial::FixDoubles(void *_b, int32 _num)
 void GUI_Serial::writeGPS()
 {
 
-	uint32 preamble = 0xAAAAAAAA;
+	uint8 *sbuff;
+	uint32 pre = 0xAAAAAAAA;
+	uint32 post = 0xBBBBBBBB;
+	uint32 checksum;
 
 	Lock();
 
 //	endian_swap(&command_header, sizeof(CCSDS_Packet_Header), 1);
 //	endian_swap(&command_body, decoded_command.length, 0);
 
+	sbuff = &packet_body[0];
+
 	if(command_ready && (command_sent == 0))
 	{
-		Write(&preamble, sizeof(uint32));
-		Write(&command_header, sizeof(CCSDS_Packet_Header));
-		Write(&command_body, decoded_command.length);
+		/* Assemble into a complete packet */
+		memcpy(sbuff, &pre, 4); 				sbuff += 4;		//!< Prefix
+		memcpy(sbuff, &command_header, 6); 		sbuff += 6;		//!< CCSDS Header
+		memcpy(sbuff, &command_body, decoded_command.length);	sbuff += decoded_command.length; //!< Payload
+		checksum = adler(&packet_body[4], 6 + decoded_command.length);
+		memcpy(sbuff, &checksum, 4); 			sbuff += 4;		//!< Checksum
+		memcpy(sbuff, &post, 4); 				sbuff += 4;		//!< Postfix
+
+		Write(&packet_body[0], decoded_command.length + 18);
 		command_sent = 1;
 	}
 

@@ -9,9 +9,9 @@ INCPATH	=	-I. \
 			-I../includes \
 			-I../objects
 
-WX_FLAGS = `wx-config --libs` 
+WX_FLAGS = `wx-config --libs`
 LDFLAGS	 = -lpthread
-CFLAGS   = -D_FORTIFY_SOURCE=0 `wx-config --cxxflags` -g3 $(INCPATH) 
+CFLAGS   = -D_FORTIFY_SOURCE=0 `wx-config --cxxflags` $(INCPATH) 
 
 SRC = $(wildcard src/*.cpp)
 SRC += gui_classes.cpp

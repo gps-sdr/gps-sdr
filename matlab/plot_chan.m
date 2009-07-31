@@ -6,9 +6,8 @@
 %   3: PLL and FLL lock indicators
 %   4: Raw Correlations & CN0
 
-function [] = chan_peek(chan)
+function [A] = chan_peek(chan)
 
-close all; clc;
 A = get_chan(chan);
 
 % uint32 tic;		//!< Corresponds to this receiver tic
@@ -34,18 +33,27 @@ A = get_chan(chan);
 % Q[0]
 % P_buff[0]
 
-figure
-
-subplot(211)
-plot(A(:,3)); ylabel('SV');
-grid on;
-
-subplot(212)
-plot(A(:,13),'k')
-hold on; grid on;
-ylabel('I^{2}+Q^{2}');
 
 figure
+hold all; grid on;
+plot((A(:,21).^2+A(:,24).^2),'.')
+plot((A(:,22).^2+A(:,25).^2),'r.')
+plot(A(:,13)./(A(:,6)),'k')
 
-surf(A(:,end-19:end))
-shading interp
+figure
+cor = A(:,21)+i*A(:,24);
+plot(real(cor),'b.')
+
+figure
+hold all; grid on;
+plot(A(:,7))
+plot(A(:,9))
+plot(A(:,8)*0.5)
+
+bl = A(:,end-19:end);
+
+figure
+mesh(bl)
+shading interp;
+
+

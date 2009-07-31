@@ -83,9 +83,15 @@ class Telemetry : public Threaded_Object
 		Message_Union message_body;					//!< Body of a message
 		SV_Prediction_M sv_predictions[MAX_SV];		//!< Buffer SV predictions
 
+		uint8 packet_body[2048];					//!< Complete packet body
+
 		/* Variables for serial input */
 		uint32 syncstate;							//!< Flag to indicate synchronization step 0 for nothing, 1 for preamble, 2 for CCSDS header, 3 for packet
 		uint32 syncword;							//!< Synchronize to the 0xAAAAAAAA preamble
+		uint32 checksumr;							//!< Received checksum
+
+		uint8 *pchecksumr;							//!< Pointer to received checksum
+		uint32 checksum_bytes;						//!< Bytes to read in checksum
 
 		uint8 *pheader;								//!< Pointer to header
 		uint32 header_bytes;						//!< Bytes left to read in header
@@ -122,6 +128,7 @@ class Telemetry : public Threaded_Object
 		void StateZero();							//!< State zero, waiting for 0xAAAAAAAA preamble
 		void StateOne();							//!< State one, collecting CCSDS header
 		void StateTwo();							//!< State two, collecting body of command
+		void StateThree();							//!< State three, verify packet and pass on to Commando
 
 		uint32 ReadSHU(uint32 _shu);				//!< Read the status and health A/D
 

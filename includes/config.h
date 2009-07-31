@@ -47,16 +47,6 @@
 /*----------------------------------------------------------------------------------------------*/
 
 
-/* What stuff to log */
-/*----------------------------------------------------------------------------------------------*/
-#define CHANNEL_DEBUG			(1)			//!< Log channel data to HD
-#define CHANNEL_INVESTIGATE		(0)			//!< Try to figure out Nav bug
-#define LOG_PSEUDO				(0)			//!< Pseudoranges
-#define LOG_SV					(0)			//!< SV Navigation data
-#define LOG_NAV					(1)			//!< Nav Output
-/*----------------------------------------------------------------------------------------------*/
-
-
 /* MISC GPS Constants */
 /*----------------------------------------------------------------------------------------------*/
 #define MAX_SV					(32)		//!< Number of PRN codes
@@ -70,7 +60,7 @@
 /*----------------------------------------------------------------------------------------------*/
 #define MASK_ANGLE				(0)				//!< Add this many degrees to altitude dependant mask
 #define ACQ_MODULO_WEAK			(8)				//!< Do this many weak acqs per 32 PRN strong search
-#define MAX_ACQS_PER_PVT		(12)			//!< Max # of acquisitions per PVT
+#define MAX_ACQS_PER_PVT		(1)				//!< Max # of acquisitions per PVT
 #define MAX_DOPPLER_ABSOLUTE	(15000)			//!< Limit any and all Dopplers the be within this range
 #define MAX_DOPPLER_STRONG		(15000)			//!< Cold Doppler search space for strong signal
 #define MAX_DOPPLER_MEDIUM		(15000)			//!< Cold Doppler search space for strong signal
@@ -87,11 +77,9 @@
 
 /* Correlator Defines */
 /*----------------------------------------------------------------------------------------------*/
-#define CORR_DELAYS				(1)			//!< Number of delays to calculate (plus-minus)
-#define CORR_SPACING			(.5)		//!< How far should the correlators be spaced (chips)
 #define FRAME_SIZE_PLUS_2		(12)		//!< 10 words per frame, 12 = 10 + 2
-#define CODE_BINS				(20)		//!< Partial code offset bins code resolution -> 1 chip/X bins
-#define CARRIER_SPACING			(20)		//!< Spacing of bins (Hz)
+#define CODE_BINS				(50)		//!< Partial code offset bins code resolution -> 1 chip/X bins
+#define CARRIER_SPACING			(10)		//!< Spacing of bins (Hz)
 #define CARRIER_BINS			(MAX_DOPPLER_ABSOLUTE/CARRIER_SPACING) //!< Number of pre-sampled carrier wipeoff bins
 /*----------------------------------------------------------------------------------------------*/
 
@@ -108,14 +96,13 @@
 /*----------------------------------------------------------------------------------------------*/
 
 
-/* Channel defines */
+/* AGC Control */
 /*----------------------------------------------------------------------------------------------*/
-#define CARRIER_AIDING			(1)			//!< Carrier aid the DLL
-#define PLL_BN					(15)		//!< PLL Bandwidth
-#define FLL_BN					(10)		//!< FLL Bandwidth
 #define AGC_BITS				(6)			//!< AGC to this bit depth
-#define OVERFLOW_LOW			(4)			//!< Overflow low
-#define OVERFLOW_HIGH			(64)		//!< Overflow high
+//#define OVERFLOW_LOW			(256)		//!< Overflow low
+//#define OVERFLOW_HIGH			(1024)		//!< Overflow high
+#define OVERFLOW_LOW			(64)			//!< Overflow low
+#define OVERFLOW_HIGH			(256)		//!< Overflow high
 /*----------------------------------------------------------------------------------------------*/
 
 

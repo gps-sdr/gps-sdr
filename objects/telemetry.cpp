@@ -72,6 +72,7 @@ Telemetry::Telemetry():Threaded_Object("TLMTASK")
 	npipe[READ] = npipe[WRITE] = -1;
 	pheader = (uint8 *)&command_header;
 	pcommand = (uint8 *)&command_body;
+	pchecksumr = (uint8 *)&checksumr;
 
 	signal(SIGPIPE, lost_gui_pipe);
 
@@ -375,6 +376,15 @@ void Telemetry::ImportSerial()
 
 					break;
 				}
+				case 3: /* Get the checksum */
+				{
+					pchecksumr[checksum_bytes] = abyte; checksum_bytes++;
+
+					if(checksum_bytes >= sizeof(uint32))
+						StateThree();
+
+					break;
+				}
 				default:
 				{
 					syncstate = 0;
@@ -436,20 +446,42 @@ void Telemetry::StateOne()
 void Telemetry::StateTwo()
 {
 
-	/* Decode the header */
-	DecodeCCSDSPacketHeader(&decoded_header, &command_header);
-
-	/* Bent pipe data to Commando */
-	write(TLM_2_CMD_P[WRITE], &command_header, sizeof(CCSDS_Packet_Header));
-	write(TLM_2_CMD_P[WRITE], &command_body, decoded_header.length);
-
-	syncstate = 0;
-
+	/* Reset bytes */
 	command_bytes = 0;
 	command_bytes_2_read = 0;
 
+	/* Next state */
+	syncstate = 3;
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void Telemetry::StateThree()
+{
+
+	uint32 checksumc;
+
+	/* Assemble into packet */
+	memcpy(&packet_body[0], &command_header, sizeof(CCSDS_Packet_Header));
+	memcpy(&packet_body[sizeof(CCSDS_Packet_Header)], &command_body, decoded_header.length);
+	checksumc = adler(&packet_body[0], decoded_header.length + sizeof(CCSDS_Packet_Header));
+
+	if(checksumc == checksumr)
+	{
+		/* Bent pipe data to Commando */
+		write(TLM_2_CMD_P[WRITE], &command_header, sizeof(CCSDS_Packet_Header));
+		write(TLM_2_CMD_P[WRITE], &command_body, decoded_header.length);
+	}
+
+	checksum_bytes = 0;
+	syncstate = 0;
+	checksumr = 0;
+
 	memset(&command_body, 0x0, sizeof(Command_Union));
 	memset(&command_header, 0x0, sizeof(CCSDS_Packet_Header));
+
 }
 /*----------------------------------------------------------------------------------------------*/
 
@@ -909,34 +941,30 @@ void Telemetry::EmitCCSDSPacket(void *_buff, int32 _len)
 
 	int32 lcv;
 	uint8 *sbuff;
-	uint8 pre = 0xAA;
-	uint8 post = 0xBB;
+	uint32 pre = 0xAAAAAAAA;
+	uint32 post = 0xBBBBBBBB;
+	uint32 checksum;
+
+	sbuff = &packet_body[0];
+
+	/* Assemble into a complete packet */
+	memcpy(sbuff, &pre, 4); 				sbuff += 4;		//!< Prefix
+	memcpy(sbuff, &packet_header, 6); 		sbuff += 6;		//!< CCSDS Header
+	memcpy(sbuff, _buff, _len); 			sbuff += _len;	//!< Payload
+	checksum = adler(&packet_body[4], 6 + _len);
+	memcpy(sbuff, &checksum, 4); 			sbuff += 4;		//!< Checksum
+	memcpy(sbuff, &post, 4); 				sbuff += 4;		//!< Postfix
 
 	/* Write the sync header to the UART */
 	if(npipe_open)
 	{
-		for(lcv = 0; lcv < 4; lcv++)
-			write(npipe[WRITE], &pre, sizeof(uint8));
-
-		/* Write the CCSDS header to the UART */
-		sbuff = (uint8 *)&packet_header;
-		for(lcv = 0; lcv < 6; lcv++)
-		{
-			write(npipe[WRITE], sbuff, sizeof(uint8));
-			sbuff++;
-		}
-
 		/* Now write the body to the UART */
-		sbuff = (uint8 *)_buff;
-		for(lcv = 0; lcv < _len; lcv++)
+		sbuff = (uint8 *)&packet_body[0];
+		for(lcv = 0; lcv < _len + 18; lcv++)
 		{
 			write(npipe[WRITE], sbuff, sizeof(uint8));
 			sbuff++;
 		}
-
-		/* Write the sync postfix to the UART */
-		for(lcv = 0; lcv < 4; lcv++)
-			write(npipe[WRITE], &post, sizeof(uint8));
 	}
 
 }

@@ -100,6 +100,7 @@ void GPS_Source::Read(ms_packet *_p)
 {
 
 	double gain;
+	int32 shift;
 
 	switch(source_type)
 	{
@@ -117,31 +118,49 @@ void GPS_Source::Read(ms_packet *_p)
 			break;
 	}
 
-	/* Dont need to AGC the SOURCE_SIGE_GN3S */
-	if(source_type != SOURCE_SIGE_GN3S)
+	switch(source_type)
 	{
-		/* Add to the buff */
-		soverflw += run_agc(&_p->data[0], SAMPS_MS, AGC_BITS, 1);
+		case SOURCE_USRP_V1:
 
-		/* Figure out the agc_scale value */
-		if((ms_count & 0xF) == 0)
-		{
-			gain = dbs_rx_a->rf_gain();
+			/* Count the overflows and shift if needed */
+			soverflw += run_agc(&_p->data[0], SAMPS_MS, AGC_BITS, 6);
 
-			if(soverflw > OVERFLOW_HIGH)
-				gain -= 0.5;
+			/* Figure out the agc_scale value */
+			if((ms_count & 0xFF) == 0)
+			{
+				gain = dbs_rx_a->rf_gain();
 
-			if(soverflw < OVERFLOW_LOW)
-				gain += 0.5;
+				if(soverflw > OVERFLOW_HIGH)
+					gain -= 0.5;
 
-			dbs_rx_a->rf_gain(gain);
+				if(soverflw < OVERFLOW_LOW)
+					gain += 0.5;
 
-			overflw = soverflw;
-			soverflw = 0;
+				dbs_rx_a->rf_gain(gain);
 
-			agc_scale = (int32)floor(2.0*(dbs_rx_a->max_rf_gain() - gain));
-		}
+				agc_scale = (int32)floor(2.0*(dbs_rx_a->max_rf_gain() - gain));
+
+				overflw = soverflw;
+				soverflw = 0;
+			}
+
+			break;
+		case SOURCE_USRP_V2:
+
+//			Read_SOURCE_USRP_V2(_p);
+			break;
+
+		case SOURCE_SIGE_GN3S:
+
+			break;
+		default:
+			break;
 	}
+
+//	FILE *fp;
+//	fp = fopen("crap.dat","a");
+//	fwrite(&_p->data[0], 1, SAMPS_MS*sizeof(CPX), fp);
+//	fclose(fp);
 
 	ms_count++;
 
@@ -491,6 +510,7 @@ void GPS_Source::Read_GN3S(ms_packet *_p)
 		/* Start transfer */
 		while(!started)
 		{
+			usleep(100);
 			started = gn3s_a->usrp_xfer(VRQ_XFER, 1);
 		}
 
@@ -598,46 +618,66 @@ void GPS_Source::Resample_USRP_V1(CPX *_in, CPX *_out)
 void GPS_Source::Resample_GN3S(CPX *_in, CPX *_out)
 {
 	/* Runs specified filter on incoming signal. */
-	//static short filter[7] = {3,4,5,6,5,4,3}; 			Mike's Filter
-	//static short filter[7] = {-3,10,27,34,27,10,-3}; 		Greg's Filter
 	int32 lcv, ind;
+	int16 tmp;
 
 	/* Process the array */
 	for(lcv = 0; lcv < 10240; lcv++)
 	{
 		ind = gdec[lcv];
 
-//		_out[lcv].i =	_in[ind + 6].i * -3 +
-//						_in[ind + 5].i * 10 +
-//						_in[ind + 4].i * 27 +
-//						_in[ind + 3].i * 34 +
-//						_in[ind + 2].i * 27 +
-//						_in[ind + 1].i * 10 +
-//						_in[ind + 0].i * -3;
+		tmp = 8;
+		tmp += _in[ind +  6].i *  3;
+		tmp += _in[ind +  5].i * 97;
+		tmp += _in[ind +  4].i * 77;
+		tmp += _in[ind +  3].i * 86;
+		tmp += _in[ind +  2].i * 77;
+		tmp += _in[ind +  1].i * 97;
+		tmp += _in[ind +  0].i *  3;
+		_out[lcv].i = tmp >> 4;
+
+		tmp = 8;
+		tmp += _in[ind +  6].q *  3;
+		tmp += _in[ind +  5].q * 97;
+		tmp += _in[ind +  4].q * 77;
+		tmp += _in[ind +  3].q * 86;
+		tmp += _in[ind +  2].q * 77;
+		tmp += _in[ind +  1].q * 97;
+		tmp += _in[ind +  0].q *  3;
+		_out[lcv].q = tmp >> 4;
+
+//		tmp = 4;
+//		tmp += _in[ind + 12].i *   3;
+//		tmp += _in[ind + 11].i *  -8;
+//		tmp += _in[ind + 10].i * -11;
+//		tmp += _in[ind +  9].i *   1;
+//		tmp += _in[ind +  8].i *  26;
+//		tmp += _in[ind +  7].i *  52;
+//		tmp += _in[ind +  6].i *  63;
+//		tmp += _in[ind +  5].i *  52;
+//		tmp += _in[ind +  4].i *  26;
+//		tmp += _in[ind +  3].i *  1;
+//		tmp += _in[ind +  2].i * -11;
+//		tmp += _in[ind +  1].i *  -8;
+//		tmp += _in[ind +  0].i *   3;
+//		_out[lcv].i = tmp >> 3;
 //
-//		_out[lcv].q =	_in[ind + 6].q * -3 +
-//						_in[ind + 5].q * 10 +
-//						_in[ind + 4].q * 27 +
-//						_in[ind + 3].q * 34 +
-//						_in[ind + 2].q * 27 +
-//						_in[ind + 1].q * 10 +
-//						_in[ind + 0].q * -3;
+//		tmp = 4;
+//		tmp += _in[ind + 12].q *   3;
+//		tmp += _in[ind + 11].q *  -8;
+//		tmp += _in[ind + 10].q * -11;
+//		tmp += _in[ind +  9].q *   1;
+//		tmp += _in[ind +  8].q *  26;
+//		tmp += _in[ind +  7].q *  52;
+//		tmp += _in[ind +  6].q *  63;
+//		tmp += _in[ind +  5].q *  52;
+//		tmp += _in[ind +  4].q *  26;
+//		tmp += _in[ind +  3].q *  1;
+//		tmp += _in[ind +  2].q * -11;
+//		tmp += _in[ind +  1].q *  -8;
+//		tmp += _in[ind +  0].q *   3;
+//		_out[lcv].q = tmp >> 3;
 
-		_out[lcv].i =	_in[ind + 6].i * 4 +
-						_in[ind + 5].i * 5 +
-						_in[ind + 4].i * 6 +
-						_in[ind + 3].i * 7 +
-						_in[ind + 2].i * 6 +
-						_in[ind + 1].i * 5 +
-						_in[ind + 0].i * 4;
-
-		_out[lcv].q =	_in[ind + 6].q * 4 +
-						_in[ind + 5].q * 5 +
-						_in[ind + 4].q * 6 +
-						_in[ind + 3].q * 7 +
-						_in[ind + 2].q * 6 +
-						_in[ind + 1].q * 5 +
-						_in[ind + 0].q * 4;
 	}
 
 	return;

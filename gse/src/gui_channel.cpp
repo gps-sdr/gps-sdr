@@ -94,7 +94,7 @@ void GUI_Channel::render(wxDC& dc)
 
 		tChannel->SetDefaultStyle(style);
 
-		if(pchan->count > 2000)
+		if(pchan->count > 1000)
 		{
 
 			str2.Clear();

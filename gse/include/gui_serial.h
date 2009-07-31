@@ -67,6 +67,7 @@ class GUI_Serial : public Threaded_Object
 		uint32					command_sent;				//!< Flag to indicate command was transmitted
 		uint32					command_ack;				//!< Flag to indicate command was executed
 		uint32					command_count;				//!< Used to detect a command ack
+		uint8 					packet_body[2048];			//!< Complete packet body
 
 		Message_Struct			messages;					//!< Hold all the messages
 		Message_Union			message_body;				//!< Union for messages

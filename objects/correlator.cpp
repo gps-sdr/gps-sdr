@@ -633,7 +633,7 @@ void Correlator::InitCorrelator(Correlator_State_S *s)
 
 	/* Convert delay in samples to chips */
 	code_phase = (double)result.code_phase * 1023.0 / 2048.0;
-	code_phase += (double)CODE_CHIPS + dt;
+	code_phase += (double)CODE_CHIPS - dt + 2.5;
 	code_phase = fmod(code_phase,(double) CODE_CHIPS);
 
 	s->sv					= result.sv;
