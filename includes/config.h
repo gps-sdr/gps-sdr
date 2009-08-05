@@ -101,8 +101,8 @@
 #define AGC_BITS				(6)			//!< AGC to this bit depth
 //#define OVERFLOW_LOW			(256)		//!< Overflow low
 //#define OVERFLOW_HIGH			(1024)		//!< Overflow high
-#define OVERFLOW_LOW			(64)			//!< Overflow low
-#define OVERFLOW_HIGH			(256)		//!< Overflow high
+#define OVERFLOW_LOW			(64)		//!< Overflow low
+#define OVERFLOW_HIGH			(512)		//!< Overflow high
 /*----------------------------------------------------------------------------------------------*/
 
 

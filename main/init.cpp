@@ -110,7 +110,7 @@ void Parse_Arguments(int32 argc, char* argv[])
 	gopt.mode 			= 0;		//!< Single board L1 mode by default
 	gopt.decimate		= 16;		//!< Default to work with both 65.536 and 64 MHz clocks
 	gopt.gr 			= 30; 		//!< 40 dB of RF gain
-	gopt.gi 			= 10; 		//!< 10 dB of IF gain
+	gopt.gi 			= 0; 		//!< 10 dB of IF gain
 	gopt.f_lo_a 		= L1 - IF_FREQUENCY;	//!< Board A L1 by default
 	gopt.f_ddc_a 		= 0;		//!< no DDC correction
 	gopt.f_lo_b			= L2 - IF_FREQUENCY;	//!< Board B L2 by default

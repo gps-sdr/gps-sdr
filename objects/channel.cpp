@@ -201,18 +201,18 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 	I_sum20	+= corr->I[1] - I_buff[_1ms_epoch];
 	Q_sum20 += corr->Q[1] - Q_buff[_1ms_epoch];
 
-//	if((I_buff[_1ms_epoch] > 0) !=  (corr->I[1] > 0))
-//	{
-//		P_buff[_1ms_epoch]++;
-//	}
-
 	/* Buffer storing past 20 1ms accumulations */
 	I_buff[_1ms_epoch] = corr->I[1];
 	Q_buff[_1ms_epoch] = corr->Q[1];
 
+	if((I_buff[_1ms_epoch] > 0) !=  (I_buff[(_1ms_epoch + 19) % 20] > 0))
+	{
+		P_buff[_1ms_epoch]++;
+	}
+
 	/* Lowpass filter */
 	//P_buff[_1ms_epoch] = (63 * P_buff[_1ms_epoch] + (I_sum20 >> 6) * (I_sum20 >> 6)	+ (Q_sum20 >> 6)*(Q_sum20 >> 6) + 32) >> 6;
-	P_buff[_1ms_epoch] = (63 * P_buff[_1ms_epoch] + (I_sum20 >> 6) * (I_sum20 >> 6)	+ 32) >> 6;
+	//P_buff[_1ms_epoch] = (63 * P_buff[_1ms_epoch] + (I_sum20 >> 6) * (I_sum20 >> 6)	+ 32) >> 6;
 
 	/* Dump accumulation and do tracking according to integration length */
 	if((_1ms_epoch % len) == 0)
@@ -462,11 +462,11 @@ void Channel::PLL()
 
 	df = dp = 0;
 
-	//if(len == 20 || (_1ms_epoch & 0x1))
+//	if(bit_lock)
 //	{
 //		/* FLL discriminator */
 //		dot = 	  I_prev*I[1] + Q_prev*Q[1];
-//		cross =  -I_prev*Q[1] + Q_prev*I[1];
+//		cross =   I_prev*Q[1] - Q_prev*I[1];
 //
 //		/* No FLL for now */
 //		if((dot != 0.0) && (cross != 0.0))
@@ -475,7 +475,7 @@ void Channel::PLL()
 //			df /= (TWO_PI * aPLL.t);
 //		}
 //	}
-//
+
 //	df = 0;
 
 	/* PLL discriminator */
@@ -526,74 +526,78 @@ void Channel::Epoch()
 void Channel::BitLock()
 {
 	int32 power_buff[20];
-	int32 new_epoch;
-	int32 lcv;
-	int32 thresh;
-	uint32 best_sum;
+	int32 lcv, new_epoch;
+	int32 thresh_high, thresh_low, bit_lock_err;
 
 	/* Set bitlock threshold */
-	thresh = 1000;
+	thresh_high = 100;
+	thresh_low = 25;
 
-	if(_1ms_epoch == 19 && (bit_lock_ticks >= thresh))
+	if(_1ms_epoch == 19)
 	{
 		if(bit_lock == false)
 		{
 			/* Find the maximum of the power buffer */
-			best_sum = 0; new_epoch = 0;
+			bit_lock_err = 0; new_epoch = 0;
 			for(lcv = 0; lcv < 20; lcv++)
 			{
-				if(P_buff[lcv] > best_sum)
+				if(P_buff[lcv] > thresh_high)
 				{
-					best_sum = P_buff[lcv];
+					bit_lock = true;
 					new_epoch = lcv;
+				}
+
+				if(P_buff[lcv] > thresh_low)
+				{
+					bit_lock_err++;
 				}
 			}
 
-			/* If the epoch has changed */
-			if(new_epoch != best_epoch)
+			/* Bin counter exceeded threshold */
+			if(bit_lock == true)
 			{
-				bit_lock_ticks = 0;
-				best_epoch = new_epoch;
-			}
-
-			/* If the epoch has NOT changed in X ms */
-			if(bit_lock_ticks > thresh)
-			{
-				bit_lock = true;
-
-				_1ms_epoch = (38 - best_epoch) % 20;
-
+				best_epoch = 19;
 				bit_lock_pend = 1;
-
 				bit_lock_ticks = 0;
+				_1ms_epoch = (38 - new_epoch) % 20;
 
 				/* Copy over the power buffer to put the max in element 19 */
 				for(lcv = 0 ; lcv < 20; lcv++)
 					power_buff[lcv] = P_buff[lcv];
 
 				for(lcv = 0 ; lcv < 20; lcv++)
-					P_buff[lcv] = power_buff[(lcv + best_epoch + 1) % 20];
+					P_buff[lcv] = power_buff[(lcv + new_epoch + 1) % 20];
 			}
+
+			/* Bit lock failure, reset! */
+			if(bit_lock_err > 1)
+			{
+				best_epoch = 0;
+				bit_lock_ticks = 0;
+				bit_lock = false;
+				frame_lock = false;
+				for(lcv = 0 ; lcv < 20; lcv++)
+					P_buff[lcv] = 0;
+			}
+
 		}
 		else if(bit_lock_ticks < 60000) /* Bitlock obtained, keep monitoring it up to 1 minute */
 		{
-
 			/* Find the maximum of the power buffer */
-			best_sum = 0; new_epoch = 0;
+			bit_lock_err = 0; new_epoch = 0;
 			for(lcv = 0; lcv < 20; lcv++)
 			{
-				if(P_buff[lcv] > best_sum)
+				if(P_buff[lcv] > bit_lock_err)
 				{
-					best_sum = P_buff[lcv];
+					bit_lock_err = P_buff[lcv];
 					new_epoch = lcv;
 				}
 			}
 
-			best_epoch = new_epoch;
-
 			/* Best epoch not in the correct place! */
-			if(best_epoch != 19)
+			if(new_epoch != 19)
 			{
+				best_epoch = 0;
 				bit_lock_ticks = 0;
 				bit_lock = false;
 				frame_lock = false;
@@ -603,8 +607,8 @@ void Channel::BitLock()
 		}
 	}
 
-	/* Always do this */
 	bit_lock_ticks++;
+
 }
 /*----------------------------------------------------------------------------------------------*/
 

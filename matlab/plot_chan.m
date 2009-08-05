@@ -50,10 +50,10 @@ plot(A(:,7))
 plot(A(:,9))
 plot(A(:,8)*0.5)
 
-bl = A(:,end-19:end);
-
-figure
-mesh(bl)
-shading interp;
+% bl = A(:,end-19:end);
+% 
+% figure
+% mesh(bl)
+% shading interp;
 
 
