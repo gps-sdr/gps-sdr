@@ -207,7 +207,7 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 
 	if((I_buff[_1ms_epoch] > 0) !=  (I_buff[(_1ms_epoch + 19) % 20] > 0))
 	{
-		P_buff[_1ms_epoch]++;
+		P_buff[(_1ms_epoch + 19) % 20]++;
 	}
 
 	/* Lowpass filter */
@@ -282,9 +282,9 @@ void Channel::Accum(Correlation_S *corr, NCO_Command_S *_feedback)
 void Channel::DumpAccum()
 {
 	/* Compute the powers */
-	P[0] = (I[0]) * (I[0]) + (Q[0]) * (Q[0]);
-	P[1] = (I[1]) * (I[1]) + (Q[1]) * (Q[1]);
-	P[2] = (I[2]) * (I[2]) + (Q[2]) * (Q[2]);
+	P[0] = (I[0] * I[0]) + (Q[0] * Q[0]);
+	P[1] = (I[1] * I[1]) + (Q[1] * Q[1]);
+	P[2] = (I[2] * I[2]) + (Q[2] * Q[2]);
 
 	/* Lowpass filtered values here */
 	I_avg += (fabs((float)I[1]) - I_avg) * .02;
@@ -338,8 +338,6 @@ void Channel::EstCN0()
 
 		if(WBP > 0.0)
 			NP = NBP/WBP;
-
-		ncn0 = 10*log10((NP - 1.0)/(20.0 - NP)) + 30.0 + .25;
 
 		if((NP - 1.0)/(20.0 - NP) > 0.0)
 		{
