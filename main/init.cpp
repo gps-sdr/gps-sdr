@@ -39,6 +39,7 @@
 #include "commando.h"			//!< Command interface
 #include "sv_select.h"			//!< Drives acquisition/reacquisition process
 #include "gps_source.h"			//!< Get GPS IF data from where?
+#include "patience.h"
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -290,11 +291,11 @@ int32 Object_Init(void)
 	for(lcv = 0; lcv < MAX_CHANNELS; lcv++)
 		pChannels[lcv] = new Channel(lcv);
 
-	/* Get data from either the USRP or disk */
+	/* Get data from either the USRP/GN3S/disk */
 	pFIFO = new FIFO;
 
-	/* Draw the GPS data from somewhere */
-	pSource = new GPS_Source(&gopt);
+	/* Startup Watchdog */
+	pPatience = new Patience;
 
 	pCorrelator = new Correlator();
 
@@ -392,6 +393,11 @@ int32 Thread_Init(void)
 
 	/* Start up the FIFO */
 	pFIFO->Start();
+
+	sleep(1);
+
+	/* Start up the Watchdog */
+	pPatience->Start();
 
 	return(1);
 

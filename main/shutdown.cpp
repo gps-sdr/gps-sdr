@@ -39,6 +39,7 @@
 #include "commando.h"			//!< Command interface
 #include "sv_select.h"			//!< Drives acquisition/reacquisition process
 #include "gps_source.h"			//!< Get GPS data
+#include "patience.h"
 /*----------------------------------------------------------------------------------------------*/
 
 
@@ -49,6 +50,9 @@ void Thread_Shutdown(void)
 
 	/* Start the keyboard thread to handle user input from stdio */
 	pKeyboard->Stop();
+
+	/* Stop the WatchDog */
+	pPatience->Stop();
 
 	/* Stop the FIFO */
 	pFIFO->Stop();
@@ -132,11 +136,11 @@ void Object_Shutdown(void)
 	delete pAcquisition;
 	delete pEphemeris;
 	delete pFIFO;
-	delete pSource;
 	delete pSV_Select;
 	delete pTelemetry;
 	delete pPVT;
 	delete pCommando;
+	delete pPatience;
 
 }
 /*----------------------------------------------------------------------------------------------*/

@@ -47,6 +47,7 @@ EXTERN class SV_Select		*pSV_Select;					//!< Contains the channels and drives t
 EXTERN class Telemetry		*pTelemetry;					//!< Simple ncurses interface
 EXTERN class Commando		*pCommando;						//!< Process and execute commands
 EXTERN class GPS_Source		*pSource;						//!< Get the GPS data from somewhere
+EXTERN class Patience		*pPatience;						//!< Watchdog for GPS Source
 /*----------------------------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------------------------*/

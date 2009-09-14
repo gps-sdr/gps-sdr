@@ -33,6 +33,10 @@ void *FIFO_Thread(void *_arg)
 
 	FIFO *aFIFO = pFIFO;
 
+	/* This thread must be cancellable by the watchdog */
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+
 	while(grun)
 	{
 		aFIFO->Import();
@@ -60,6 +64,7 @@ void FIFO::Start()
 /*----------------------------------------------------------------------------------------------*/
 FIFO::FIFO():Threaded_Object("FIFTASK")
 {
+
 	int32 lcv;
 
 	/* Create the buffer */
@@ -79,6 +84,9 @@ FIFO::FIFO():Threaded_Object("FIFTASK")
 	sem_init(&sem_full, NULL, 0);
 	sem_init(&sem_empty, NULL, FIFO_DEPTH);
 
+	pSource = NULL;
+	ResetSource();
+
 	if(gopt.verbose)
 		fprintf(stdout,"Creating FIFO\n");
 
@@ -96,6 +104,9 @@ FIFO::~FIFO()
 
 	delete [] buff;
 
+	if(pSource != NULL)
+		delete pSource;
+
 	if(gopt.verbose)
 		fprintf(stdout,"Destructing FIFO\n");
 
@@ -110,7 +121,8 @@ void FIFO::Import()
 	IncStartTic();
 
 	/* Read from the GPS source */
-	pSource->Read(head);
+	if(pSource != NULL)
+		pSource->Read(head);
 
 	Enqueue();
 
@@ -151,6 +163,24 @@ void FIFO::Dequeue(ms_packet *p)
 	tail = tail->next;
 
 	sem_post(&sem_empty);
+
+}
+/*----------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------------------------*/
+void FIFO::ResetSource()
+{
+
+	if(pSource != NULL)
+	{
+		delete pSource;
+		pSource = new GPS_Source(&gopt);
+	}
+	else
+	{
+		pSource = new GPS_Source(&gopt);
+	}
 
 }
 /*----------------------------------------------------------------------------------------------*/

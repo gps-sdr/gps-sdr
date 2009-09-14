@@ -422,12 +422,12 @@ void Channel::FrequencyLock()
 void Channel::DLL()
 {
 
-	float code_err;
-	float ep, lp, sp;
+	double code_err;
+	double ep, lp, sp;
 
-	ep = sqrt(float(P[0]));
-	lp = sqrt(float(P[2]));
-	sp = sqrt(float(P_avg));
+	ep = sqrt(double(P[0]));
+	lp = sqrt(double(P[2]));
+	sp = sqrt(double(P[2] + P[0]));
 
 	code_err  = (ep - lp) / sp;
 
@@ -452,10 +452,10 @@ void Channel::DLL()
 void Channel::PLL()
 {
 
-	float df;
-	float dp;
-	float dot;
-	float cross;
+	double df;
+	double dp;
+	double dot;
+	double cross;
 	int32 I1, I2, Q1, Q2, lcv;
 
 	df = dp = 0;
@@ -479,7 +479,7 @@ void Channel::PLL()
 	/* PLL discriminator */
 	if(I[1] != 0)
 	{
-		dp = atan((float)Q[1]/(float)I[1])/TWO_PI;
+		dp = atan((double)Q[1]/(double)I[1])/TWO_PI;
 	}
 
 	/* Lock indicators */
